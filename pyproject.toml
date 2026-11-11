@@ -3,7 +3,10 @@ name = "furniture-design"
 version = "0.1.0"
 description = "Skills, a knowledge base and the furniture-design@ quern package for designing furniture as a beginner, with the ledger of the decisions they are bound by."
 requires-python = ">=3.11"
-dependencies = ["quern", "geometry"]
+dependencies = [
+    "quern",
+    "reportlab>=5.1.0",
+]
 
 [build-system]
 requires = ["hatchling"]
@@ -18,8 +21,6 @@ dev = ["pytest>=8.0.0", "pytest-testmon>=2.1"]
 [tool.uv.sources]
 # Pinned by rev, always: quern is pre-1.0 and the doctrine is fork-or-republish.
 quern = { git = "https://github.com/xag/quern", rev = "c839190abc5e70ce0e693f14e7895e655907263c" }
-# geometry@'s renderer draws the 3D views (furniture_design.drawings); pinned on the same quern.
-geometry = { git = "https://github.com/xag/geometry", rev = "ca2f0b3e8edd8ea8e8ae8dc44af8a490812c6534" }
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

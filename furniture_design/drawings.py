@@ -1,12 +1,11 @@
-"""Drawings and a build document from a piece as quern nodes: the cut list, the joints,
-orthographic plans with their dimensions (SVG), 3D views (PNG, through geometry@'s
-renderer) and the document that puts them together with the assembly steps and what the
-rules said.
+"""What a piece is built from, generated from its quern nodes: the cut list, the joint
+list and, through documents(), the interactive 3D view (viewer.py), the design document and
+the assembly instructions (sheets.py), with the checks in plain words (report.py).
 
 Everything here reads the tree; nothing is typed twice. A part's sizes come from its box
 (sizes may name its params), its place from its transform, its name from the node's
-`name` (else its id). Assembly steps are the piece's payload `steps`: a list of
-{"text": ..., "joints": [joint ids]} in the order they are done.
+`name` (else its id). The piece's payload carries its `steps` (scene.py says how), its
+`version`, `authors`, `date` and `description` (design notes, one paragraph each).
 
 The frame is furniture-design's: x across from the left, y from the front to the back, z up
 from the floor, mm.
@@ -202,23 +201,6 @@ def plan_svg(tree: Quern, piece: str, view: str, *, scale: float = 0.5, lang: st
     return "\n".join(out)
 
 
-def views_3d(tree: Quern, piece: str, px: int = 900) -> dict[str, bytes]:
-    """Shaded perspective views through geometry@'s renderer: from the front left, from
-    the front right, and from behind on the left."""
-    import geometry
-
-    solids = geometry.realize(tree, piece)
-    box = geometry.bbox(solids)
-    lo, hi = box["min"], box["max"]
-    c = [(a + b) / 2 for a, b in zip(lo, hi)]
-    r = max(b - a for a, b in zip(lo, hi)) * 0.95
-    eyes = {"avant-gauche": [c[0] - r, c[1] - r * 1.2, c[2] + r * 0.8],
-            "avant-droite": [c[0] + r, c[1] - r * 1.2, c[2] + r * 0.6],
-            "arriere-gauche": [c[0] - r, c[1] + r * 1.2, c[2] + r * 0.8]}
-    return {name: geometry.render_perspective(solids, eye=eye, look_at=c, px=px, style="solid")
-            for name, eye in eyes.items()}
-
-
 def checks(tree: Quern, piece: str) -> list[tuple[str, str, str, str]]:
     """The rules' verdicts that are not passes, on the piece and everything under it, with
     the reason when the rule could not answer."""
@@ -227,58 +209,22 @@ def checks(tree: Quern, piece: str) -> list[tuple[str, str, str, str]]:
             if not r.ok and (r.node == prefix or r.node.startswith(prefix + "/"))]
 
 
-def build_document(tree: Quern, piece: str, out_dir: Path, *, title: str, lang: str = "fr",
-                   intro: str = "") -> Path:
-    """Write the plans, the 3D views and a Markdown build document into `out_dir`, and
-    return the document's path."""
-    L = LABELS[lang]
+def documents(tree: Quern, piece: str, out_dir: Path, *, lang: str = "fr",
+              stem: str | None = None) -> dict[str, Path]:
+    """The three things a piece is built from, written into `out_dir`: the interactive 3D
+    view (HTML), the design document (PDF, A3) and the assembly instructions (PDF, A4)."""
+    from .report import checks as plain_checks
+    from .scene import scene
+    from .sheets import assembly_instructions, design_document
+    from .viewer import viewer_html
+
     out_dir.mkdir(parents=True, exist_ok=True)
-    for view in VIEWS:
-        (out_dir / f"plan-{view}.svg").write_text(plan_svg(tree, piece, view, lang=lang),
-                                                   encoding="utf-8")
-    shots = views_3d(tree, piece)
-    for name, png in shots.items():
-        (out_dir / f"3d-{name}.png").write_bytes(png)
-    bs = bodies(tree, piece)
-    size = [max(b.hi[i] for b in bs) - min(b.lo[i] for b in bs) for i in range(3)]
-    rows = cut_list(tree, piece)
-    lines = [f"# {title}", ""]
-    if intro:
-        lines += [intro, ""]
-    lines += [f"{L['overall']} : {_fmt(size[0])} × {_fmt(size[1])} × {_fmt(size[2])} mm "
-              f"({L['width'].lower()} × {'profondeur' if lang == 'fr' else 'depth'} × "
-              f"{'hauteur' if lang == 'fr' else 'height'}).", "", f"## {L['views']}", ""]
-    lines += [f"![{n}](3d-{n}.png)" for n in shots] + ["", f"## {L['plans']}", ""]
-    lines += [f"![{L[v]}](plan-{v}.svg)" for v in VIEWS] + ["", f"## {L['cut_list']}", "",
-              f"| {L['mark']} | {L['part']} | {L['qty']} | {L['length']} | {L['width']} | "
-              f"{L['thickness']} | {L['material']} | {L['grain']} |",
-              "|---|---|---|---|---|---|---|---|"]
-    for r in rows:
-        lines.append(f"| {r.mark} | {r.name} | {r.qty} | {_fmt(r.length)} | {_fmt(r.width)} | "
-                     f"{_fmt(r.thickness)} | {r.material} | {r.grain} |")
-    js = joints(tree, piece)
-    if js:
-        lines += ["", f"## {L['joints']}", "",
-                  f"| {L['joint']} | {L['joins']} | {L['connector']} | {L['count']} | "
-                  f"{L['cut']} | {L['setting']} | {L['tool']} |", "|---|---|---|---|---|---|---|"]
-        for j in js:
-            count = "" if j["count"] is None else _fmt(j["count"])
-            lines.append(f"| {j['name']} | {' + '.join(j['joins'])} | {j['connector']} | {count} | "
-                         f"{j['cut']} | {j['setting']} | {', '.join(j['tools'])} |")
-    steps = (get_node(tree, piece).payload or {}).get("steps", [])
-    if steps:
-        lines += ["", f"## {L['steps']}", ""]
-        for i, step in enumerate(steps, 1):
-            lines.append(f"{i}. {step['text']}")
-    reds = checks(tree, piece)
-    lines += ["", f"## {L['checks']}", ""]
-    if reds:
-        lines += [f"| {L['rule']} | {L['where']} | {L['verdict']} | {L['why']} |",
-                  "|---|---|---|---|"]
-        lines += [f"| {r} | {n.rsplit('/', 1)[-1]} | {v} | {why} |" for r, n, v, why in reds]
-    else:
-        lines.append(L["all_hold"])
-    lines += ["", L["units"], ""]
-    doc = out_dir / "README.md"
-    doc.write_text("\n".join(lines), encoding="utf-8")
-    return doc
+    sc = scene(tree, piece)
+    stem = stem or piece.rsplit("/", 1)[-1]
+    words = {"fr": ("3d", "plans", "montage"), "en": ("3d", "design", "assembly")}[lang]
+    return {
+        "viewer": viewer_html(sc, out_dir / f"{stem}-{words[0]}.html", lang),
+        "design": design_document(sc, out_dir / f"{stem}-{words[1]}.pdf",
+                                  plain_checks(tree, piece, lang), lang),
+        "assembly": assembly_instructions(sc, out_dir / f"{stem}-{words[2]}.pdf", lang),
+    }
