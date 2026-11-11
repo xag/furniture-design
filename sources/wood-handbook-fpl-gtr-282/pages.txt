@@ -2008,6 +2008,167 @@ dValues for side hardness of the true hickories are from Bendtsen and Ethington 
 eCoast Douglas-fir is defined as Douglas-fir growing in Oregon and Washington State west of the Cascade Mountains summit. Interior West includes 
 California and all counties in Oregon and Washington east of, but adjacent to, the Cascade summit; Interior North, the remainder of Oregon and 
 Washington plus Idaho, Montana, and Wyoming; and Interior South, Utah, Colorado, Arizona, and New Mexico. 
+=====PAGE 142=====
+General Technical Report FPL–GTR–282
+5–26 
+ 
+ 
+ 
+   
+   
+   
+  
+ 
+   
+ 
+   
+  
+ 
+ 
+ 
+  
+   
+   
+   
+  
+   
+   
+ 
+ 
+ 
+  
+  
+  
+ 
+ 
+ 
+ 
+ 
+   
+     
+      
+  
+ 
+ 
+    
+   
+ 
+      
+   
+   
+Table 5–6. Average coefficients of variation for some 
+mechanical properties of clear wood 
+Coefficient 
+of variationa 
+Property (%) 
+Static bending 
+Modulus of rupture 16 
+Modulus of elasticity 22 
+Work to maximum load 34 
+Impact bending 25 
+Compression parallel to grain 18 
+Compression perpendicular to grain 28 
+Shear parallel to grain, maximum shearing strength 14 
+Tension perpendicular to grain 25 
+Side hardness 20 
+Toughness 34 
+Specific gravity 10 
+aValues based on results of tests of green wood from approximately 
+50 species. Values for wood adjusted to 12% moisture content may be 
+assumed to be approximately of the same magnitude. 
+Table 5–7. Average parallel-to-grain tensile 
+strength of some wood speciesa 
+Tensile strength 
+Species (kPa (lb in–2)) 
+Hardwoods 
+Beech, American 86,200 (12,500) 
+Elm, cedar 120,700 (17,500) 
+Maple, sugar 108,200 (15,700) 
+Oak 
+Overcup 77,900 (11,300) 
+Pin 112,400 (16,300) 
+Poplar, balsam 51,000 (7,400) 
+Sweetgum 93,800 (13,600) 
+Willow, black 73,100 (10,600) 
+Yellow-poplar 109,600 (15,900) 
+Softwoods 
+Baldcypress 58,600 (8,500) 
+Cedar 
+Port-Orford 78,600 (11,400) 
+Western redcedar 45,500 (6,600) 
+Douglas-fir, interior north 107,600 (15,600) 
+Fir 
+California red 77,900 (11,300) 
+Pacific silver 95,100 (13,800) 
+Hemlock, western 89,600 (13,000) 
+Larch, western 111,700 (16,200) 
+Pine 
+Eastern white 73,100 (10,600) 
+Loblolly 80,000 (11,600) 
+Ponderosa 57,900 (8,400) 
+Virginia 94,500 (13,700) 
+Redwood 
+Virgin 64,800 (9,400) 
+Young growth 62,700 (9,100) 
+Spruce 
+Engelmann 84,800 (12,300) 
+Sitka 59,300 (8,600) 
+aResults of tests on clear, straight-grained specimens tested green. 
+For hardwood species, strength of specimens tested at 12% moisture 
+content averages about 32% higher; for softwoods, about 13% 
+higher. 
+Natural Characteristics Affecting 
+Mechanical Properties 
+Clear straight-grained wood is used for determining 
+fundamental mechanical properties; however, because 
+of natural growth characteristics of trees, wood products 
+vary in specific gravity, may contain cross grain, or may 
+have knots and localized slope of grain. Natural defects 
+such as pitch pockets may occur as a result of biological or 
+climatic elements influencing the living tree. These wood 
+characteristics must be taken into account in assessing 
+actual properties or estimating actual performance of wood 
+products. 
+Specific Gravity 
+The substance of which wood is composed is actually 
+heavier than water; its specific gravity is about 1.5 
+regardless of wood species. In spite of this, dry wood of 
+most species floats in water, and it is thus evident that part 
+of the volume of a piece of wood is occupied by cell cavities 
+and pores. Variations in the size of these openings and in the 
+thickness of the cell walls cause some species to have more 
+wood substance per unit volume than other species and 
+therefore higher specific gravity. Thus, specific gravity is an 
+excellent index of the amount of wood substance contained 
+in a piece of wood; it is a good index of mechanical 
+properties as long as the wood is clear, straight grained, and 
+free from defects. However, specific gravity values also 
+reflect the presence of gums, resins, and extractives, which 
+contribute little to mechanical properties. 
+Approximate relationships between various mechanical 
+properties and specific gravity for clear straight-grained 
+wood of hardwoods and softwoods are given in Table 5–11 
+as power functions. Those relationships are based on 
+average values for the 43 softwood and 66 hardwood 
+species presented in Table 5–3. The average data vary 
+around the relationships, so that the relationships do not 
+accurately predict individual average species values or an 
+individual specimen value. In fact, mechanical properties 
+within a species tend to be linearly, rather than curvilinearly, 
+related to specific gravity; where data are available for 
+individual species, linear analysis is suggested. 
+Knots 
+A knot is that portion of a branch that has become 
+incorporated in the bole of a tree. The influence of a knot 
+on the mechanical properties of a wood member is due to 
+the interruption of continuity and change in the direction 
+of wood fibers associated with the knot. The influence of 
+knots depends on their size, location, shape, and soundness; 
+attendant local slope of grain; and type of stress to which the 
+wood member is subjected. 
+The shape (form) of a knot on a sawn surface depends upon 
+the direction of the exposing cut. A nearly round knot is 
+produced when lumber is sawn from a log and a branch is 
 =====PAGE 155=====
 CHAPTER 5  | Mechanical Properties of Wood
 5–39 
@@ -2078,6 +2239,344 @@ and shear parallel to grain. Variability in reported trends is
 indicated by width of band. 
 Figure 5–22. Influence of four levels of stress on creep 
 (Kingston 1962). 
+=====PAGE 156=====
+General Technical Report FPL–GTR–282
+5–40 
+ 
+Figure 5–23. Relationship between stress due to constant 
+load and time to failure for small clear wood specimens, 
+based on 28 s at 100% stress. The figure is a composite 
+of trends from several studies; most studies involved 
+bending but some involved compression parallel to grain 
+and bending perpendicular to grain. Variability in reported 
+trends is indicated by width of band. 
+an important factor in determining the load that the member 
+can safely carry. The duration of load may be affected by 
+changes in temperature and relative humidity. The constant 
+stress that a wood member can sustain is approximately an 
+exponential function of time to failure, as illustrated in 
+Figure 5–22. This relationship is a composite of results 
+of studies on small, clear wood specimens, conducted at 
+constant temperature and relative humidity. 
+For a member that continuously carries a load for a long 
+period, the load required to produce failure is much less than 
+that determined from the strength properties in Tables 5–3 
+to 5–5. Based on Figure 5–23, a wood member under the 
+continuous action of bending stress for 10 years may carry 
+only 60% (or perhaps less) of the load required to produce 
+failure in the same specimen loaded in a standard bending 
+strength test of only a few minutes duration. Conversely, if 
+the duration of load is very short, the load-carrying capacity 
+may be higher than that determined from strength properties 
+given in the tables. 
+Time under intermittent loading has a cumulative effect. 
+In tests where a constant load was periodically placed on a 
+beam and then removed, the cumulative time the load was 
+actually applied to the beam before failure was essentially 
+equal to the time to failure for a similar beam under the 
+same load applied continuously. 
+The time to failure under continuous or intermittent loading 
+is looked upon as a creep–rupture process; a member has to 
+undergo substantial deformation before failure. Deformation 
+at failure is approximately the same for duration of load 
+tests as for standard strength tests. 
+Changes in climatic conditions increase the rate of creep and 
+shorten the duration during which a member can support 
+a given load. This effect can be substantial for very small 
+wood specimens under large cyclic changes in temperature 
+and relative humidity. Fortunately, changes in temperature 
+and relative humidity are moderate for wood in the typical 
+service environment. 
+Fatigue 
+In engineering, the term fatigue is defined as the progressive 
+damage that occurs in a material subjected to cyclic loading. 
+This loading may be repeated (stresses of the same sign; 
+that is, always compression or always tension) or reversed 
+(stresses of alternating compression and tension). When 
+sufficiently high and repetitious, cyclic loading stresses can 
+result in fatigue failure. 
+Fatigue life is a term used to define the number of cycles 
+that are sustained before failure. Fatigue strength, the 
+maximum stress attained in the stress cycle used to 
+determine fatigue life, is approximately exponentially 
+related to fatigue life; that is, fatigue strength decreases 
+approximately linearly as the logarithm of number of cycles 
+increases. Fatigue strength and fatigue life also depend 
+on several other factors: frequency of cycling; repetition 
+or reversal of loading; range factor (ratio of minimum 
+to maximum stress per cycle); and other factors such as 
+temperature, moisture content, and specimen size. Negative 
+range factors imply repeated reversing loads, whereas 
+positive range factors imply nonreversing loads. 
+Results from several fatigue studies on wood are given in 
+Table 5–17. Most of these results are for repeated loading 
+with a range ratio of 0.1, meaning that the minimum stress 
+per cycle is 10% of the maximum stress. The maximum 
+stress per cycle, expressed as a percentage of estimated 
+static strength, is associated with the fatigue life given in 
+millions of cycles. The first three lines of data, which list 
+the same cyclic frequency (30 Hz), demonstrate the effect 
+of range ratio on fatigue strength (maximum fatigue stress 
+that can be maintained for a given fatigue life); fatigue 
+bending strength decreases as range ratio decreases. Third-
+point bending results show the effect of small knots or 
+slope of grain on fatigue strength at a range ratio of 0.1 and 
+frequency of 8.33 Hz. Fatigue strength is lower for wood 
+containing small knots or a 1-in-12 slope of grain than 
+for clear straight-grained wood and even lower for wood 
+containing a combination of small knots and a 1-in-12 slope 
+of grain. Fatigue strength is the same for a scarf joint in 
+tension as for tension parallel to the grain, but a little lower 
+for a finger joint in tension. Fatigue strength is slightly 
+lower in shear than in tension parallel to the grain. Other 
+comparisons do not have much meaning because range 
+ratios or cyclic frequency differ; however, fatigue strength 
+is high in compression parallel to the grain compared with 
+other properties. Little is known about other factors that 
+may affect fatigue strength in wood. 
+=====PAGE 194=====
+General Technical Report FPL–GTR–282
+7–6 
+reducing the cross section, as shown in Figure 7–2. For a 
+beam containing an edge knot, the bending strength ratio 
+can be idealized as the ratio of the bending moment that can 
+be resisted by a beam with a reduced cross section to that of 
+a beam with a full cross section: 
+              
+ 
+ 
+ 
+               
+             
+       
+ 
+              
+                  
+              
+               
+                 
+               
+      
+ 
+             
+             
+                 
+                 
+                  
+                    
+ 
+ 
+2
+1SR ÷
+ø
+öç
+è
+æ -= h k  
+ 
+                    
+                    
+               
+ 
+              
+               
+                
+    
+ 
+              
+               
+               
+                 
+                  
+                  
+      
+ 
+                  
+                 
+                    
+               
+ 
+Figure 7–3. Relation between bending strength ratio and 
+size of edge knot expressed as fraction of face width. k is 
+knot size; h, width of face containing the knot. 
+where SR is strength ratio, k knot size, and h width of face 
+containing the knot. This is the basic expression for the 
+effect of a knot at the edge of the vertical face of a beam that 
+is deflected vertically. Figure 7–3 shows how strength ratio 
+changes with knot size according to the formula. 
+Strength ratios for all knots, shakes, checks, and splits are 
+derived using similar concepts. Strength ratio formulas 
+are given in ASTM D245, and a characteristic description 
+chart for codes used in the formulas can be found in 
+ASTM D4761. The same reference contains guidelines for 
+measuring various growth characteristics. 
+An individual piece of lumber will often have several 
+characteristics that can affect any particular strength 
+property. Only the characteristic that gives the lowest 
+strength ratio is used to derive the estimated strength of 
+the piece. In theory, a visual stress grade contains lumber 
+ranging from pieces with the minimum strength ratio 
+permitted in the grade up to pieces with the strength ratio 
+just below the next higher grade. In practice, there are often 
+pieces in a grade with strength ratios of a higher grade. This 
+is a result of grade reduction for appearance factors such as 
+wane that do not affect strength. 
+The range of strength ratios in a grade and the natural 
+variation in clear wood strength give rise to variation in 
+strength between pieces in the grade. To account for this 
+variation and to ensure safety in design, it is intended 
+that the actual strength of at least 95% of the pieces in a 
+grade exceed the design properties (before reduction for 
+duration of load and safety) assigned to that grade. In visual 
+Figure 7–4. Example of relation between strength and 
+strength ratio. 
+grading, according to ASTM D245, this is handled by using 
+a near-minimum clear wood strength as a base value and 
+multiplying it by the minimum strength ratio permitted in 
+the grade to obtain the grade strength property. The near-
+minimum value is called the 5% exclusion limit. ASTM 
+D2555 provides clear wood strength data and gives a 
+method for estimating the 5% exclusion limit. 
+For example, suppose a 5% exclusion limit for the clear 
+wood bending strength of a species in the green condition 
+is 48 MPa (7,000 lb in–2). Suppose also that among 
+the characteristics allowed in a grade of lumber, one 
+characteristic (a knot, for example) provides the lowest 
+strength ratio in bending—assumed in this example as 40%. 
+Using the numbers, the bending strength for the grade is 
+estimated by multiplying the strength ratio (0.40) by 48 MPa 
+(7,000 lb in–2), equaling 19 MPa (2,800 lb in–2) (Fig. 7–4). 
+The bending strength in the green condition of 95% of the 
+pieces in this species in a grade that has a strength ratio of 
+40% is expected to be ≥19 MPa (≥2,800 lb in–2). Similar 
+procedures are followed for other strength properties, using 
+the appropriate clear wood property value and strength ratio. 
+Additional multiplying factors are then applied to produce 
+properties for design, as summarized later in this chapter. 
+Modulus of Elasticity—Modulus of elasticity E is a 
+measure of the ability of a beam to resist deflection or of a 
+column to resist buckling. The assigned E is an estimate of 
+the average modulus, adjusted for shear deflection, of the 
+lumber grade when tested in static bending. The average 
+modulus of elasticity for clear wood of the species, as 
+recorded in ASTM D2555, is used as a base. The clear 
+wood average is multiplied by empirically derived “quality 
+factors” to represent the reduction in modulus of elasticity 
+that occurs by lumber grade for pieces tested in an edgewise 
+orientation. This procedure is outlined in ASTM D245. 
+For example, assume a clear wood average modulus of 
+elasticity of 12.4 GPa (1.8 × 106 lb in–2) for the example 
+shown earlier. The limiting bending strength ratio was 40%. 
+=====PAGE 198=====
+General Technical Report FPL–GTR–282
+7–10 
+  
+   
+ 
+ 
+   
+expected to be exceeded by 95% of the pieces in a grade 
+or class. In this example, for a grade with an assigned E of 
+13.8 GPa (2.0 × 106 lb in–2), the “minimum E” is 11.3 GPa 
+(1.64 × 106 lb in–2). The corresponding MOR value from the 
+lower confidence line prediction model, approximately a 5th 
+percentile MOR value, is 34.8 MPa (5.04 × 103 lb in–2). This 
+value is then adjusted by a factor (2.1) for assumed 10-year 
+duration of load and safety to obtain Fb. This factor applied 
+to an estimated 5th percentile MOR value of 34.8 MPa 
+(5.04 × 103 lb in–2) yields an Fb of 16.5 MPa 
+(2.40 × 103 lb in–2) for the 2.0E grade; in other words, 
+a 2400f –2.0E MSR grade. 
+Design Stresses for Other Properties 
+Properties in tension and compression are commonly 
+developed from relationships with bending rather than 
+estimated directly by the nondestructive parameter E. In 
+Canada and the United States, the relationships between the 
+5th percentile 10-year bending stress and those in tension 
+and compression are based upon limited lumber testing for 
+the three properties but supported by years of successful 
+experience in construction with visual stress grades of 
+lumber. For tension, it is assumed that the ratio of design 
+bending stress Fb to design tensile stress Ft is between 0.5 
+and 0.8, depending on the grade, whereas the relationship 
+between Fb and fiber stress in design compressive parallel-
+to-grain stress Fc is assumed to be 
+Fc = [0.338(2.1Fb) + 2060.7]/1.9 
+Strength in shear parallel to the grain and in compression 
+perpendicular to the grain is poorly related to modulus 
+of elasticity. Therefore, in machine stress grading these 
+properties are assumed to be grade-independent and are 
+assigned the same values as those for visual lumber grades, 
+except when predicted from specific gravity on a mill-by-
+mill basis. It is permissible to assign higher allowable stress 
+for shear parallel to grain and compression perpendicular to 
+grain to specific grades based on additional specific gravity 
+research. 
+Quality Control 
+Quality control procedures are necessary to ensure that 
+stresses assigned by a machine-grading system reflect the 
+actual properties of the lumber graded. These procedures 
+must check for correct machine operation. Verification of 
+the relationships between bending and other properties may 
+also be required by the rules-writing agency, particularly for 
+fiber stress in tension Ft. 
+Daily or even more frequent calibration of machine 
+operation may be necessary. Depending upon machine 
+principle, calibration may involve operating the machine 
+on a calibration bar of known stiffness, comparing grading 
+machine E values to those obtained on the same pieces of 
+lumber by calibrated laboratory test equipment, determining 
+if machine-predicted density matches a calibration sample 
+density, or in some instances, using two or more procedures. 
+Machine operation should be certified for all sizes of lumber 
+being produced. Machine settings may need to be adjusted 
+to produce the same grade material from different widths. 
+Quality control procedures of the MSR prediction model 
+(E–bending strength relationship) have been adopted in 
+Canada and the United States. Daily or more frequently, 
+lumber production is representatively sampled and proof-
+loaded, usually in bending, with supplementary testing in 
+tension. The pieces are proof-loaded to at least twice the 
+design stress (Fb or Ft) for the assigned Fb –E classification. 
+In bending, the pieces are loaded on a random edge with the 
+maximum-edge defect within the maximum moment area 
+(middle one-third span in third-point loading) or as near to 
+that point as possible. In tension, the pieces are tested with a 
+2.4-m (8-ft) gauge length. 
+If the number of pieces in the sample failing the proof-test 
+load indicates a high probability that the population from 
+which the pieces came does not meet the minimum grade 
+criteria, a second sampling and proof test are conducted 
+immediately. If the second sample confirms the results of 
+the first sample, the MSR grading system is declared “out 
+of control” and the operation is shut down to isolate and 
+correct the problem. The lumber that was incorrectly labeled 
+is then correctly labeled. 
+Cumulative machine calibration records are useful for 
+detecting trends or gradual change in machine operation 
+that might coincide with use and wear of machine parts. The 
+proof-test results are also accumulated. Standard statistical 
+quality control procedures (such as control charts) are used 
+to monitor the production process so that it can be modified 
+as needed in response to change in the timber resource, and 
+to make the output fit the assumed model. 
+Too many failures in one, or even consecutive, samples do 
+not necessarily indicate that the system is out of control. If 
+the prediction line is based on 95% confidence, it can be 
+expected by chance alone that 1 sample in 20 will not meet 
+the proof-load requirements. One or more out-of-control 
+samples may also represent a temporary aberration in 
+material properties (E–strength relationship). In any event, 
+this situation would call for inspection of the cumulative 
+quality control records for trends to determine if machine 
+adjustment might be needed. A “clean” record (a period 
+when the system does not go out of control) rectifies the 
+evaluation of a system thought to be out of control. 
+Adjustment of Properties for Design Use 
+The mechanical properties associated with lumber quality 
+are adjusted to give design unit stresses and a modulus 
+of elasticity suitable for engineering uses. First, a lower 
+confidence level is determined for the material, and this 
+value is then adjusted for shrinkage, size, duration of load, 
 =====PAGE 234=====
 General Technical Report FPL–GTR–282
 9–2 
@@ -2595,6 +3094,320 @@ Ponding of water on roofs already deflected by other
 loads can cause large increases in deflection. Kuenzi and 
 Bohannan (1964) developed expressions for amplification 
 of the deflections and stresses caused by ponding based on 
+=====PAGE 239=====
+CHAPTER 9  | Structural Analysis Equations
+9–7 
+textbooks explain the analytical concepts of the free-body 
+diagram and equilibrium equations for general application. 
+Many references (AWC 2007) provide beam formulas with 
+shear and moment diagrams and deflections for common 
+load configurations like those presented in Table 9–1. To 
+maintain static equilibrium, the externally applied forces 
+, in the beam must be 
+, that respectively 
+sum to match the magnitudes and oppose the directions of 
+The stress due to bending moment for a simply supported, 
+pin-ended beam is a maximum at the top and bottom edges. 
+The concave edge is compressed, and the convex edge is 
+ b
+Mf S   
+ 
+                    
+                   
+                  
+                      
+                  
+                   
+                  
+ 
+                    
+                  
+                
+ 
+                      
+                   
+                    
+           
+ 
+   
+ 
+  
+                    
+                     
+                  
+               
+                 
+                   
+                 
+                
+  
+ 
+                    
+                   
+                 
+                
+       
+ 
+    
+ 
+                      
+                   
+                    
+                   
+ 
+                  
+                      
+                     
+          
+ 
+                   
+                  
+                   
+                     
+Figure 9–10. Axial (a) compression and (b) tension on rectangular blocks, shown in elevation and cross section. 
+and verifies the directions of forces, whether the forces act 
+internally or externally on the beam. Mechanics of materials 
+that generate shear, V, and moment, M 
+counteracted by internal stresses, fb and fv 
+the applied force effects. 
+Straight Beam Stresses 
+under tension. The maximum stress, at extreme top and 
+bottom fibers of the cross section, is given by 
+(9–13) 
+where fb is bending stress, M bending moment, and S beam 
+section modulus (for a rectangular cross section, S = bh2/6; 
+for a circular cross section, S = πD3/32). For common 
+structural cross sections, the elastic section modulus S is 
+tabulated by many analytical aids. More generally, the 
+elastic section modulus S is defined as the cross-sectional 
+moment of inertia, I, over the distance from the neutral axis 
+to top or bottom of the beam, c, measured with respect to 
+the direction of bending. Figure 9–11 diagrams the linear 
+elastic, bending moment stress distribution acting on a 
+uniform rectangular cross section, in the 2D view (b) and 
+3D axon (d). In the simply supported beam, compression 
+=====PAGE 308=====
+General Technical Report FPL–GTR–282
+12–2 
+ 
+   
+ 
+ 
+ 
+      
+      
+    
+     
+     
+     
+     
+  
+    
+  
+  
+  
+      
+  
+  
+     
+   
+Table 12–1. Static bending properties of different wood and wood-based composites 
+Static bending properties 
+Modulus of elasticity Modulus of ruptureSpecific 
+Material gravity GPa (×10 6 lb in–2) MPa (lb in –2) 
+Clear wood 
+White oak 0.68 12.27 (1.78) 104.80 (15,200) 
+Red maple 0.54 11.31 (1.64) 92.39 (13,400) 
+Douglas-fir (Coastal) 0.48 13.44 (1.95) 85.49 (12,400) 
+Western white pine 0.38 10.07 (1.46) 66.88 (9,700) 
+Longleaf pine 0.59 13.65 (1.98) 99.97 (14,500) 
+Panel products 
+Hardboard 0.9–1.0 3.10–5.52 (0 .45–0.80) 31.02–56.54 (4,500–8,200) 
+Medium-density fiberboard 0.7–0.9 3.59 (0.52) 35.85 (5,200) 
+Particleboard 0.6–0.8 2.76–4.14 (0.40–0.60) 15.17–24.13 (2,200–3,500) 
+Oriented strandboard 0.5–0.8 4.41–6.28 (0.64–0.91) 21.80–34.70 (3,161–5,027) 
+Plywood 0.4–0.6 6.96–8.55 (1 .01–1.24) 33.72–42.61 (4,890–6,180) 
+Structural timber products 
+Glued-laminated timber 0.4–0.6 9.00–14.50 (1.30–2.10) 28.61–62.62 (4,150–9,080) 
+Laminated veneer lumber 0.4–0.7 8.96–19.24 (1.30–2.79) 33.78–86.18 (4,900–12,500) 
+Wood–nonwood composites 
+Wood plastic 1.53–4.23 (0.22–0.61) 25.41–52.32 (3,684–7,585) 
+bond strength), shear strength, fastener holding capacity, 
+and hardness. Model building codes in the United States 
+stipulate that plywood used for structural applications such 
+as subflooring and sheathing must meet the requirements 
+of certain U.S. Department of Commerce standards. 
+V oluntary Product Standard PS 1–07 for construction and 
+industrial plywood (NIST 2007) and Performance Standard 
+PS 2–04 for wood-based structural-use panels (NIST 2004) 
+spell out the ground rules for manufacturing plywood and 
+establishing plywood or OSB properties, respectively. These 
+standards have evolved over time from earlier documents 
+(O’Halloran 1979, 1980; APA 1981) and represent a 
+consensus opinion of the makers, sellers, and users of 
+plywood products as well as other concerned parties. 
+Many of the questions that arise with wood-based 
+composites have to do with their mechanical properties, 
+especially how properties of one type of material compare 
+with those of clear wood and other wood products. 
+Although an extensive review that compares all properties 
+of wood-based materials and products is beyond the scope 
+of this chapter, Table 12–1 provides some insight to how 
+static bending properties of these materials vary and 
+how their properties compare with those of solid, clear 
+wood. Although the mechanical properties of most wood 
+composites might not be as high as those of solid wood, 
+they provide very consistent and uniform performance. 
+The mechanical property data presented in this chapter 
+were obtained from a variety of reports of research 
+conducted to develop basic property information for a 
+wide range of wood-based composite materials. The 
+wood-based composites industry is very dynamic, with 
+changes occurring frequently in the manufacture of these 
+materials and corresponding changes in design information. 
+Consequently, this chapter primarily focuses on presenting 
+fundamental mechanical property information for wood-
+based composite materials. For design procedures and 
+values, the reader is encouraged to contact appropriate 
+industry trade association or product manufacturers. Current 
+design information can be readily obtained from their 
+websites, technical handbooks, and bulletins. 
+The organization of this chapter follows closely that of 
+Chapter 5. Basic mechanical property information is 
+presented following a brief background discussion of these 
+products. A discussion of performance and testing standards 
+covering their manufacture and use is also presented. 
+Elastic Properties 
+Modulus of Elasticity 
+Elasticity implies that deformations produced by low stress 
+below the proportional limit are completely recoverable 
+after loads are removed. When loaded to stress levels 
+above the proportional limit, plastic deformation or failure 
+occurs. Typically, the stress–strain curve for wood-based 
+composites is linear below the proportional limit. The slope 
+of the linear curve is called the MOE. In compression or 
+tensile tests, this slope is sometime referred to as Young’s 
+modulus to differentiate it from bending MOE. Bending 
+MOE is a measure of the resistance to bending deflection, 
+which is relative to the stiffness. Young’s modulus is a 
+measure of resistance to elongation or shortening of a 
+member under tension or compression. The procedure to 
+determine MOE is fully described in ASTM D1037 for 
+fiber- and particle-based panel products, ASTM D3043 for 
+=====PAGE 310=====
+General Technical Report FPL–GTR–282
+12–4 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  
+ 
+ 
+    
+     
+     
+       
+ 
+    
+      
+      
+ 
+ 
+ 
+ 
+Table 12–2. Selected properties of plywood sheathing productsa 
+Static bending 
+Fiber stress at 
+proportional Rail shear Glue line shear 
+MOE MOR limit strength strength 
+Specific (×106 
+Species gravity GPa lb in–2) MPa (lb in –2) GPa (lb in –2) MPa (lb in –2) MPa (lb in –2) 
+Baldcypress 0.50 7.58 (1.10) 39.23 (5,690) 29.4 (4,260) 5.6 (805) 2.7 (389) 
+Douglas-fir 0.53 7.45 (1.08) 41.37 (6,000) 39.3 (5,700) 3.8 (556) 1.4 (207) 
+Lauan 0.44 7.43 (1.08) 33.72 (4, 890) 28.1 (4,070) 4.3 (628) 1.3 (192) 
+Western 0.41 8.55 (1.24) 37.37 (5,420) 33.3 (4,830) 4.6 (674) 1.7 (240) 
+redcedar 
+Redwood 0.41 6.96 (1.01) 42.61 (6, 180) 37.4 (5,420) 5.3 (769) 1.5 (220) 
+Southern Pine 0.57 7.70 (1.12) 37. 09 (5,380) 26.2 (3,800) 5.5 (800) 1.6 (233) 
+aFrom Biblis (2000). 
+panel with the Hardwood Plywood & Veneer Association 
+(HPV A) plywood grade stamp or by including a written 
+statement with this information with the order or shipment. 
+If design calculations are desired, a design guide is provided 
+by the APA–The Engineered Wood Association in Plywood 
+Design Specification (PDS) and APA Technical Note N375B 
+(APA 1995a,b). The design guide contains tables of grade 
+stamp references, section properties, and allowable stresses 
+for plywood used in construction of buildings and similar 
+structures. Table 12–2 shows selected properties of various 
+species of plywood. 
+Oriented Strandboard (OSB) 
+Oriented strandboard is an engineered, structural-use panel 
+manufactured from thin wood strands bonded together 
+with water-resistant adhesive under heat and pressure. It 
+is used extensively for roof, wall, and floor sheathing in 
+residential and commercial construction. Design capacities 
+of performance-rated products, which include OSB and 
+waferboard, can be determined by using procedures outlined 
+in Technical Note N375B (APA 1995a). In this reference, 
+allowable design strength and stiffness properties, as well 
+as nominal thickness and section properties, are specified 
+based on the span rating of the panel. Additional adjustment 
+factors based on panel grade and construction are also 
+provided. Table 12–3 shows selected properties of OSB 
+obtained from the literature. 
+Under PS 2–04, a manufacturer is required to enter into an 
+agreement with an accredited testing agency to demonstrate 
+that its panels conform to the requirements of the chosen 
+standard. The manufacturer must also maintain an in-plant 
+quality control program in which panel properties are 
+regularly checked, backed by a quality assurance program 
+administered by an independent third-party. The third-party 
+agency must visit the mill on a regular unannounced basis. 
+The agency must confirm that the in-plant quality control 
+program is being maintained and that panels meet the 
+minimum requirements of the standard. 
+Particleboard 
+Particleboard is typically made in three layers. The faces 
+of the board consist of fine wood particles, and the core 
+is made of the coarser material (Chap. 11). Particleboard 
+is used for furniture cores and case goods, where it is 
+typically overlaid with other materials for decorative 
+purposes. Particleboard can be used in flooring systems, in 
+manufactured houses, for stair treads, and as underlayment. 
+Requirements for grades of particleboard and particleboard 
+flooring products are specified by the American National 
+Standard for Particleboard A208.1-1999 (CPA 1999). 
+Table 12–4 represents some of selected properties of 
+different particleboard manufacturers. 
+Hardboard 
+Basic hardboard physical properties for selected products 
+are presented in ANSI A135.4–2004 (CPA 2004a). 
+The uses for hardboard can generally be grouped as 
+construction, furniture and furnishings, cabinet and store 
+work, appliances, and automotive and rolling stock. 
+Typical hardboard products are prefinished paneling (ANSI 
+A135.5–2004 (CPA 2004b)), house siding (ANSI A135.6– 
+2006 (CPA 2006)), floor underlayment, and concrete form 
+board. Table 12–5 shows selected physical and mechanical 
+properties of hardboard from different manufacturers. 
+Hardboard siding products come in a great variety of 
+finishes and textures (smooth or embossed) and in different 
+sizes. For application purposes, the Composite Panel 
+Association (CPA) classifies siding into three basic types: 
+Lap siding—boards applied horizontally, with each board 
+overlapping the board below it 
+Square edge panels—siding intended for vertical 
+application in full sheets 
+Shiplap edge panel siding—siding intended for vertical 
+application, with the long edges incorporating shiplap joints 
+The type of panel dictates the application method. The CPA 
+administers a quality conformance program for hardboard 
 =====PAGE 338=====
 General Technical Report FPL–GTR–282
 13–16 
@@ -2942,3 +3755,176 @@ aPer 1% change in moisture content, based on dimension at 10% moisture content a
 moisture content at which shrinkage starts and total shrinkage. (Shrinkage assumed to start at 30% for all species except 
 those indicated by footnote b.)
 bShrinkage assumed to start at 22% moisture content. 
+=====PAGE 474=====
+General Technical Report FPL–GTR–282
+19–8 
+     
+ 
+ 
+ 
+ 
+ 
+ 
+  
+   
+     
+       
+     
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+     
+  
+  
+  
+  
+  
+ 
+ 
+   
+ 
+   
+   
+  
+ 
+ 
+ 
+ 
+ 
+ 
+  
+ 
+ 
+     
+    
+     
+     
+      
+     
+      
+    
+     
+    
+    
+  
+ 
+Table 19–2. Strength properties of normal and modified laminates
+a 
+of yellow birch and a laminated paper plastic—con. 
+Compreg Staypak Paper laminate 
+Normal Impreg (impregnated, (unimpregnated, (impregnated, 
+ Property 
+laminated 
+woodb 
+(impregnated, 
+uncompressed)c 
+highly 
+compressed)c 
+highly 
+compressed)b 
+highly 
+compressed)d 
+Water absorption (24-h immersion) increase in weight (%) 43.6 13.7 2.7 4.3 2.2 
+Dimensional stability in thickness direction 
+Equilibrium swelling (%) 9.9 2.8 8.0 29 — 
+Recovery from compression (%) — 0 0  4 — 
+Crossband laminates 
+Flexure—face grain parallel to span (flatwise)e 
+Proportional limit stress (MPa (lb in–2)) 
+Modulus of rupture (MPa (lb in–2)) 
+Modulus of elasticity (GPa (1,000 lb in–2)) 
+47.6 (6,900) 
+90.3 (13,100) 
+9.0 (1,310) 
+55.8 (8,100) 
+78.6 (11,400) 
+11.5 (1,670) 
+99.3 (14,400) 
+157.2 (22,800) 
+17.1 (2,480) 
+78.6 (11,400) 
+173.0 (25,100) 
+20.0 (2,900) 
+86.9 (12,600) 
+215.8 (31,300) 
+15.4 (2,240) 
+Compression parallel to face grain (edgewise)f 
+Proportional limit stress (MPa (lb in–2)) 
+Ultimate strength (MPa (lb in–2)) 
+Modulus of elasticity (GPa (1,000 lb in–2)) 
+22.8 (3,300) 
+40.0 (5,800) 
+9.4 (1,360) 
+35.8 (5,200) 
+78.6 (11,400) 
+10.3 (1,500) 
+60.0 (8,700) 
+164.8 (23,900) 
+15.8 (2,300) 
+35.8 (5,200) 
+96.5 (14,000) 
+18.6 (2,700) 
+34.5 (5,000) 
+130.3 (18,900) 
+16.3 (2,370) 
+Tension parallel to face grain (lengthwise) 
+Ultimate strength (MPa (lb in–2)) 
+Modulus of elasticity (GPa (1,000 lb in–2)) 84.8 (12,300) 8.9 (1,290) 54.5 (7,900) 10.1 (1,460) 113.8 (16,500) 15.1 (2,190) 168.9 (24,500) 17.7 (2,570) 187.5 (27,200) 18.6 (2,700) 
+Toughness (FPL test edgewise)f (J mm–1 of width 
+(in-lb in–1 of width)) 0.47 (105) 0.18 (40) 0.51 (115) 1.4 (320) — 
+aLaminates made from 17 plies of 1.6-mm (1/16-in.) rotary-cut yellow birch veneer. 
+bVeneer conditioned at 27 C (80 F) and 65% relative humidi ty before assembly with phenol resin film adhesive. 
+cImpregnation, 25% to 30% of water-soluble phenol-formaldehyde resin based on the dry weight of untreated veneer. 
+dHigh-strength paper (0.076-mm (0.003-in.) thickness) made from commercial unbleached black spruce pulp (Mitscherlich subtile), phenol resin content  
+36.3% based on weight of treated paper, Izod impact abrasion, flatwise compression, and shear specimens, all on 12.7-mm- (1/2-in.-) thick laminate. 
+eLoad applied to the surface of the original material (parallel to laminating pressure direction). 
+fForest Products Laboratory (FPL) test procedure: load applied to edge of laminations (perpendicular to laminating pressure direction). 
+gValues as high as 0 53 J mm–1 (10.0 ft-lb in–1) of notch have been reported for compreg made with alcohol-soluble resins and 0.37 J mm–1 (7.0 ft-lb in–1) 
+with water-soluble resins. 
+hValues based on the average slope of load–penetration plots where HM is an expression for load per unit of spherical area of penetration of the 11.3-mm 
+(0.444-in.) steel ball expressed in MPa (lb in–2). 
+Table 19–3. Coefficients of linear thermal expansion per degree Celsius of wood, hydrolyzed wood, 
+and paper productsa 
+Linear expansion per °C 
+(values multiplied by 106) 
+Perpendicular Cubical 
+to fiber expansion 
+or machine per °C 
+Specific Resin Fiber or direction (values 
+Materialb 
+gravity of 
+product 
+contentc 
+(%) 
+machine 
+direction 
+in plane of 
+laminations 
+Pressing 
+direction 
+multiplied 
+by 106) 
+Yellow birch laminate 0.72 3.1 3.254 40.29 36.64 80.18 
+Yellow birch staypak laminate 1.30 4.7 3.406 37.88 65.34 106.63 
+Yellow birch impreg laminate 0.86 33.2 4.648 35.11 37.05 76.81 
+Yellow birch compreg laminate 1.30 24.8 4.251 39.47 59.14 102.86 
+1.31 34.3 4.931 39.32 54.83 99.08 
+Sitka spruce laminate 0.53 6.0d 3.887 37.14 27.67 68.65 
+Parallel-laminated paper laminate 1.40 36.5 5.73 15.14 65.10 85.97 
+Crossbanded paper laminate 1.40 36.5 10.89 11.0e 62.2 84.09 
+Molded hydrolyzed-wood plastic 1.33 25 42.69 42.69 42.69 128.07 
+Hydrolyzed-wood sheet laminate 1.39 18 13.49 224.68 77.41 115.58 
+aThese coefficients refer to bone-dry material. Generally, air-dry material has a negative thermal coefficient, because the shrinkage 
+resulting from the loss in moisture is greater than the normal thermal expansion.
+bAll wood laminates made from rotary-cut veneer, annual rings in plane of sheet. 
+cOn basis of dry weight of product.
+dApproximate. 
+eCalculated value. 

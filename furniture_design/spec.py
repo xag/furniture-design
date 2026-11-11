@@ -86,7 +86,49 @@ def d(contract: str, nodes: list[Node], args: list, because: str, **expect) -> D
 # edge is at y = -400, z = 700.
 STANDING = 40 * 250 + 5 * -175
 
+def beam(modulus: str = "true", shear: str | None = "shear_modulus_lr", cases: int = 1,
+         load: float = 10) -> list[Node]:
+    """A 1000 mm board, 100 deep and 10 thick, weightless (mass 0), simply supported, with
+    `load` kg spread on it; its material has E 10,000 MPa and G 700 MPa."""
+    def q(v: float, unit: str = "") -> Quantity:
+        return Quantity(value=v, unit=unit, provenance="design-target", grounded=False)
+    case = Node(id="uniform", kind="clause", params={"kb": q(5 / 384), "ks": q(1 / 8)})
+    wood = Node(id="wood", kind="material", payload={"modulus": modulus},
+                params={"modulus_of_elasticity": q(10_000, "MPa"),
+                        "shear_modulus_lr": q(700, "MPa")})
+    board = Node(id="board", kind="part", links={"uses": ["materials/wood"],
+                                                 "bends_as": ["cases/uniform"] * cases},
+                 params={"mass": q(0, "kg"), "span": q(1000, "mm"), "depth": q(100, "mm"),
+                         "thickness": q(10, "mm")},
+                 payload={"shape": {"op": "box", "size": ["span", "depth", "thickness"]},
+                          **({"shear_modulus": shear} if shear else {})})
+    books = Node(id="books", kind="load", params={"mass": q(load, "kg")},
+                 links={"on": ["shelf/board"]})
+    return [Node(id="cases", kind="", children=[case]),
+            Node(id="materials", kind="", children=[wood]),
+            Node(id="shelf", kind="piece", children=[board, books])]
+
+
+# The beam above: W = 10 kg x g; bending 5/384 W L^3 12/(E b h^3), shear 1/8 W L 6/(5 G b h)
+_W = 10 * G
+_BENDING = 5 / 384 * _W * 1000 ** 3 * 12 / (10_000 * 100 * 10 ** 3)
+_SHEAR = 1 / 8 * _W * 1000 * 6 / (5 * 700 * 100 * 10)
+
 SPEC = {
+    "furniture/deflection": [
+        d("deflection", beam(), ["shelf/board"], expect=_BENDING + _SHEAR,
+          because="solid wood: the bending term with the true modulus, plus the shear term "
+                  "with the G the part names"),
+        d("deflection", beam(modulus="apparent", shear=None), ["shelf/board"], expect=_BENDING,
+          because="a panel whose modulus was measured on the panel already holds its shear "
+                  "deflection: the bending term alone"),
+        d("deflection", beam(shear=None), ["shelf/board"], expect_error="names no shear modulus",
+          because="solid wood with no G named is refused, never judged without its shear term"),
+        d("deflection", beam(cases=2), ["shelf/board"], expect_error="must link one",
+          because="a part bent two ways at once is refused"),
+        d("deflection", beam(load=20), ["shelf/board"], expect=2 * (_BENDING + _SHEAR),
+          because="twice the load, twice the deflection: the equation is linear in W"),
+    ],
     # Equation (4-5) evaluated by hand; Table 4-2 prints these as 9.2, 16.0 and 6.2
     # (tests/test_knowledge.py holds the equation to the table across its range).
     "furniture/emc": [

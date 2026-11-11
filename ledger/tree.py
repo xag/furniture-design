@@ -195,6 +195,70 @@ def entries() -> list[Node]:
                      "Nobody outside the owner's account could sync it."),
             ],
         ),
+        Node(
+            id="a-design-stress-is-the-near-minimum-strength-over-the-handbooks-factor", kind="decision",
+            name="A part's bending stress is held to its material's design_bending_stress: the mean modulus "
+                 "of rupture the source states, brought down to its 5% exclusion limit as MOR (1 - 1.645 x "
+                 "COV) with Table 5-6's coefficient of variation (16%), then divided by the 2.1 the Wood "
+                 "Handbook applies for 10-year duration of load and safety (p. 7-10). Every load is treated "
+                 "as a 10-year load, a sitter included",
+            payload={"decided_on": "2026-11-11",
+                     "why": "The Handbook designs to a strength at least 95% of pieces exceed (p. 7-6), then "
+                            "divides by 2.1 for duration and safety (p. 7-10), and both are public. ASTM "
+                            "D2555's method for the 5% limit is copyrighted and not here, so the limit is "
+                            "estimated as the 5% point of a normal distribution. A load that is short is "
+                            "carried better than the tables say (p. 5-40), so taking every load as a 10-year "
+                            "one errs safe. Panels are given the clear-wood coefficient of variation: the "
+                            "Handbook says composites perform more uniformly than solid wood (p. 12-2), so "
+                            "the clear-wood spread is the wider one.",
+                     "caveat": "The 2.1 was derived for structural lumber. Clear-wood values hold for clear "
+                               "boards: a knot in a solid part is not modelled."},
+            links={"rests_on": ["the-rules-read-the-knowledge"]},
+            children=[
+                _alt("a-safety-factor-of-our-own", "Divide the mean strength by a round safety factor",
+                     "A number nobody published."),
+                _alt("figure-7-9", "Raise the stress for a short load with Figure 7-9",
+                     "It is a curve, read by eye; the 10-year factor errs safe without it."),
+                _alt("lumber-grade-values", "Use the design values of lumber grades",
+                     "Furniture boards are not stress-graded, and those tables are not public."),
+            ],
+        ),
+        Node(
+            id="a-material-says-which-way-its-values-were-measured", kind="decision",
+            name="A material states the direction its bending values were measured in (measured_along: "
+                 "grain, face grain, or unstated), a part that bends states how its grain runs along its "
+                 "span (span_along), and the two must match; values whose source does not say which way it "
+                 "bent the panel (Table 12-2's plywood, Table 12-1's MDF and particleboard) judge no part's "
+                 "bending",
+            payload={"decided_on": "2026-11-11",
+                     "why": "Plywood is much weaker and less stiff with its face grain across the span, and "
+                            "Table 12-2 does not say which way its panels were tested. Table 19-2 does (face "
+                            "grain parallel to span), so its yellow birch laminate is the plywood a bending "
+                            "check can use until a maker's data sheet says more."},
+            links={"rests_on": ["an-equation-is-applied-only-where-its-source-says-it-holds"]},
+            children=[
+                _alt("assume-along-the-face-grain", "Assume Table 12-2 was measured along the face grain",
+                     "The common test, but the table does not say so, and the error would be unsafe."),
+            ],
+        ),
+        Node(
+            id="a-panels-tested-modulus-takes-no-shear-term", kind="decision",
+            name="Deflection is a calculation (furniture/deflection), not a rule's expression: solid wood "
+                 "takes Equation 9-2's bending and shear terms with its shear-corrected modulus, a panel "
+                 "whose modulus was measured on the panel (modulus: apparent) takes the bending term alone",
+            payload={"decided_on": "2026-11-11",
+                     "why": "The Handbook gives no shear modulus for plywood, and a modulus measured by "
+                            "bending the panel already holds its shear deflection. Choosing the equation by "
+                            "the material needs a branch the rule grammar does not have, which is a "
+                            "calculation with cases (what-the-grammar-cannot-sum-is-a-calculation-with-cases)."},
+            links={"rests_on": ["what-the-grammar-cannot-sum-is-a-calculation-with-cases"]},
+            children=[
+                _alt("a-shear-modulus-for-plywood", "Give plywood a shear modulus",
+                     "No public source here states one."),
+                _alt("two-sag-rules", "One sag rule for solid wood and one for panels",
+                     "Each would read a param the other's parts do not carry and answer 'absent' there."),
+            ],
+        ),
     ]
 
 

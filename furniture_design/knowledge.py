@@ -90,6 +90,40 @@ SPECIES = [
      "Yellow-poplar 0.043 0.092 0.075 0.069 0.011", 0.075, 0.069),
 ]
 
+# Table 5-3a, 12% moisture content: the modulus of rupture (kPa), the number after the
+# specific gravity in each row quoted above
+MOR_KPA = {"birch-yellow": 114_000, "cherry-black": 85_000, "maple-sugar": 109_000,
+           "oak-northern-red": 99_000, "walnut-black": 101_000, "yellow-poplar": 70_000}
+
+# Table 12-2, plywood sheathing products: (id, species, row as extracted, specific gravity,
+# MOE GPa, MOR MPa). The table does not say which way the panels were bent.
+PLYWOOD_SHEATHING = [
+    ("baldcypress", "Baldcypress", "Baldcypress 0.50 7.58 (1.10) 39.23 (5,690)", 0.50, 7.58, 39.23),
+    ("douglas-fir", "Douglas-fir", "Douglas-fir 0.53 7.45 (1.08) 41.37 (6,000)", 0.53, 7.45, 41.37),
+    ("lauan", "Lauan", "Lauan 0.44 7.43 (1.08) 33.72 (4, 890)", 0.44, 7.43, 33.72),
+    ("western-redcedar", "Western redcedar", "Western 0.41 8.55 (1.24) 37.37 (5,420)", 0.41,
+     8.55, 37.37),
+    ("redwood", "Redwood", "Redwood 0.41 6.96 (1.01) 42.61 (6, 180)", 0.41, 6.96, 42.61),
+    ("southern-pine", "Southern Pine", "Southern Pine 0.57 7.70 (1.12) 37. 09 (5,380)", 0.57,
+     7.70, 37.09),
+]
+
+# Table 12-1, panel products with no veneer: (id, name, row as extracted, specific gravity
+# low and high, MOE GPa low and high, MOR MPa low and high)
+FIBRE_PANELS = [
+    ("medium-density-fiberboard", "Medium-density fiberboard",
+     "Medium-density fiberboard 0.7–0.9 3.59 (0.52) 35.85 (5,200)", 0.7, 0.9, 3.59, 3.59,
+     35.85, 35.85),
+    ("particleboard", "Particleboard",
+     "Particleboard 0.6–0.8 2.76–4.14 (0.40–0.60) 15.17–24.13 (2,200–3,500)", 0.6, 0.8, 2.76,
+     4.14, 15.17, 24.13),
+]
+
+# The 5% point of a normal distribution, in standard deviations below the mean: how a near-
+# minimum is read off a mean and a coefficient of variation (ledger:
+# a-design-stress-is-the-near-minimum-strength-over-the-handbooks-factor)
+NORMAL_5_PERCENT = 1.645
+
 # Table 13-5: (Table 13-5 quote, CR, CT), per species id — the change in dimension per
 # percent of moisture content, across the grain, radial and tangential
 MOVEMENT = {
@@ -105,27 +139,31 @@ MOVEMENT = {
 EMC_TERMS = [("W", 349, 1.29, 0.0135), ("K", 0.805, 0.000736, -0.00000273),
              ("K1", 6.27, -0.00938, -0.000303), ("K2", 1.91, 0.0407, -0.000293)]
 
-# Table 9-1: (id, loading, supports, deflection at, kb, ks, row as printed)
+# Table 9-1: (id, loading, supports, deflection at, kb, ks, row as printed, km). km is not
+# in the table: it is the largest bending moment over W L for that loading and support, by
+# statics (equilibrium of the beam; for the clamped cases, the end moments of a beam fixed
+# at both ends), and Equation (9-13) turns it into a stress.
 BEAM_CASES = [
     ("uniform-simply-supported", "uniform", "both simply supported", "midspan", 5 / 384, 1 / 8,
-     "Uniformly distributed | Both simply supported | Midspan | 5/384 | 1/8"),
+     "Uniformly distributed | Both simply supported | Midspan | 5/384 | 1/8", 1 / 8),
     ("uniform-clamped", "uniform", "both clamped", "midspan", 1 / 384, 1 / 8,
-     "Uniformly distributed | Both clamped | Midspan | 1/384 | 1/8"),
+     "Uniformly distributed | Both clamped | Midspan | 1/384 | 1/8", 1 / 12),
     ("midspan-point-simply-supported", "point at midspan", "both simply supported", "midspan",
-     1 / 48, 1 / 4, "Concentrated at midspan | Both simply supported | Midspan | 1/48 | 1/4"),
+     1 / 48, 1 / 4, "Concentrated at midspan | Both simply supported | Midspan | 1/48 | 1/4", 1 / 4),
     ("midspan-point-clamped", "point at midspan", "both clamped", "midspan", 1 / 192, 1 / 4,
-     "Concentrated at midspan | Both clamped | Midspan | 1/192 | 1/4"),
+     "Concentrated at midspan | Both clamped | Midspan | 1/192 | 1/4", 1 / 8),
     ("quarter-points-simply-supported", "points at outer quarter spans", "both simply supported",
      "midspan", 11 / 768, 1 / 8,
-     "Concentrated at outer quarter span points | Both simply supported | Midspan | 11/768 | 1/8"),
+     "Concentrated at outer quarter span points | Both simply supported | Midspan | 11/768 | 1/8",
+     1 / 8),
     ("quarter-points-clamped", "points at outer quarter spans", "both clamped", "load point",
      1 / 96, 1 / 8,
-     "Concentrated at outer quarter span points | Both clamped | Load point | 1/96 | 1/8"),
+     "Concentrated at outer quarter span points | Both clamped | Load point | 1/96 | 1/8", 3 / 32),
     ("uniform-cantilever", "uniform", "cantilever, one free, one clamped", "free end", 1 / 8, 1 / 2,
-     "Uniformly distributed | Cantilever, one free, one clamped | Free end | 1/8 | 1/2"),
+     "Uniformly distributed | Cantilever, one free, one clamped | Free end | 1/8 | 1/2", 1 / 2),
     ("end-point-cantilever", "point at free end", "cantilever, one free, one clamped", "free end",
      1 / 3, 1.0,
-     "Concentrated at free end | Cantilever, one free, one clamped | Free end | 1/3 | 1"),
+     "Concentrated at free end | Cantilever, one free, one clamped | Free end | 1/3 | 1", 1.0),
 ]
 
 
@@ -209,18 +247,99 @@ def wood_handbook() -> Node:
             f"table-13-5-{id_}", "Chapter 13, Table 13–5, p. 13–17", row,
             params={"cr": published(cr, "1/%", "Table 13–5 CR"),
                     "ct": published(ct, "1/%", "Table 13–5 CT")}))
-    for id_, loading, supports, at, kb, ks, row in BEAM_CASES:
+    clauses += [
+        _clause("bending-stress-9-13", "Chapter 9, Straight Beam Stresses, Equation (9–13), p. 9–7",
+                "where fb is bending stress, M bending moment, and S beam section modulus (for a "
+                "rectangular cross section, S = bh2/6;",
+                transcribed="fb = M / S, S = b h² / 6 for a rectangular cross section"),
+        _clause("cov-table-5-6", "Chapter 5, Table 5–6, p. 5–26",
+                "Static bending Modulus of rupture 16 Modulus of elasticity 22",
+                params={"cov_modulus_of_rupture": published(0.16, "", "Table 5–6", "16%"),
+                        "cov_modulus_of_elasticity": published(0.22, "", "Table 5–6", "22%")}),
+        _clause("cov-table-5-6-note-a", "Chapter 5, Table 5–6, footnote a, p. 5–26",
+                "Values for wood adjusted to 12% moisture content may be assumed to be "
+                "approximately of the same magnitude."),
+        _clause("near-minimum-7-6", "Chapter 7, Visually Graded Structural Lumber, p. 7–6",
+                "it is intended that the actual strength of at least 95% of the pieces in a "
+                "grade exceed the design properties (before reduction for duration of load and "
+                "safety) assigned to that grade.",
+                params={"exclusion": published(0.05, "", "p. 7–6", "at least 95% exceed")}),
+        _clause("near-minimum-7-6-name", "Chapter 7, p. 7–6",
+                "minimum value is called the 5% exclusion limit.",
+                transcribed="The near-minimum value is called the 5% exclusion limit. (The "
+                            "page breaks near- across two lines.)"),
+        _clause("design-factor-7-10", "Chapter 7, Machine-Graded Structural Lumber, p. 7–10",
+                "This value is then adjusted by a factor (2.1) for assumed 10-year duration of "
+                "load and safety to obtain Fb.",
+                params={"bending_factor": published(2.1, "", "p. 7–10", "a factor (2.1)")}),
+        _clause("short-load-5-40", "Chapter 5, Duration of Load, p. 5–40",
+                "Conversely, if the duration of load is very short, the load-carrying capacity "
+                "may be higher than that determined from strength properties given in the "
+                "tables."),
+        _clause("panels-uniform-12-2", "Chapter 12, p. 12–2",
+                "Although the mechanical properties of most wood composites might not be as "
+                "high as those of solid wood, they provide very consistent and uniform "
+                "performance."),
+        _clause("bending-moe-12-2", "Chapter 12, Modulus of Elasticity, p. 12–2",
+                "Bending MOE is a measure of the resistance to bending deflection, which is "
+                "relative to the stiffness."),
+        _clause("table-19-2-note-a", "Chapter 19, Table 19–2, footnote a, p. 19–8",
+                "aLaminates made from 17 plies of 1.6-mm (1/16-in.) rotary-cut yellow birch "
+                "veneer."),
+        _clause("table-19-2-note-b", "Chapter 19, Table 19–2, footnote b, p. 19–8",
+                "with phenol resin film adhesive."),
+        _clause("table-19-2-crossband-flexure", "Chapter 19, Table 19–2, Crossband laminates, "
+                "Normal laminated wood column, p. 19–8",
+                "Flexure—face grain parallel to span (flatwise)",
+                transcribed="Crossband laminates, Flexure—face grain parallel to span "
+                            "(flatwise), Normal laminated wood: Modulus of rupture 90.3 MPa "
+                            "(13,100 lb in–2), Modulus of elasticity 9.0 GPa (1,310 × 1,000 lb "
+                            "in–2); read from the page, the extracted text splits the columns",
+                bent="face grain parallel to span, load on the face",
+                params={"modulus_of_rupture": published(90.3, "MPa", "Table 19–2"),
+                        "modulus_of_elasticity": published(9000.0, "MPa", "Table 19–2",
+                                                           "9.0 GPa")}),
+        _clause("table-19-3-birch-laminate", "Chapter 19, Table 19–3, p. 19–8",
+                "Yellow birch laminate 0.72 3.1 3.254 40.29 36.64 80.18",
+                params={"specific_gravity": published(0.72, "", "Table 19–3",
+                                                      "specific gravity of product")}),
+    ]
+    for id_, name, row, g, e, mor in PLYWOOD_SHEATHING:
+        clauses.append(_clause(
+            f"table-12-2-{id_}", "Chapter 12, Table 12–2, p. 12–4", row, species=name,
+            transcribed=f"{name}: specific gravity {g}, static bending MOE {e} GPa, MOR {mor} "
+                        "MPa; the table does not say whether the panels were bent along or "
+                        "across the face grain",
+            params={"specific_gravity": published(g, "", "Table 12–2"),
+                    "modulus_of_elasticity": published(e * 1000, "MPa", "Table 12–2", f"{e} GPa"),
+                    "modulus_of_rupture": published(mor, "MPa", "Table 12–2")}))
+    for id_, name, row, g0, g1, e0, e1, m0, m1 in FIBRE_PANELS:
+        clauses.append(_clause(
+            f"table-12-1-{id_}", "Chapter 12, Table 12–1, p. 12–2", row,
+            params={"specific_gravity_low": published(g0, "", "Table 12–1"),
+                    "specific_gravity_high": published(g1, "", "Table 12–1"),
+                    "modulus_of_elasticity_low": published(e0 * 1000, "MPa", "Table 12–1"),
+                    "modulus_of_elasticity_high": published(e1 * 1000, "MPa", "Table 12–1"),
+                    "modulus_of_rupture_low": published(m0, "MPa", "Table 12–1"),
+                    "modulus_of_rupture_high": published(m1, "MPa", "Table 12–1")}))
+    for id_, loading, supports, at, kb, ks, row, km in BEAM_CASES:
         clauses.append(_clause(
             f"table-9-1-{id_}", "Chapter 9, Table 9–1, p. 9–3",
             "Table 9–1. Values of kb and ks for several beam loadings",
             transcribed=row, loading=loading, supports=supports, deflection_at=at,
-            params={"kb": published(kb, "", "Table 9–1"), "ks": published(ks, "", "Table 9–1")}))
+            params={"kb": published(kb, "", "Table 9–1"), "ks": published(ks, "", "Table 9–1"),
+                    "km": derived(km, "", [f"{wh}/bending-stress-9-13"],
+                                  "largest bending moment over W L for this loading and "
+                                  "support, by statics; not printed in Table 9–1")}))
     for id_, name, row, g12, e, row51, glr, glt in SPECIES:
         clauses.append(_clause(
             f"table-5-3a-{id_}", "Chapter 5, Table 5–3a, 12% moisture content row",
             row, species=name,
             params={"specific_gravity_12": published(g12, "", "Table 5–3a"),
-                    "modulus_of_elasticity_table": published(float(e), "MPa", "Table 5–3a")}))
+                    "modulus_of_elasticity_table": published(float(e), "MPa", "Table 5–3a"),
+                    "modulus_of_rupture_table": published(MOR_KPA[id_] / 1000, "MPa",
+                                                          "Table 5–3a",
+                                                          f"{MOR_KPA[id_]:,} kPa")}))
         clauses.append(_clause(
             f"table-5-1-{id_}", "Chapter 5, Table 5–1, p. 5–3", row51, species=name,
             params={"glr_ratio": published(glr, "", "Table 5–1 GLR/EL"),
@@ -238,17 +357,94 @@ def wood_handbook() -> Node:
                 children=clauses)
 
 
+def _design_stress(mor: float, mor_ref: str) -> Quantity:
+    """The bending stress a part may be designed to: the near-minimum (5% exclusion) modulus
+    of rupture, estimated from the mean with Table 5-6's coefficient of variation, divided by
+    the factor the Handbook applies for 10-year duration of load and safety."""
+    wh = WOOD_HANDBOOK
+    cov = 0.16
+    return derived(mor * (1 - NORMAL_5_PERCENT * cov) / 2.1, "MPa",
+                   [mor_ref, f"{wh}/cov-table-5-6/cov_modulus_of_rupture",
+                    f"{wh}/near-minimum-7-6/exclusion", f"{wh}/design-factor-7-10/bending_factor"],
+                   "MOR (1 − 1.645 × 0.16) / 2.1: the 5% point of a normal distribution with "
+                   "Table 5–6's coefficient of variation, over the p. 7–10 factor for 10-year "
+                   "duration of load and safety")
+
+
+def _panel(id_: str, name: str, *, form: str, sg: float, sg_ref: str, e: float, e_ref: str,
+           mor: float, mor_ref: str, bent: str, per: list[str], note: str = "") -> Node:
+    """A panel product: its bending modulus is the one measured on the panel (shear
+    deflection included, so no shear term is added to it), and its values hold only bent the
+    way the source says it bent them (`measured_along`; 'unstated' when it does not say)."""
+    wh = WOOD_HANDBOOK
+    return Node(
+        id=id_, kind="material", name=name,
+        payload={"form": form, "measured_along": bent, "modulus": "apparent", **(
+            {"note": note} if note else {})},
+        params={
+            "density": derived(1000.0 * sg, "kg/m3", [sg_ref, f"{wh}/density-4-14/water_density"],
+                               "specific gravity as tabulated times the density of water; "
+                               "the table does not state its moisture basis"),
+            "modulus_of_elasticity": derived(e, "MPa", [e_ref],
+                                             "bending modulus as tested on the panel"),
+            "modulus_of_rupture": derived(mor, "MPa", [mor_ref], "as tabulated"),
+            "design_bending_stress": _design_stress(mor, mor_ref),
+        },
+        links={"per": per})
+
+
+def panels() -> list[Node]:
+    """Plywood and fibre panels the Handbook gives bending values for."""
+    wh = WOOD_HANDBOOK
+    laminate = f"{wh}/table-19-2-crossband-flexure"
+    out = [_panel(
+        "plywood-birch-yellow", "Yellow birch plywood, 17 plies of 1.6 mm rotary-cut veneer, "
+        "phenol resin film", form="plywood", sg=0.72,
+        sg_ref=f"{wh}/table-19-3-birch-laminate/specific_gravity", e=9000.0,
+        e_ref=f"{laminate}/modulus_of_elasticity", mor=90.3,
+        mor_ref=f"{laminate}/modulus_of_rupture", bent="face grain",
+        per=[laminate, f"{wh}/table-19-2-note-a", f"{wh}/table-19-2-note-b",
+             f"{wh}/table-19-3-birch-laminate", f"{wh}/cov-table-5-6", f"{wh}/near-minimum-7-6",
+             f"{wh}/design-factor-7-10", f"{wh}/panels-uniform-12-2"],
+        note="Tested as a 27 mm laminate, load on the face, face grain along the span. A "
+             "panel with other ply thicknesses or another glue is near it, not it.")]
+    for id_, name, _row, g, e, mor in PLYWOOD_SHEATHING:
+        ref = f"{wh}/table-12-2-{id_}"
+        out.append(_panel(
+            f"plywood-{id_}", f"{name} plywood sheathing", form="plywood", sg=g,
+            sg_ref=f"{ref}/specific_gravity", e=e * 1000, e_ref=f"{ref}/modulus_of_elasticity",
+            mor=mor, mor_ref=f"{ref}/modulus_of_rupture", bent="unstated",
+            per=[ref, f"{wh}/cov-table-5-6", f"{wh}/near-minimum-7-6", f"{wh}/design-factor-7-10",
+                 f"{wh}/panels-uniform-12-2"]))
+    for id_, name, _row, g0, _g1, e0, _e1, m0, _m1 in FIBRE_PANELS:
+        ref = f"{wh}/table-12-1-{id_}"
+        out.append(_panel(
+            id_, f"{name}, the low end of the Handbook's range", form=name.lower(), sg=g0,
+            sg_ref=f"{ref}/specific_gravity_low", e=e0 * 1000,
+            e_ref=f"{ref}/modulus_of_elasticity_low", mor=m0, mor_ref=f"{ref}/modulus_of_rupture_low",
+            bent="unstated",
+            per=[ref, f"{wh}/cov-table-5-6", f"{wh}/near-minimum-7-6", f"{wh}/design-factor-7-10",
+                 f"{wh}/panels-uniform-12-2"]))
+    return out
+
+
 def materials() -> Node:
-    """Air-dried solid wood at 12% moisture content, one material per species."""
+    """Air-dried solid wood at 12% moisture content, one material per species, and the
+    panels (plywood, fibreboard, particleboard) the Handbook gives bending values for."""
     wh = WOOD_HANDBOOK
     out = []
     for id_, name, _row, g12, e, _row51, glr, glt in SPECIES:
         row, row51 = f"{wh}/table-5-3a-{id_}", f"{wh}/table-5-1-{id_}"
         el = 1.10 * e
+        mor = MOR_KPA[id_] / 1000
         out.append(Node(
             id=id_, kind="material", name=f"{name}, air-dried, 12% moisture content",
-            payload={"form": "solid wood", "moisture_content_percent": 12, "dried": True},
+            payload={"form": "solid wood", "moisture_content_percent": 12, "dried": True,
+                     "measured_along": "grain", "modulus": "true"},
             params={
+                "modulus_of_rupture": derived(mor, "MPa", [f"{row}/modulus_of_rupture_table"],
+                                              "Table 5–3a, mean of clear wood"),
+                "design_bending_stress": _design_stress(mor, f"{row}/modulus_of_rupture_table"),
                 "density": derived(1000.0 * g12 * 1.12, "kg/m3",
                                    [f"{row}/specific_gravity_12", f"{wh}/density-4-14/water_density"],
                                    "ρ12 = ρw G12 (1 + 12/100), Equation (4–14)"),
@@ -273,8 +469,9 @@ def materials() -> Node:
                                                          [f"{wh}/table-13-5-{id_}/ct"],
                                                          "CT, Table 13–5"),
             },
-            links={"per": [row, row51, f"{wh}/table-13-5-{id_}"]}))
-    return Node(id="materials", kind="", children=out)
+            links={"per": [row, row51, f"{wh}/table-13-5-{id_}", f"{wh}/cov-table-5-6",
+                           f"{wh}/near-minimum-7-6", f"{wh}/design-factor-7-10"]}))
+    return Node(id="materials", kind="", children=out + panels())
 
 
 # --- the Federal Register: 16 CFR 1261, adopting ASTM F2057-23 ---------------------------

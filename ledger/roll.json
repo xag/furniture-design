@@ -40,6 +40,26 @@
     "digest": "cbbb602450a1"
   },
   {
+    "path": "a-design-stress-is-the-near-minimum-strength-over-the-handbooks-factor",
+    "kind": "decision",
+    "digest": "275cfc5702ee"
+  },
+  {
+    "path": "a-design-stress-is-the-near-minimum-strength-over-the-handbooks-factor/a-safety-factor-of-our-own",
+    "kind": "alternative",
+    "digest": "7c9f5138be53"
+  },
+  {
+    "path": "a-design-stress-is-the-near-minimum-strength-over-the-handbooks-factor/figure-7-9",
+    "kind": "alternative",
+    "digest": "be9e9545f2fa"
+  },
+  {
+    "path": "a-design-stress-is-the-near-minimum-strength-over-the-handbooks-factor/lumber-grade-values",
+    "kind": "alternative",
+    "digest": "8239c98e3207"
+  },
+  {
     "path": "a-makers-products-are-their-own-package",
     "kind": "decision",
     "digest": "e3edc58f97d7"
@@ -48,6 +68,31 @@
     "path": "a-makers-products-are-their-own-package/makers-in-the-knowledge-base",
     "kind": "alternative",
     "digest": "8041cb9f7875"
+  },
+  {
+    "path": "a-material-says-which-way-its-values-were-measured",
+    "kind": "decision",
+    "digest": "58fee22c2971"
+  },
+  {
+    "path": "a-material-says-which-way-its-values-were-measured/assume-along-the-face-grain",
+    "kind": "alternative",
+    "digest": "8c71d095242a"
+  },
+  {
+    "path": "a-panels-tested-modulus-takes-no-shear-term",
+    "kind": "decision",
+    "digest": "1c34eeb1f754"
+  },
+  {
+    "path": "a-panels-tested-modulus-takes-no-shear-term/a-shear-modulus-for-plywood",
+    "kind": "alternative",
+    "digest": "1d4740f49525"
+  },
+  {
+    "path": "a-panels-tested-modulus-takes-no-shear-term/two-sag-rules",
+    "kind": "alternative",
+    "digest": "57319dbe036f"
   },
   {
     "path": "an-equation-is-applied-only-where-its-source-says-it-holds",

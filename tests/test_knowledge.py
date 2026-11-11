@@ -82,3 +82,21 @@ def test_the_package_passes_its_own_publish_gate(tmp_path):
     from furniture_design.package import PACKAGE
     log = validate_package(PACKAGE, tmp_path)
     assert any("a-beam-sags-within-its-limit" in line for line in log)
+
+
+def test_every_typed_strength_is_in_its_quoted_row():
+    """The modulus of rupture of each species is typed beside its Table 5-3a row; the row
+    is checked against the capture, and this holds the typed number to the row (12% line:
+    specific gravity, then the modulus of rupture in kPa)."""
+    from furniture_design.knowledge import MOR_KPA, SPECIES
+    for id_, _name, row, g12, *_ in SPECIES:
+        assert f"12% {g12:.2f} {MOR_KPA[id_]:,}" in row, id_
+
+
+def test_a_typed_panel_value_is_in_its_quoted_row():
+    from furniture_design.knowledge import FIBRE_PANELS, PLYWOOD_SHEATHING
+    for _id, _name, row, g, e, mor in PLYWOOD_SHEATHING:
+        flat = row.replace(" ", "")
+        assert f"{g:.2f}{e:.2f}" in flat and f"{mor:.2f}" in flat, row
+    for _id, _name, row, g0, g1, e0, e1, m0, m1 in FIBRE_PANELS:
+        assert f"{m0:.2f}" in row and f"{e0:.2f}" in row, row

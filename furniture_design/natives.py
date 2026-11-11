@@ -246,7 +246,47 @@ def emc(tree: Quern, climate: str, end: str) -> float:
                        / (1 + k1 * kh + k1 * k2 * kh * kh))
 
 
+def deflection(tree: Quern, part: str) -> float:
+    """mm: the initial deflection of `part` under its own weight and every load `on` it,
+    Wood Handbook Equation (9-2) with (9-3) and (9-4): kb W L³/(E I) + ks W L/(G A′), I =
+    b h³/12, A′ = 5 b h/6, kb and ks from the one Table 9-1 clause the part links as
+    `bends_as`, L, b, h its `span`, `depth` and `thickness`, E its material's
+    `modulus_of_elasticity`. The shear term's G is the material property the part names in
+    payload `shear_modulus`. A material whose payload says its modulus is `apparent` (a
+    panel's bending modulus, measured on the panel with its shear deflection in it) takes no
+    shear term: adding one would count that deflection twice."""
+    node = get_node(tree, part)
+    if node is None:
+        raise ValueError(f"no part at '{part}'")
+    cases = node.links.get("bends_as", [])
+    if len(cases) != 1:
+        raise ValueError(f"part '{part}' must link one Table 9-1 case as bends_as")
+    need = {n: _param(tree, part, n) for n in ("span", "depth", "thickness", "modulus_of_elasticity")}
+    need.update({n: _param(tree, cases[0], n) for n in ("kb", "ks")})
+    missing = [n for n, v in need.items() if v is None]
+    if missing:
+        raise ValueError(f"part '{part}' or its case states no {', '.join(missing)}")
+    uses = node.links.get("uses", [])
+    material = get_node(tree, uses[0]) if uses else None
+    apparent = material is not None and (material.payload or {}).get("modulus") == "apparent"
+    here = "/".join(_segs(part))
+    loads = sum(_param(tree, p, "mass") or 0.0 for p, n in tree.walk("")
+                if n.kind == "load" and here in [("/".join(_segs(t))) for t in n.links.get("on", [])])
+    w = STANDARD_GRAVITY * (mass(tree, part) + loads)
+    span, b, h, e = need["span"], need["depth"], need["thickness"], need["modulus_of_elasticity"]
+    bending = need["kb"] * w * span ** 3 * 12 / (e * b * h ** 3)
+    if apparent:
+        return bending
+    name = (node.payload or {}).get("shear_modulus")
+    g = _param(tree, part, name) if name else None
+    if g is None:
+        raise ValueError(f"part '{part}' names no shear modulus its material carries, and its "
+                         "material's modulus is not an apparent one")
+    return bending + need["ks"] * w * span * 6 / (5 * g * b * h)
+
+
 NATIVES = {
+    "furniture/deflection": deflection,
     "furniture/emc": emc,
     "furniture/mass": mass,
     "furniture/height": height,

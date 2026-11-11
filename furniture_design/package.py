@@ -39,8 +39,14 @@ VOCABULARY = [
     KindDef(kind="material", description=(
         "A material a part is made of. Its params are its properties, each derived_from the "
         "clauses it was computed from; a part links to it with `uses` and reads them as its "
-        "own."),
-        params={"density": "kg/m3", "modulus_of_elasticity": "EL, MPa",
+        "own. payload form (solid wood, plywood, ...), measured_along (the direction its "
+        "bending values were measured in: grain, face grain, or unstated when the source does "
+        "not say) and modulus (true: corrected for shear deflection, so a shear term is added; "
+        "apparent: measured on the panel with its shear deflection in it)."),
+        params={"density": "kg/m3", "modulus_of_elasticity": "EL, MPa (for a panel, its "
+                "bending modulus as tested on the panel)",
+                "modulus_of_rupture": "MPa, the mean bending strength the source states",
+                "design_bending_stress": "MPa, the bending stress a part may be designed to",
                 "shear_modulus_lr": "GLR, MPa", "shear_modulus_lt": "GLT, MPa",
                 "initial_share_of_longtime": "the share of a permitted longtime deflection "
                                              "the initial deflection may reach (creep)"},
@@ -66,7 +72,8 @@ VOCABULARY = [
         "naming the part's params, transform {translate} placing its minimum corner "
         "relative to the enclosing part or piece (geometry@'s convention); extends (mm it "
         "opens towards the front) for a drawer or pull-out shelf; hinged for a door "
-        "(not modelled yet); shear_modulus naming the material property that is G for it "
+        "(not modelled yet); span_along (grain, face grain) for a part that bends: the way "
+        "its grain runs along its span; shear_modulus naming the material property that is G for it "
         "(shear_modulus_lr for a board whose vertical faces are edge-grained, the common "
         "flat-sawn board lying flat; shear_modulus_lt for flat-grained vertical faces). "
         "A part that bends names its span, depth and thickness params and its Table 9-1 "
@@ -180,25 +187,30 @@ RULES = [
                      "the static moment about its front edge keeps it standing. A prediction "
                      "of the physical test the requirement describes, not a substitute for it."),
     Rule(name="a-beam-sags-within-its-limit", kind="part",
-         expr="every(r, linked(self, 'sag_limit'), "
-              "let(W, 9.80665 * (solve('furniture/mass', self) "
-              "+ sum(params_of(backlinked(self, 'on'), 'mass'))), "
-              "let(L, param(self, 'span'), let(b, param(self, 'depth'), "
-              "let(h, param(self, 'thickness'), "
-              "let(E, param(self, 'modulus_of_elasticity'), "
-              "let(G, param(self, payload(self, 'shear_modulus')), "
-              "let(kb, sum(params_of(linked(self, 'bends_as'), 'kb')), "
-              "let(ks, sum(params_of(linked(self, 'bends_as'), 'ks')), "
-              "len(linked(self, 'bends_as')) == 1 and "
-              "kb * W * L * L * L * 12 / (E * b * h * h * h) + ks * W * L * 6 / (5 * G * b * h) "
-              "<= param(self, 'initial_share_of_longtime') * param(r, 'limit'))))))))))",
-         description="Wood Handbook Equation (9-2) with (9-3) and (9-4): the initial "
-                     "deflection kb W L^3/(E I) + ks W L/(G A') of a part under its own weight "
-                     "and the loads on it, kb and ks from its one Table 9-1 case, E and G from "
-                     "its material, is at most the share of each sag_limit's longtime limit "
-                     "that creep leaves (Chapter 9, Creep Deflections). W in N (9.80665 m/s2 "
-                     "is standard gravity), lengths in mm, moduli in MPa. The part's own "
-                     "weight counts as part of W whatever the case's loading."),
+         expr="every(r, linked(self, 'sag_limit'), solve('furniture/deflection', self) "
+              "<= param(self, 'initial_share_of_longtime') * param(r, 'limit'))",
+         description="Wood Handbook Equation (9-2) with (9-3) and (9-4), through "
+                     "furniture/deflection: the initial deflection of a part under its own "
+                     "weight and the loads on it is at most the share of each sag_limit's "
+                     "longtime limit that creep leaves (Chapter 9, Creep Deflections)."),
+    Rule(name="a-beam-is-strong-enough", kind="part",
+         expr="every(c, linked(self, 'bends_as'), "
+              "param(c, 'km') * 9.80665 * (solve('furniture/mass', self) "
+              "+ sum(params_of(backlinked(self, 'on'), 'mass'))) * param(self, 'span') * 6 "
+              "/ (param(self, 'depth') * param(self, 'thickness') * param(self, 'thickness')) "
+              "<= param(self, 'design_bending_stress'))",
+         description="Wood Handbook Equation (9-13): the largest bending stress M/S in a part, "
+                     "M = km W L for its Table 9-1 case and S = b h^2/6, under its own weight "
+                     "and the loads on it, is at most its material's design bending stress "
+                     "(the near-minimum modulus of rupture over the factor for duration of "
+                     "load and safety). W in N, lengths in mm, stresses in MPa."),
+    Rule(name="a-part-bends-the-way-its-material-was-tested", kind="part",
+         expr="every(c, linked(self, 'bends_as'), every(m, linked(self, 'uses'), "
+              "payload(self, 'span_along', '') == payload(m, 'measured_along', 'unstated')))",
+         description="A part that bends spans the way its material's bending values were "
+                     "measured (along the grain for solid wood, face grain along the span for "
+                     "plywood). A material whose source does not say which way it was bent "
+                     "(measured_along: unstated) judges no part's bending."),
     Rule(name="a-moving-part-stays-where-its-equation-holds", kind="part",
          expr="every(c, linked(self, 'moves_in'), "
               "len(linked(self, 'moves_per')) == 1 and "
@@ -249,7 +261,7 @@ def _chest(links: dict | None = None) -> Node:
                           drawer])
 
 
-def _shelf(limit_mm: float) -> list[Node]:
+def _shelf(limit_mm: float, books_kg: float = 30, span_along: str = "grain") -> list[Node]:
     """A bookshelf's oak shelf, 800 mm between supports, with 30 kg of books on it."""
     sag = Node(id="bookshelf-sag", kind="requirement",
                name="The shelf sags at most this much under its books, over the years",
@@ -261,11 +273,11 @@ def _shelf(limit_mm: float) -> list[Node]:
                          "depth": _target(250, "mm", "front to back"),
                          "thickness": _target(19, "mm", "board thickness")},
                  payload={"shape": {"op": "box", "size": ["span", "depth", "thickness"]},
-                          "shear_modulus": "shear_modulus_lr"},
+                          "shear_modulus": "shear_modulus_lr", "span_along": span_along},
                  links={"uses": ["materials/oak-northern-red"],
                         "bends_as": [f"{WOOD_HANDBOOK}/table-9-1-uniform-simply-supported"],
                         "sag_limit": [f"{REQUIREMENTS}/bookshelf-sag"]})
-    books = Node(id="books", kind="load", params={"mass": _target(30, "kg", "a row of books")},
+    books = Node(id="books", kind="load", params={"mass": _target(books_kg, "kg", "a row of books")},
                  payload={"distribution": "uniform"}, links={"on": ["pieces/bookshelf/shelf"]})
     return [sag, Node(id="bookshelf", kind="piece", children=[shelf, books])]
 
@@ -330,9 +342,10 @@ def _joinery(*, thickness: float = 18, width: float = 300, tool: str = "tools/gr
 
 
 def _world(*, chest: Node | None = None, sag_limit: float = 4.0, clearance: float = 8.0,
-           rh_max: float = 0.65, **joinery) -> list[Node]:
+           rh_max: float = 0.65, books_kg: float = 30, span_along: str = "grain",
+           **joinery) -> list[Node]:
     kb = knowledge()
-    sag, bookshelf = _shelf(sag_limit)
+    sag, bookshelf = _shelf(sag_limit, books_kg, span_along)
     kb[2].children.append(sag)
     climates, cabinet = _cabinet(clearance, rh_max)
     catalogue, hardware, box = _joinery(**joinery)
@@ -383,6 +396,13 @@ COUNTER_EXAMPLES = [
     CounterExample(rule="a-beam-sags-within-its-limit", nodes=_world(sag_limit=1.0),
                    because="the oak shelf deflects about 1.1 mm at once, more than two-thirds "
                            "of a 1 mm longtime limit"),
+    CounterExample(rule="a-beam-is-strong-enough", nodes=_world(books_kg=600),
+                   because="600 kg on the oak shelf bends it to about 39 MPa, past oak's design "
+                           "stress of about 34.7"),
+    CounterExample(rule="a-part-bends-the-way-its-material-was-tested",
+                   nodes=_world(span_along="across the grain"),
+                   because="a board spanning across its grain, judged with values measured "
+                           "along it"),
     CounterExample(rule="a-moving-part-stays-where-its-equation-holds", nodes=_world(rh_max=0.90),
                    because="at 90% relative humidity oak settles near 20.5% moisture, beyond the "
                            "14% where the movement equation holds"),
@@ -405,7 +425,7 @@ COUNTER_EXAMPLES = [
 
 PACKAGE = Package(
     name="furniture-design",
-    version="0.3.0",
+    version="0.4.0",
     description=(
         "Furniture designs and the published knowledge they are judged against. Kinds: "
         "source and clause (a publication and its verbatim, located statements, with the "
@@ -414,7 +434,7 @@ PACKAGE = Package(
         "load. Rules: every clause quotes its source; requirements and materials rest on "
         "clauses; a piece in a requirement's scope is held to it; a piece stands in its "
         "stability cases (furniture/tipping_cases); a part bends within its longtime sag "
-        "limit (Wood Handbook Eq. 9-2 to 9-4 and its creep guidance); a part that swells and "
+        "limit (Wood Handbook Eq. 9-2 to 9-4 and its creep guidance, furniture/deflection, with no shear term for a panel whose modulus was measured on the panel); a part is strong enough (Eq. 9-13 against the near-minimum modulus of rupture over the Handbook's factor for 10-year duration of load and safety); a part bends the way its material's values were measured; a part that swells and "
         "shrinks with the air has room to (Eq. 13-3, the moisture content of its climate from "
         "Eq. 4-5, kind climate), and is judged only where that equation holds; a joint is cut with a tool its connector takes, at its setting, in parts thick and wide enough for it (kinds tool, connector, joint; a maker's products are data in a package of their own). The rules carry no "
         "number a source states: limits and properties are read from the knowledge base."),
