@@ -161,7 +161,7 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "quern", git = "https://github.com/xag/quern?rev=45b87de" }]
+requires-dist = [{ name = "quern", git = "https://github.com/xag/quern?rev=c839190abc5e70ce0e693f14e7895e655907263c" }]
 
 [package.metadata.requires-dev]
 dev = [
@@ -388,7 +388,7 @@ wheels = [
 [[package]]
 name = "quern"
 version = "0.1.5"
-source = { git = "https://github.com/xag/quern?rev=45b87de#45b87deec2fb33459f59363da54d4e87a786172c" }
+source = { git = "https://github.com/xag/quern?rev=c839190abc5e70ce0e693f14e7895e655907263c#c839190abc5e70ce0e693f14e7895e655907263c" }
 dependencies = [
     { name = "pydantic" },
     { name = "wasmtime" },
