@@ -401,6 +401,30 @@ def entries() -> list[Node]:
                      "They stiffen the piece in different ways; the better one alone is the safe side."),
             ],
         ),
+        Node(
+            id="this-repos-own-work-is-agpl", kind="decision",
+            name="This repo's own work is licensed AGPL-3.0-or-later, its copyright held by Xavier Grehant "
+                 "and, for the skill menuiserie-conception-meubles-design, by Joohee; a source copied under "
+                 "sources/ keeps its own terms. A contribution from anyone else is merged only with an "
+                 "agreement that lets the copyright holders license it under other terms as well",
+            payload={"decided_on": "2026-11-11",
+                     "the_owner": "je pourrais le monétiser via un service hébergé",
+                     "why": "Public with no licence, the repo could be read but not lawfully reused. The AGPL "
+                            "keeps it open source and obliges anyone who runs a modified copy as a service "
+                            "to publish their code, so nobody can host it closed against the owner's hosted "
+                            "service; the copyright holders are not bound by their own licence and may "
+                            "still sell other terms. That freedom lasts only while they hold the copyright "
+                            "of everything here, hence the agreement on outside contributions."},
+            links={"rests_on": ["the-method-is-public-and-names-no-home"]},
+            children=[
+                _alt("apache-2.0", "Apache-2.0, as quern is",
+                     "Lets anyone host it in a closed paid service."),
+                _alt("source-available", "A source-available licence (FSL, BSL)",
+                     "Not open source until it converts, and a reader cannot tell what they may do."),
+                _alt("non-commercial", "A non-commercial licence",
+                     "Would forbid a maker to sell a piece designed with it."),
+            ],
+        ),
     ]
 
 

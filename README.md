@@ -68,6 +68,10 @@ uv run quern check     # exits 1 on a red nobody expected
 
 There is no flight-recorder boundary: nothing here touches storage, the network, the clock or randomness.
 
+## Licence
+
+The code, the knowledge base as arranged here, the skill and the ledger are licensed under the [GNU Affero General Public License v3.0 or later](LICENSE). Copyright 2026 Xavier Grehant; the skill `menuiserie-conception-meubles-design` copyright 2026 Joohee. Anyone who runs a modified copy as a network service must offer its users that copy's source. A source copied under `sources/` keeps its own terms (the Wood Handbook and the Federal Register are in the public domain). Other terms, for instance to build it into closed software, can be granted by the copyright holders. A contribution is merged only with an agreement that lets them license it under other terms as well.
+
 ## Tests
 
 `uv run pytest --testmon` runs the tests that failed last time or whose code changed, then `uv run pytest` runs the whole suite. Both stop at the first failure.

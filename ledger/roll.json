@@ -240,6 +240,26 @@
     "digest": "1b6308b4d867"
   },
   {
+    "path": "this-repos-own-work-is-agpl",
+    "kind": "decision",
+    "digest": "4558c8339054"
+  },
+  {
+    "path": "this-repos-own-work-is-agpl/apache-2.0",
+    "kind": "alternative",
+    "digest": "9deba4497210"
+  },
+  {
+    "path": "this-repos-own-work-is-agpl/non-commercial",
+    "kind": "alternative",
+    "digest": "f2762b9289c1"
+  },
+  {
+    "path": "this-repos-own-work-is-agpl/source-available",
+    "kind": "alternative",
+    "digest": "c5e095d1daa6"
+  },
+  {
     "path": "what-the-grammar-cannot-sum-is-a-calculation-with-cases",
     "kind": "decision",
     "digest": "0a9e2f855a40"
