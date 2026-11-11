@@ -23,7 +23,7 @@ Copyrighted standards (EN 14749, EN 16121 and EN 16122, ASTM F2057, ANSI/BIFMA X
 
 - The tipping check predicts the physical tests. Passing it is not compliance: compliance is the test itself, run as ASTM F2057-23 says.
 - Doors are not modelled, nor the 10-pound pull of test 9.2.2: the public text does not say where the hand-hold is or whether the drawers are open.
-- No public source gives a sag limit for a furniture shelf. A design states its own limit, as a requirement with provenance `design-target`, and the check holds the initial deflection to the share of that limit the Wood Handbook's creep guidance leaves (two-thirds for dry wood).
+- Neither source gives a sag limit for a furniture shelf, and no search for a public one has been made yet. A design states its own limit, as a requirement with provenance `design-target`, and the check holds the initial deflection to the share of that limit the Wood Handbook's creep guidance leaves (two-thirds for dry wood).
 
 ## Using it
 
