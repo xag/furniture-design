@@ -34,6 +34,24 @@ def test_every_quote_is_in_the_capture_of_its_source(source, clause):
         f"{clause.id}: the quote is not in {capture.name}"
 
 
+# Table 4-2 as printed (°C, relative humidity, moisture content %), across its range
+TABLE_4_2 = [(-1.1, 0.05, 1.4), (21.1, 0.30, 6.2), (21.1, 0.50, 9.2), (21.1, 0.65, 12.0),
+             (21.1, 0.80, 16.0), (48.9, 0.95, 22.0), (87.8, 0.40, 5.0)]
+
+
+@pytest.mark.parametrize("temperature,rh,printed", TABLE_4_2)
+def test_the_moisture_equation_reproduces_the_published_table(temperature, rh, printed):
+    """The equation's coefficients come from the knowledge base; the table they must
+    reproduce is printed beside them in the Handbook, to 0.1%."""
+    from quern import Quern
+
+    from furniture_design.natives import emc
+    from furniture_design.spec import climate
+    tree = Quern()
+    tree.root.children = climate(temperature, rh, rh)
+    assert abs(emc(tree, "climates/room", "max") - printed) <= 0.05 + 1e-9
+
+
 def test_the_package_passes_its_own_publish_gate(tmp_path):
     from quern.library import validate_package
 

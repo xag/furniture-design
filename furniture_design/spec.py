@@ -63,6 +63,19 @@ UNWEIGHED = Node(id="board", kind="piece", children=[
     Node(id="top", kind="part", payload={"shape": {"op": "box", "size": [1000, 100, 10]}})])
 
 
+def climate(temperature: float, rh_min: float, rh_max: float, linked: bool = True) -> list[Node]:
+    """The Wood Handbook as a source, and one climate under climates/."""
+    from .knowledge import wood_handbook
+
+    def q(v: float, unit: str = "") -> Quantity:
+        return Quantity(value=v, unit=unit, provenance="design-target", grounded=False)
+    c = Node(id="room", kind="climate",
+             params={"temperature": q(temperature, "degC"), "rh_min": q(rh_min), "rh_max": q(rh_max)},
+             links={"emc_per": ["sources/wood-handbook/emc-4-5"]} if linked else {})
+    return [Node(id="sources", kind="", children=[wood_handbook()]),
+            Node(id="climates", kind="", children=[c])]
+
+
 def d(contract: str, nodes: list[Node], args: list, because: str, **expect) -> Demonstration:
     return Demonstration(contract=f"furniture/{contract}", nodes=nodes, args=args,
                          because=because, **expect)
@@ -74,6 +87,19 @@ def d(contract: str, nodes: list[Node], args: list, because: str, **expect) -> D
 STANDING = 40 * 250 + 5 * -175
 
 SPEC = {
+    # Equation (4-5) evaluated by hand; Table 4-2 prints these as 9.2, 16.0 and 6.2
+    # (tests/test_knowledge.py holds the equation to the table across its range).
+    "furniture/emc": [
+        d("emc", climate(21.1, 0.3, 0.5), ["climates/room", "max"], expect=9.242582321706546,
+          because="21.1 °C at 50% relative humidity: Table 4-2 says 9.2%"),
+        d("emc", climate(21.1, 0.3, 0.8), ["climates/room", "max"], expect=15.98957591023807,
+          because="21.1 °C at 80%: Table 4-2 says 16.0%"),
+        d("emc", climate(21.1, 0.3, 0.8), ["climates/room", "min"], expect=6.169754722200033,
+          because="the dry end of the same climate, 30%: Table 4-2 says 6.2%"),
+        d("emc", climate(21.1, 0.3, 0.8, linked=False), ["climates/room", "max"],
+          expect_error="must link one equation",
+          because="a climate that names no equation is refused, never given a moisture content"),
+    ],
     "furniture/mass": [
         d("mass", [chest()], ["chest"], expect=45, because="the parts' own masses, summed"),
         d("mass", [OAK, BOARD], ["board"], expect=700 * 1000 * 100 * 10 * 1e-9,

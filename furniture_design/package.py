@@ -68,12 +68,27 @@ VOCABULARY = [
         "(shear_modulus_lr for a board whose vertical faces are edge-grained, the common "
         "flat-sawn board lying flat; shear_modulus_lt for flat-grained vertical faces). "
         "A part that bends names its span, depth and thickness params and its Table 9-1 "
-        "case."),
+        "case. A part that swells and shrinks with the air (a floating panel) links the "
+        "climate it lives in and its movement equation, names in payload across_grain the "
+        "param that is its width across the grain and in dimensional_change the material "
+        "property that moves it (dimensional_change_tangential for a flat-sawn face, "
+        "dimensional_change_radial for a quartersawn one), and states the clearance it "
+        "has."),
         params={"mass": "kg, when it is not its volume times its material's density",
                 "span": "mm between supports", "depth": "mm, the beam's width b",
-                "thickness": "mm, the beam's depth h", "storage_volume": "mm3"},
+                "thickness": "mm, the beam's depth h", "storage_volume": "mm3",
+                "clearance": "mm the part may grow across the grain before it is stopped"},
         links={"uses": "its material", "bends_as": "the Table 9-1 clause for its loading "
-               "and supports", "sag_limit": "the longtime-sag requirements it is held to"}),
+               "and supports", "sag_limit": "the longtime-sag requirements it is held to",
+               "moves_in": "the climates it lives in",
+               "moves_per": "the clause of the movement equation it is judged by"}),
+    KindDef(kind="climate", description=(
+        "The air a piece lives in: params temperature (°C) and rh_min and rh_max, the "
+        "driest and dampest relative humidity it sees, as decimals; a design states it "
+        "(design-target) or a home measures it. It links emc_per to the equation that "
+        "turns it into the moisture content wood settles at (furniture/emc)."),
+        params={"temperature": "°C", "rh_min": "decimal, 0 to 1", "rh_max": "decimal, 0 to 1"},
+        links={"emc_per": "the equilibrium moisture equation's clause"}),
     KindDef(kind="load", description=(
         "Something a part carries: param mass (kg), payload distribution (uniform or a "
         "point), provenance published when a clause states it, design-target when the "
@@ -129,6 +144,25 @@ RULES = [
                      "that creep leaves (Chapter 9, Creep Deflections). W in N (9.80665 m/s2 "
                      "is standard gravity), lengths in mm, moduli in MPa. The part's own "
                      "weight counts as part of W whatever the case's loading."),
+    Rule(name="a-moving-part-stays-where-its-equation-holds", kind="part",
+         expr="every(c, linked(self, 'moves_in'), "
+              "len(linked(self, 'moves_per')) == 1 and "
+              "solve('furniture/emc', c, 'min') >= sum(params_of(linked(self, 'moves_per'), 'mc_min')) "
+              "and solve('furniture/emc', c, 'max') <= sum(params_of(linked(self, 'moves_per'), 'mc_max')))",
+         description="The movement equation a part is judged by holds over a range of moisture "
+                     "content (Wood Handbook Eq. 13-3: 6% to 14%); in a climate that takes the "
+                     "wood outside it, the movement it predicts is not to be trusted, and this "
+                     "says so instead of answering."),
+    Rule(name="a-moving-part-has-room-to-move", kind="part",
+         expr="every(c, linked(self, 'moves_in'), "
+              "param(self, payload(self, 'across_grain')) "
+              "* param(self, payload(self, 'dimensional_change')) "
+              "* (solve('furniture/emc', c, 'max') - solve('furniture/emc', c, 'min')) "
+              "<= param(self, 'clearance'))",
+         description="Wood Handbook Eq. 13-3: across the grain a part changes by its width times "
+                     "its material's dimensional change coefficient times the change in moisture "
+                     "content between the driest and dampest air of its climate (Eq. 4-5); its "
+                     "clearance takes at least that."),
 ]
 
 SOLVERS = [SolverDef(name=name, native=True, reads=[""],
@@ -181,11 +215,35 @@ def _shelf(limit_mm: float) -> list[Node]:
     return [sag, Node(id="bookshelf", kind="piece", children=[shelf, books])]
 
 
-def _world(*, chest: Node | None = None, sag_limit: float = 4.0) -> list[Node]:
+def _cabinet(clearance_mm: float, rh_max: float) -> list[Node]:
+    """A wall cabinet's oak back panel, 400 mm across the grain, floating in a groove, in a
+    room between 30% and `rh_max` relative humidity at 20 °C."""
+    room = Node(id="living-room", kind="climate",
+                params={"temperature": _target(20, "degC", "heated room"),
+                        "rh_min": _target(0.30, "", "dry winter"),
+                        "rh_max": _target(rh_max, "", "damp summer")},
+                links={"emc_per": [f"{WOOD_HANDBOOK}/emc-4-5"]})
+    panel = Node(id="back-panel", kind="part",
+                 params={"width": _target(400, "mm", "across the grain"),
+                         "clearance": _target(clearance_mm, "mm", "room left in the groove")},
+                 payload={"shape": {"op": "box", "size": ["width", 6, 300]},
+                          "across_grain": "width",
+                          "dimensional_change": "dimensional_change_tangential"},
+                 links={"uses": ["materials/oak-northern-red"],
+                        "moves_in": ["climates/living-room"],
+                        "moves_per": [f"{WOOD_HANDBOOK}/dimensional-change-13-3"]})
+    return [Node(id="climates", kind="", children=[room]),
+            Node(id="cabinet", kind="piece", children=[panel])]
+
+
+def _world(*, chest: Node | None = None, sag_limit: float = 4.0, clearance: float = 8.0,
+           rh_max: float = 0.65) -> list[Node]:
     kb = knowledge()
     sag, bookshelf = _shelf(sag_limit)
     kb[2].children.append(sag)
-    return kb + [Node(id="pieces", kind="", children=[chest or _chest(), bookshelf])]
+    climates, cabinet = _cabinet(clearance, rh_max)
+    return kb + [climates,
+                 Node(id="pieces", kind="", children=[chest or _chest(), bookshelf, cabinet])]
 
 
 EXAMPLES = _world()
@@ -230,11 +288,17 @@ COUNTER_EXAMPLES = [
     CounterExample(rule="a-beam-sags-within-its-limit", nodes=_world(sag_limit=1.0),
                    because="the oak shelf deflects about 1.1 mm at once, more than two-thirds "
                            "of a 1 mm longtime limit"),
+    CounterExample(rule="a-moving-part-stays-where-its-equation-holds", nodes=_world(rh_max=0.90),
+                   because="at 90% relative humidity oak settles near 20.5% moisture, beyond the "
+                           "14% where the movement equation holds"),
+    CounterExample(rule="a-moving-part-has-room-to-move", nodes=_world(clearance=4.0),
+                   because="400 mm of flat-sawn oak moves about 7.1 mm between 30% and 65% "
+                           "humidity, and the groove leaves it 4"),
 ]
 
 PACKAGE = Package(
     name="furniture-design",
-    version="0.1.0",
+    version="0.2.0",
     description=(
         "Furniture designs and the published knowledge they are judged against. Kinds: "
         "source and clause (a publication and its verbatim, located statements, with the "
@@ -243,7 +307,9 @@ PACKAGE = Package(
         "load. Rules: every clause quotes its source; requirements and materials rest on "
         "clauses; a piece in a requirement's scope is held to it; a piece stands in its "
         "stability cases (furniture/tipping_cases); a part bends within its longtime sag "
-        "limit (Wood Handbook Eq. 9-2 to 9-4 and its creep guidance). The rules carry no "
+        "limit (Wood Handbook Eq. 9-2 to 9-4 and its creep guidance); a part that swells and "
+        "shrinks with the air has room to (Eq. 13-3, the moisture content of its climate from "
+        "Eq. 4-5, kind climate), and is judged only where that equation holds. The rules carry no "
         "number a source states: limits and properties are read from the knowledge base."),
     publisher="xag/furniture-design",
     vocabulary=VOCABULARY,

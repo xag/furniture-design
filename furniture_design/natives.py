@@ -216,7 +216,38 @@ def unheld(tree: Quern, piece: str) -> float:
     return float(sum(1 for r in reqs if r not in linked and in_scope(tree, piece, r)))
 
 
+def emc(tree: Quern, climate: str, end: str) -> float:
+    """%: the moisture content wood settles at in `climate` at its `end` ('min' or 'max'):
+    the climate's `temperature` (°C) and `rh_<end>` (relative humidity, a decimal), through
+    the equation of the clause it links as `emc_per`, whose params are W, K, K1 and K2 as
+    polynomials in T (`W_0`, `W_1`, `W_2`, ...). Wood Handbook Equation (4-5)."""
+    node = get_node(tree, climate)
+    if node is None:
+        raise ValueError(f"no climate at '{climate}'")
+    per = node.links.get("emc_per", [])
+    if len(per) != 1:
+        raise ValueError(f"climate '{climate}' must link one equation as emc_per")
+    t = _param(tree, climate, "temperature")
+    h = _param(tree, climate, f"rh_{end}")
+    if t is None or h is None:
+        raise ValueError(f"climate '{climate}' states no temperature or rh_{end}")
+    if not 0 <= h < 1:
+        raise ValueError(f"rh_{end} of '{climate}' is {h}; it is a decimal below 1")
+
+    def term(name: str) -> float:
+        c = [_param(tree, per[0], f"{name}_{i}") for i in range(3)]
+        if None in c:
+            raise ValueError(f"'{per[0]}' does not state {name} as a polynomial in T")
+        return c[0] + c[1] * t + c[2] * t * t
+
+    w, k, k1, k2 = term("W"), term("K"), term("K1"), term("K2")
+    kh = k * h
+    return 1800 / w * (kh / (1 - kh) + (k1 * kh + 2 * k1 * k2 * kh * kh)
+                       / (1 + k1 * kh + k1 * k2 * kh * kh))
+
+
 NATIVES = {
+    "furniture/emc": emc,
     "furniture/mass": mass,
     "furniture/height": height,
     "furniture/overturning_margin": overturning_margin,

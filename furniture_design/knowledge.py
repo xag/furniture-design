@@ -90,6 +90,21 @@ SPECIES = [
      "Yellow-poplar 0.043 0.092 0.075 0.069 0.011", 0.075, 0.069),
 ]
 
+# Table 13-5: (Table 13-5 quote, CR, CT), per species id — the change in dimension per
+# percent of moisture content, across the grain, radial and tangential
+MOVEMENT = {
+    "birch-yellow": ("Birch, yellow 0.00256 0.00338", 0.00256, 0.00338),
+    "cherry-black": ("Cherry, black 0.00126 0.00248", 0.00126, 0.00248),
+    "maple-sugar": ("Maple, sugar 0.00165 0.00353", 0.00165, 0.00353),
+    "oak-northern-red": ("Red oak, northern red 0.00137 0.00304", 0.00137, 0.00304),
+    "walnut-black": ("Walnut, black 0.00190 0.00274", 0.00190, 0.00274),
+    "yellow-poplar": ("Poplar, yellow 0.00158 0.00289", 0.00158, 0.00289),
+}
+
+# Equation 4-5's temperature terms, T in °C: (name, constant, × T, × T²)
+EMC_TERMS = [("W", 349, 1.29, 0.0135), ("K", 0.805, 0.000736, -0.00000273),
+             ("K1", 6.27, -0.00938, -0.000303), ("K2", 1.91, 0.0407, -0.000293)]
+
 # Table 9-1: (id, loading, supports, deflection at, kb, ks, row as printed)
 BEAM_CASES = [
     ("uniform-simply-supported", "uniform", "both simply supported", "midspan", 5 / 384, 1 / 8,
@@ -165,6 +180,35 @@ def wood_handbook() -> Node:
                 "The modified area A′ is given by",
                 transcribed="A′ = (5/6) b h for a beam of rectangular cross section"),
     ]
+    emc = {}
+    for name, c0, c1, c2 in EMC_TERMS:
+        emc[f"{name}_0"] = published(float(c0), "", "Equation (4–5)", f"{name}, constant term")
+        emc[f"{name}_1"] = published(c1, "1/degC", "Equation (4–5)", f"{name}, times T")
+        emc[f"{name}_2"] = published(c2, "1/degC2", "Equation (4–5)", f"{name}, times T squared")
+    clauses += [
+        _clause("emc-4-5", "Chapter 4, Equilibrium Moisture Content, Equation (4–5), p. 4–3",
+                "For temperature T in °C, W = 349 + 1.29T + 0.0135T2 K = 0.805 + 0.000736T – "
+                "0.00000273T2 K1 = 6.27 – 0.00938T – 0.000303T2 K2 = 1.91 + 0.0407T – "
+                "0.000293T2",
+                transcribed="EMC(%) = (1,800/W) [Kh/(1 − Kh) + (K1Kh + 2K1K2K²h²)/(1 + K1Kh + "
+                            "K1K2K²h²)], h the relative humidity as a decimal; Table 4–2 is "
+                            "calculated from it",
+                params=emc),
+        _clause("dimensional-change-13-3", "Chapter 13, Equation (13–3), p. 13–16",
+                "The change in dimension within the moisture content limits of 6% to 14% can be "
+                "estimated satisfactorily by using a dimensional change coefficient based on the "
+                "dimension at 10% moisture content:",
+                transcribed="ΔD = DI [CT (MF − MI)], DI the dimension at the start, CT the "
+                            "tangential coefficient (CR for radial), MF and MI the moisture "
+                            "content (%) at the end and the start",
+                params={"mc_min": published(6.0, "%", "p. 13–16", "6%"),
+                        "mc_max": published(14.0, "%", "p. 13–16", "14%")}),
+    ]
+    for id_, (row, cr, ct) in MOVEMENT.items():
+        clauses.append(_clause(
+            f"table-13-5-{id_}", "Chapter 13, Table 13–5, p. 13–17", row,
+            params={"cr": published(cr, "1/%", "Table 13–5 CR"),
+                    "ct": published(ct, "1/%", "Table 13–5 CT")}))
     for id_, loading, supports, at, kb, ks, row in BEAM_CASES:
         clauses.append(_clause(
             f"table-9-1-{id_}", "Chapter 9, Table 9–1, p. 9–3",
@@ -222,8 +266,14 @@ def materials() -> Node:
                                                      "initially dry timber: design for an "
                                                      "initial deflection of about two-thirds "
                                                      "the permitted longtime deflection"),
+                "dimensional_change_radial": derived(MOVEMENT[id_][1], "1/%",
+                                                     [f"{wh}/table-13-5-{id_}/cr"],
+                                                     "CR, Table 13–5"),
+                "dimensional_change_tangential": derived(MOVEMENT[id_][2], "1/%",
+                                                         [f"{wh}/table-13-5-{id_}/ct"],
+                                                         "CT, Table 13–5"),
             },
-            links={"per": [row, row51]}))
+            links={"per": [row, row51, f"{wh}/table-13-5-{id_}"]}))
     return Node(id="materials", kind="", children=out)
 
 

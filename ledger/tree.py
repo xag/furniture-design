@@ -129,6 +129,22 @@ def entries() -> list[Node]:
             ],
         ),
         Node(
+            id="an-equation-is-applied-only-where-its-source-says-it-holds", kind="decision",
+            name="A rule that applies a source's equation also checks the range the source says it holds "
+                 "over (Eq. 13-3: 6% to 14% moisture content), with the range as params on the equation's "
+                 "clause, and goes red outside it rather than extrapolating",
+            payload={"decided_on": "2026-11-11",
+                     "why": "A limit the source states is part of what it states; a check that uses the "
+                            "equation and drops the limit claims more than the source does, and gives a "
+                            "confident number where the source gives none."},
+            links={"rests_on": ["the-rules-read-the-knowledge"]},
+            children=[
+                _alt("apply-everywhere", "Apply the equation to whatever moisture content the climate gives",
+                     "At 90% humidity oak settles near 20.5%, and the movement the equation predicts "
+                     "there is a number the Handbook does not back."),
+            ],
+        ),
+        Node(
             id="a-makers-products-are-their-own-package", kind="decision",
             name="Knowledge of one maker's products (Lamello's connectors and machines) is not in "
                  "furniture-design@: it is an unofficial package of its own, which requires furniture-design@ "

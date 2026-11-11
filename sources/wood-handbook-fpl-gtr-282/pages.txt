@@ -1,3 +1,453 @@
+=====PAGE 97=====
+CHAPTER 4  | Moisture Relations and Physical Properties of Wood
+4–3 
+is difficult to measure. As a result, a robust operational 
+definition of the fiber saturation point is still a hotly debated 
+topic in wood literature (Engelund and others 2013, Zelinka 
+and others 2016b) even though the concept was introduced 
+in the early 1900s (Tiemann 1906). From a practical 
+standpoint, the fiber saturation point is considered as that 
+moisture content above which the physical and mechanical 
+properties of wood do not change as a function of moisture 
+content. The point below which most wood properties start 
+to change averages about 30% moisture content, but in 
+individual species and individual pieces of wood it can vary 
+by several percentage points from that value. The FSP value 
+also varies depending on the method used to measure it. 
+The moisture content at which both cell lumina and cell 
+walls are completely saturated with water is the maximum 
+possible moisture content. Basic specific gravity Gb (based 
+on ovendry mass and green volume—see section below 
+on Density and Specific Gravity) is the major determinant 
+of maximum moisture content. As basic specific gravity 
+increases, the volume of the lumina must decrease because 
+the specific gravity of wood cell walls is constant among 
+species. This decreases the maximum moisture content 
+because less room is available for free water. Maximum 
+moisture content MCmax for any basic specific gravity can 
+be estimated from 
+             
+               
+ 
+       
+ 
+                  
+               
+                 
+               
+ 
+              
+                 
+              
+              
+              
+                
+              
+                
+                
+ 
+               
+              
+    
+          
+              
+               
+              
+             
+ 
+ max b bMC 100(1.54 ) 1.54 GG    
+ 
+               
+                  
+  
+                
+  
+  
+   
+ 
+   
+ 
+ 
+                
+               
+               
+              
+             
+            
+               
+                
+(4–3) 
+where the specific gravity of wood cell walls is taken as 
+1.54. Maximum possible moisture content varies from 
+267% at Gb = 0.30 to 44% at Gb = 0.90. Maximum possible 
+moisture content is seldom attained in living trees. The 
+moisture content at which wood will sink in water can be 
+calculated by 
+             
+               
+ 
+       
+ 
+                  
+               
+                 
+               
+ 
+              
+                 
+              
+              
+              
+                
+              
+                
+                
+ 
+               
+              
+    
+          
+              
+               
+              
+             
+ 
+   
+ 
+          
+     
+                  
+  
+                
+  
+  
+ sink b bMC 100(1 ) GG    
+ 
+    
+ 
+                
+               
+               
+              
+             
+            
+               
+                
+(4–4) 
+or paint (Chap. 16). The objective of wood drying is to 
+bring the moisture content close to the expected value that a 
+finished product will have in service (Chap. 13). 
+Equilibrium Moisture Content 
+Equilibrium moisture content (EMC) is defined as that 
+moisture content at which the wood is neither gaining nor 
+losing moisture. The relationship between EMC, relative 
+humidity, and temperature has been presented in various 
+forms in Forest Products Laboratory literature since prior 
+to 1920 (Glass and others 2014). EMC values at various 
+levels of RH and temperature, suitable for most practical 
+applications, are shown in Figure 4–1 and Table 4–2. These 
+values have been calculated from the following equation: 
+                 
+   
+ 
+    
+ 
+               
+            
+             
+                
+               
+       
+ 
+ 
+22
+1 12
+22
+1 12
+21,800EMC(%) 1 1 KK h + KK K hKh W Kh +K K h+K K K h      
+ 
+                     
+ 
+ 
+ 
+     
+       
+       
+        
+       
+ 
+   
+  
+         
+       
+       
+       
+ 
+             
+    
+              
+     
+ 
+   
+ 
+ 
+                 
+          
+ 
+   
+       
+   
+   
+   
+(4–5) 
+where h is relative humidity (decimal, 0 ≤ h ≤ 1) and the 
+parameters W, K, K1, and K2 depend on temperature: 
+For temperature T in °C, 
+W = 349 + 1.29T + 0.0135T2 
+K = 0.805 + 0.000736T – 0.00000273T2 
+K1 = 6.27 – 0.00938T – 0.000303T2 
+K2 = 1.91 + 0.0407T – 0.000293T2 
+For temperature T in °F, 
+W = 330 + 0.452T + 0.00415T2 
+K = 0.791 + 0.000463T – 0.000000844T2 
+K1 = 6.34 + 0.000775T – 0.0000935T2 
+K2 = 1.09 + 0.0284T – 0.0000904T2 
+Simpson (1973) showed that this equation provides a good 
+fit to the EMC data tabulated in the 1955 edition of the 
+Wood Handbook. An alternative equation for calculating 
+EMC was presented by Glass and others (2014): 
+                 
+   
+ 
+    
+ 
+               
+            
+             
+                
+               
+       
+ 
+   
+ 
+  
+                   
+ 
+ 
+ 
+     
+       
+       
+        
+       
+ 
+   
+  
+         
+       
+       
+       
+ 
+             
+    
+              
+     
+ 
+ EMC(%) 100 1 ln 1
+DCTB
+c
+TAT hT        
+ 
+                  
+          
+ 
+   
+       
+   
+   
+   
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  
+ 
+ 
+ 
+100 
+90 
+80 
+70 
+60 
+50 
+40 
+30 
+20 
+10 
+2 4 6 8 10 12 14 16 20 24 
+10 20 30 40 50 60 70 80 90 
+Temperature (ºC) 
+Relative humidity (%) 
+Figure 4–1. Equilibrium moisture content of wood 
+(labeled contours) as a function of relative humidity and 
+temperature. 
+Water Vapor Sorption 
+Water vapor sorption refers to the phase change between 
+water vapor and water held within the wood. When wood is 
+protected from contact with liquid water and heat sources, 
+its moisture content is a function of both relative humidity 
+(RH) and temperature of the surrounding air. Wood in 
+service is exposed to both long-term (seasonal) and short-
+term (daily) changes in relative humidity and temperature 
+of the surrounding air, which induce changes in wood 
+moisture content. These changes usually are gradual, and 
+short-term fluctuations tend to influence only the wood 
+surface. Moisture content changes can be retarded, but not 
+prevented, by protective coatings such as varnish, lacquer, 
+(4–6) 
+where h is relative humidity (decimal, 0 ≤ h < 1), T is 
+temperature (see below), and the parameters A, B, C, D, and 
+Tc are as follows: 
+=====PAGE 98=====
+General Technical Report FPL–GTR–282
+4–4 
+A = –0.000340 
+B = 2.43 
+C = 0.0448 
+D = 0.430 
+Tc = 1164.8 
+For T in kelvins ([K] = [°C] + 273.15): 
+A = –0.000612 
+B = 2.43 
+C = 0.0577 
+D = 0.430 
+Tc = 647.1 
+Equilibrium relative humidity can be calculated from wood 
+EMC using the inverted form of Equation (4–6) (Glass and 
+others 2014): 
+   
+   
+ 
+   
+      
+   
+   
+   
+   
+   
+ 
+ 
+             
+      
+ 
+ 
+11 EMC1 exp 1 100 DB CT c Th AT T          
+ 
+           
+ 
+                 
+                
+              
+             
+               
+              
+               
+            
+ 
+               
+               
+              
+            
+              
+       
+ 
+   
+ 
+               
+                
+                
+             
+              
+                
+          
+             
+               
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Table 4–2. Moisture content of wood in equilibrium with stated temperature and relative humidity 
+Temperature Moisture content (%) at various relative humidity values 
+(°C (°F)) 5% 10% 15% 20% 25% 30% 35% 40% 45% 50% 55% 60% 65% 70% 75% 80% 85% 90% 95% 
+–1.1 (30) 1.4 2.6 3.7 4.6 5.5 6.3 7.1 7.9 8.7 9.5 10.4 11.3 12.4 13.5 14.9 16.5 18.5 21.0 24.3 
+4.4 (40) 1.4 2.6 3.7 4.6 5.5 6.3 7.1 7.9 8.7 9.5 10.4 11.3 12.3 13.5 14.9 16.5 18.5 21.0 24.3 
+10.0 (50) 1.4 2.6 3.6 4.6 5.5 6.3 7.1 7.9 8.7 9.5 10.3 11.2 12.3 13.4 14.8 16.4 18.4 20.9 24.3 
+15.6 (60) 1.3 2.5 3.6 4.6 5.4 6.2 7.0 7.8 8.6 9.4 10.2 11.1 12.1 13.3 14.6 16.2 18.2 20.7 24.1 
+21.1 (70) 1.3 2.5 3.5 4.5 5.4 6.2 6.9 7.7 8.5 9.2 10.1 11.0 12.0 13.1 14.4 16.0 17.9 20.5 23.9 
+26.7 (80) 1.3 2.4 3.5 4.4 5.3 6.1 6.8 7.6 8.3 9.1 9.9 10.8 11.7 12.9 14.2 15.7 17.7 20.2 23.6 
+32.2 (90) 1.2 2.3 3.4 4.3 5.1 5.9 6.7 7.4 8.1 8.9 9.7 10.5 11.5 12.6 13.9 15.4 17.3 19.8 23.3 
+37.8 (100) 1.2 2.3 3.3 4.2 5.0 5.8 6.5 7.2 7.9 8.7 9.5 10.3 11.2 12.3 13.6 15.1 17.0 19.5 22.9 
+43.3 (110) 1.1 2.2 3.2 4.0 4.9 5.6 6.3 7.0 7.7 8.4 9.2 10.0 11.0 12.0 13.2 14.7 16.6 19.1 22.4 
+48.9 (120) 1.1 2.1 3.0 3.9 4.7 5.4 6.1 6.8 7.5 8.2 8.9 9.7 10.6 11.7 12.9 14.4 16.2 18.6 22.0 
+54.4 (130) 1.0 2.0 2.9 3.7 4.5 5.2 5.9 6.6 7.2 7.9 8.7 9.4 10.3 11.3 12.5 14.0 15.8 18.2 21.5 
+60.0 (140) 0.9 1.9 2.8 3.6 4.3 5.0 5.7 6.3 7.0 7.7 8.4 9.1 10.0 11.0 12.1 13.6 15.3 17.7 21.0 
+65.6 (150) 0.9 1.8 2.6 3.4 4.1 4.8 5.5 6.1 6.7 7.4 8.1 8.8 9.7 10.6 11.8 13.1 14.9 17.2 20.4 
+71.1 (160) 0.8 1.6 2.4 3.2 3.9 4.6 5.2 5.8 6.4 7.1 7.8 8.5 9.3 10.3 11.4 12.7 14.4 16.7 19.9 
+76.7 (170) 0.7 1.5 2.3 3.0 3.7 4.3 4.9 5.6 6.2 6.8 7.4 8.2 9.0 9.9 11.0 12.3 14.0 16.2 19.3 
+82.2 (180) 0.7 1.4 2.1 2.8 3.5 4.1 4.7 5.3 5.9 6.5 7.1 7.8 8.6 9.5 10.5 11.8 13.5 15.7 18.7 
+87.8 (190) 0.6 1.3 1.9 2.6 3.2 3.8 4.4 5.0 5.5 6.1 6.8 7.5 8.2 9.1 10.1 11.4 13.0 15.1 18.1 
+93.3 (200) 0.5 1.1 1.7 2.4 3.0 3.5 4.1 4.6 5.2 5.8 6.4 7.1 7.8 8.7 9.7 10.9 12.5 14.6 17.5 
+98.9 (210) 0.5 1.0 1.6 2.1 2.7 3.2 3.8 4.3 4.9 5.4 6.0 6.7 7.4 8.3 9.2 10.4 12.0 14.0 16.9 
+104.4 (220) 0.4 0.9 1.4 1.9 2.4 2.9 3.4 3.9 4.5 5.0 5.6 6.3 7.0 7.8 8.8 9.9 
+110.0 (230) 0.3 0.8 1.2 1.6 2.1 2.6 3.1 3.6 4.2 4.7 5.3 6.0 6.7 
+115.6 (240) 0.3 0.6 0.9 1.3 1.7 2.1 2.6 3.1 3.5 4.1 4.6 
+121.1 (250) 0.2 0.4 0.7 1.0 1.3 1.7 2.1 2.5 2.9 
+126.7 (260) 0.2 0.3 0.5 0.7 0.9 1.1 1.4 
+132.2 (270) 0.1 0.1 0.2 0.3 0.4 0.4 
+For T in degrees Rankine ([°R] = [°F] + 459.67): 
+(4–7) 
+where each symbol has the same meaning as in 
+Equation (4–6). 
+The level of precision (0.1% MC) in Table 4–2 is provided 
+only for the purpose of illustrating trends in EMC with 
+temperature and RH. In reality, this level of precision 
+is not meaningful. Actual EMC may vary considerably 
+among wood species and among different specimens of the 
+same species. Multiple studies have indicated that at room 
+temperature, differences in EMC among wood species 
+generally are minor at low and moderate levels of relative 
+humidity but become considerable at high RH levels (Glass 
+and others 2014). Species with high extractive content 
+generally have lower EMC at high RH levels than species 
+with low extractive content. EMC also varies considerably 
+as a result of sorption hysteresis (discussed below). 
+Although the EMC values listed in Table 4–2 or calculated 
+using the equations above are suitable for practical 
+applications, this data set is not reliable for scientific 
+purposes such as thermodynamic analysis or evaluation 
+of physical models for three reasons: (1) lack of proper 
+documentation of methodology; (2) the unsolvable problem 
+of knowing which values are determined from direct 
+observations and which are interpolated; and (3) the absence 
+of definitive measurement error analysis (Glass and others 
+2014). 
+Sorption Hysteresis 
+The relationship between EMC and relative humidity at 
+constant temperature is referred to as a sorption isotherm. 
+The history of a wood specimen also affects its EMC; this 
+is called sorption hysteresis and is shown in Figure 4–2. A 
+desorption isotherm is measured by bringing wood that was 
 =====PAGE 105=====
 CHAPTER 4  | Moisture Relations and Physical Properties of Wood
 4–11 
@@ -2145,3 +2595,350 @@ Ponding of water on roofs already deflected by other
 loads can cause large increases in deflection. Kuenzi and 
 Bohannan (1964) developed expressions for amplification 
 of the deflections and stresses caused by ponding based on 
+=====PAGE 338=====
+General Technical Report FPL–GTR–282
+13–16 
+will cause slight swelling, and drier air will cause slight 
+shrinkage. These changes are considerably smaller than 
+those involved with shrinkage from the green condition. 
+Equation (13–3) can be used to approximate dimensional 
+changes caused by shrinking and swelling by using the total 
+shrinkage coefficient from green to oven-dry. However, 
+the equation assumes that the shrinkage–moisture content 
+relationship is linear (Comstock 1965). Figure 4–4 (Chap. 4) 
+shows that this is not the case, so some error is introduced 
+(Wilson 1932, Markwardt and Wilson 1935, Kynoch and 
+Norton 1938, MacLean 1958). The error is in the direction 
+of underestimating dimensional change, by about 5% of 
+the true change. Many changes of moisture content in use 
+are over the small moisture content range of 6% to 14%, 
+where the shrinkage–moisture content relationship is linear 
+(Chap. 4, Fig.4–4). Therefore, a set of dimensional change 
+coefficients (DCCs) using Equation (13-2) based on the 
+linear portion of the shrinkage–moisture content curve were 
+developed (Table 13–5): 
+The DCC for the tangential direction (based on dimension at 
+10% MC) is calculated as 
+ 
+             
+  
+           
+              
+            
+                 
+                
+              
+                
+              
+             
+      
+ 
+               
+ 
+ ( )T TI 1 FSP 100 FSPC SM= ´- +   
+ 
+               
+    
+           
+                
+ 
+          
+ 
+            
+            
+                
+           
+        
+ 
+      
+ 
+                
+              
+ 
+ 
+   
+ 
+                 
+            
+               
+ 
+                 
+                 
+                 
+   
+  
+ 
+                   
+dimensional changes from different MC starting points 
+(green and 10% MC, respectively). 
+Estimation Using Dimensional Change 
+Coefficient 
+The change in dimension within the moisture content limits 
+of 6% to 14% can be estimated satisfactorily by using a 
+dimensional change coefficient based on the dimension at 
+10% moisture content: 
+ 
+             
+  
+           
+              
+            
+                 
+                
+              
+                
+              
+             
+      
+ 
+               
+ 
+   
+ 
+               
+    
+           
+                
+ 
+          
+ 
+            
+            
+                
+           
+        
+ 
+      
+ 
+                
+              
+ 
+ 
+ [ ]IT F I ()D DC M MD = -   
+ 
+                 
+            
+               
+ 
+                 
+                 
+                 
+   
+  
+ 
+                   
+ 
+ 
+ 
+  
+   
+     
+    
+   
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  
+  
+Table 13–4. Increase in storage area temperature above outside 
+temperature to maintain the desired wood moisture content 
+Outside 
+relative Temperature differential (°C (°F)) for desired wood moisture content humidity 
+(%) 6% 7% 8% 9% 10% 11% 12% 
+90 18.3 (33) 16.1 (29) 12.8 (23) 10.0 (18) 8.3 (15) 6.1 (11) 5.0 (9) 
+80 16.7 (30) 13.9 (25) 10.5 (19) 7.8 (14) 6.1 (11) 4.4 (8) 3.3 (6) 
+70 13.9 (25) 11.1 (20) 8.3 (15) 5.6 (10) 3.9 (7) 2.2 (4) 1.7 (3) 
+60 11.1 (20) 8.3 (15) 5.0 (9) 3.3 (6) 1.7 (3) — — 
+50 8.3 (15) 5.6 (10) 2.8 (5) 0.6 (1) — — — 
+weather, use of air conditioning is suggested for maintaining 
+optimal EMC because it controls both temperature and 
+relative humidity (FPL 1972). 
+Dimensional Changes in Wood 
+Dry wood undergoes small changes in dimension with 
+normal changes in relative humidity. More humid air 
+(13–2) 
+where ST is tangential shrinkage (%) from green to ovendry 
+(based on dimension at green condition) from Table 4–3 
+(Chap. 4), CT is DCC tangential direction (for radial 
+direction, use CR), FSP is fiber saturation point (assumed at 
+30% MC unless noted otherwise), and MI is 10% MC. The 
+corresponding equation can be used for the radial direction. 
+Estimating approximate changes in dimension utilizes 
+these DCCs, from Table 13–5, when moisture content 
+remains within the range of normal use (Comstock 1965). 
+(Dimensional changes are further discussed in Chaps. 4 
+and 7.) Results from Equations (4–7) and (13–2) are not 
+inherently comparable because the equations express 
+(13–3) 
+where ΔD is change in dimension, DI dimension in units of 
+length at start of change, CT dimensional change coefficient 
+tangential direction (for radial direction, use CR), MF 
+moisture content (%) at end of change, and MI moisture 
+content (%) at start of change. 
+Values for CT and CR, derived from total shrinkage values, 
+are given in Table 13–5. When MF < MI, the quantity 
+(MF – MI) will be negative, indicating a decrease in 
+dimension; when greater, it will be positive, indicating an 
+increase in dimension. 
+As an example, assuming the width of a flat-grained white 
+fir board is 232 mm (9.15 in.) at 8% moisture content, its 
+change in width at 11% moisture content is estimated as 
+ΔD = 232[0.00245(11 – 8)] 
+= 232(0.00735) 
+= 1.705 mm 
+ΔD = 9.15[0.00245(11 – 8)] 
+= 9.15[0.00735] 
+= 0.06725 or 0.067 in. 
+Then, dimension at end of change 
+DI + ΔD = 232 + 1.7 (= 9.15 + 0.067) 
+= 233.7 mm (= 9.217 in.) 
+The thickness of the same board at 11% moisture content 
+can be estimated by using the coefficient CR = 0.00112. 
+Because commercial lumber is often not perfectly flatsawn 
+or quartersawn, this procedure will probably overestimate 
+width shrinkage and underestimate thickness shrinkage. 
+Note also that if both a size change and percentage moisture 
+content are known, Equation (13–3) can be used to calculate 
+the original moisture content. 
+=====PAGE 339=====
+CHAPTER 13  | Drying and Control of Moisture Content and Dimensional Changes
+13–17 
+   
+         
+     
+      
+ 
+   
+     
+  
+   
+     
+     
+    
+     
+     
+     
+    
+     
+     
+      
+      
+      
+     
+      
+     
+     
+      
+     
+   
+    
+    
+    
+     
+    
+    
+     
+ 
+     
+    
+     
+    
+   
+    
+    
+  
+     
+     
+   
+     
+    
+     
+     
+      
+    
+    
+     
+    
+     
+  
+ 
+ 
+ 
+ 
+Table 13–5. Dimensional change coefficients (CR, radial; CT, tangential) for shrinking or 
+swelling within moisture content limits of 6% to 14% 
+Dimensional Dimensional 
+change change 
+coefficienta coefficienta 
+Species CR CT  Species CR CT 
+Hardwoods 
+Alder, red 0.00151 0.00256 Honeylocust 0.00144 0.00230 
+Ash, black 0.00172 0.00274 Locust, black 0.00158 0.00252 
+Ash, Oregon 0.00141 0.00285 Madrone, Pacific 0.00194 0.00451 
+Ash, pumpkin 0.00126 0.00219 Magnolia, cucumbertree 0.00180 0.00312 
+Ash, white 0.00169 0.00274 Magnolia, southern 0.00187 0.00230 
+Ash, green 0.00158 0.00248 Magnolia, sweetbay 0.00162 0.00293 
+Aspen, bigtooth 0.00112 0.00278 Maple, bigleaf 0.00126 0.00248 
+Aspen, quaking 0.00119 0.00234 Maple, red 0.00137 0.00289 
+Basswood, American 0.00230 0.00330 Maple, silver 0.00102 0.00252 
+Beech, American 0.00190 0.00431 Maple, black 0.00165 0.00330 
+Birch, paper 0.00219 0.00304 Maple, sugar 0.00165 0.00353 
+Birch, river 0.00162 0.00327 Red oak, black 0.00151 0.00400 
+Birch, yellow 0.00256 0.00338 Red oak, northern red 0.00137 0.00304 
+Birch, sweet 0.00226 0.00319 Red oak, pin 0.00148 0.00338 
+Buckeye, yellow 0.00123 0.00285 Red oak, scarlet 0.00151 0.00388 
+Butternut 0.00116 0.00223 Red oak: water, laurel, willow 0.00153 0.00348 
+Cherry, black 0.00126 0.00248 White oak, bur 0.00151 0.00312 
+Chestnut, American 0.00116 0.00234 White oak, live 0.00230 0.00338 
+Cottonwood, balsam poplar 0.00102 0.00248 White oak, white 0.00194 0.00376 
+Cottonwood, black 0.00123 0.00304 White oak, overcup 0.00183 0.00462 
+Cottonwood, eastern 0.00133 0.00327 Persimmon, common 0.00278 0.00403 
+Elm, American 0.00144 0.00338 Poplar, yellow 0.00158 0.00289 
+Elm, rock 0.00165 0.00285 Sassafras 0.00137 0.00216 
+Elm, slippery 0.00169 0.00315 Sweetgum 0.00183 0.00365 
+Elm, winged 0.00183 0.00419 Sycamore, American 0.00172 0.00297 
+Elm, cedar 0.00162 0.00365 Tanoak 0.00169 0.00423 
+Hackberry 0.00165 0.00315 Tupelo, black 0.00176 0.00308 
+Hickory, pecan 0.00169 0.00315 Tupelo, water 0.00144 0.00267 
+Hickory, true 0.00259 0.00411 Walnut, black 0.00190 0.00274 
+Holly, American 0.00165 0.00353 Willow, black 0.00112 0.00308 
+Softwoods 
+Cedar, yellow- 0.00095 0.00208 Pine, eastern white 0.00071 0.00212 
+Cedar, Atlantic white- 0.00099 0.00187 Pine, jack 0.00126 0.00230 
+Cedar, Eastern Red 0.00106 0.00162 Pine, loblolly 0.00165 0.00259 
+Cedar, incense 0.00112 0.00180 Pine, pond 0.00148 0.00234 
+Cedar, northern white-b 0.00101 0.00229 Pine, lodgepole 0.00176 0.00263 
+Cedar, Port-Orford- 0.00158 0.00241 Pine, longleaf 0.00137 0.00248 
+Cedar, western redb 0.00111 0.00234 Pine, pitch 0.00176 0.00248 
+Douglas-fir, Coast-type 0.00165 0.00267 Pine, ponderosa 0.00133 0.00216 
+Douglas-fir, Interior north 0.00130 0.00241 Pine, red 0.00130 0.00252 
+Douglas-fir, Interior west 0.00165 0.00263 Pine, shortleaf 0.00158 0.00271 
+Fir, balsam 0.00099 0.00241 Pine, slash 0.00187 0.00267 
+Fir, California red 0.00155 0.00278 Pine, sugar 0.00099 0.00194 
+Fir, noble 0.00148 0.00293 Pine, Virginia 0.00144 0.00252 
+Fir, Pacific silver 0.00151 0.00327 Pine, western white 0.00141 0.00259 
+Fir, subalpine 
+Fir, grand 
+0.00088 
+0.00116 
+0.00259 
+0.00263 
+Redwood, old-growthb 
+Redwood, second-growthb 
+0.00120
+0.00101
+ 0.00205 
+ 0.00229 
+Fir, white 0.00112 0.00245 Spruce, black 0.00141 0.00237 
+Hemlock, eastern 0.00102 0.00237 Spruce, Engelmann 0.00130 0.00248 
+Hemlock, mountain 0.00151 0.00248 Spruce, red 0.00130 0.00274 
+Hemlock, western 0.00144 0.00274 Spruce, Sitka 0.00148 0.00263 
+Larch, western 0.00155 0.00323 Tamarack 0.00126 0.00259 
+aPer 1% change in moisture content, based on dimension at 10% moisture content and a straight-line relationship between 
+moisture content at which shrinkage starts and total shrinkage. (Shrinkage assumed to start at 30% for all species except 
+those indicated by footnote b.)
+bShrinkage assumed to start at 22% moisture content. 

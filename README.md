@@ -6,15 +6,15 @@ This repo holds only the general method. It names no home, no piece and nobody's
 
 ## What is here
 
-- **A knowledge base** (`furniture_design/knowledge.py`): published sources, the clauses quoted from them word for word, and what those clauses let us derive. `sources/` holds each source and its clauses, with the quantities a clause states converted to SI (mm, kg, N, MPa). `materials/` holds six air-dried hardwoods (yellow birch, black cherry, sugar maple, northern red oak, black walnut, yellow-poplar): density, stiffness and shear moduli, each derived from the Wood Handbook's tables. `requirements/` holds the two clothing-storage-unit stability tests the Federal Register describes, with their scope.
-- **The furniture-design@ quern package** (`furniture_design/package.py`): the kinds a design and its knowledge are made of (source, clause, material, requirement, piece, part, load) and seven rules. Every clause quotes its source. Requirements and materials rest on clauses. A load acts on a part. A piece in a requirement's scope is held to it. A piece stands in its stability tests. A shelf sags within its long-term limit. The rules carry no number a source states: they read limits, test loads and material properties from the knowledge base, so a new source adds knowledge, not rules.
-- **The calculations the rules call** (`furniture_design/natives.py`): mass, height, the tipping margin about the front edge, and which requirements apply to a piece. Each comes with cases worked by hand (`furniture_design/spec.py`) that quern runs before the package can be published.
+- **A knowledge base** (`furniture_design/knowledge.py`): published sources, the clauses quoted from them word for word, and what those clauses let us derive. `sources/` holds each source and its clauses, with the quantities a clause states converted to SI (mm, kg, N, MPa). `materials/` holds six air-dried hardwoods (yellow birch, black cherry, sugar maple, northern red oak, black walnut, yellow-poplar): density, stiffness, shear moduli and how much they swell and shrink across the grain per percent of moisture, each derived from the Wood Handbook's tables. `requirements/` holds the two clothing-storage-unit stability tests the Federal Register describes, with their scope.
+- **The furniture-design@ quern package** (`furniture_design/package.py`): the kinds a design and its knowledge are made of (source, clause, material, requirement, piece, part, load) and nine rules. Every clause quotes its source. Requirements and materials rest on clauses. A load acts on a part. A piece in a requirement's scope is held to it. A piece stands in its stability tests. A shelf sags within its long-term limit. A part that swells and shrinks with the air, such as a floating panel, has the clearance to, in the climate it lives in (a `climate` states its temperature and its driest and dampest humidity). That last check refuses to answer for a climate where the Handbook's movement equation does not hold (outside 6% to 14% moisture content). The rules carry no number a source states: they read limits, test loads and material properties from the knowledge base, so a new source adds knowledge, not rules.
+- **The calculations the rules call** (`furniture_design/natives.py`): mass, height, the tipping margin about the front edge, which requirements apply to a piece, and the moisture content wood settles at in a climate (Equation 4–5, which a test holds to the Handbook's printed Table 4–2). Each comes with cases worked by hand (`furniture_design/spec.py`) that quern runs before the package can be published.
 
 ## Sources
 
 A rule enters here from a published source, cited by name and clause. Copies of public-domain sources are kept under `sources/` so every quote can be checked, and a test checks it:
 
-- USDA Forest Products Laboratory, *Wood Handbook: Wood as an Engineering Material*, FPL-GTR-282 (2021). Beam deflection (Equations 9–2 to 9–4, Table 9–1), creep (Chapters 5 and 9), density (Equation 4–14), and the stiffness tables (Tables 5–1 and 5–3a). The whole PDF is 104 MB, so only the pages quoted are kept, as text, with the PDF's sha256.
+- USDA Forest Products Laboratory, *Wood Handbook: Wood as an Engineering Material*, FPL-GTR-282 (2021). Beam deflection (Equations 9–2 to 9–4, Table 9–1), creep (Chapters 5 and 9), density (Equation 4–14), the stiffness tables (Tables 5–1 and 5–3a), equilibrium moisture content (Equation 4–5) and dimensional change (Equation 13–3, Table 13–5). The whole PDF is 104 MB, so only the pages quoted are kept, as text, with the PDF's sha256.
 - U.S. Consumer Product Safety Commission, *Safety Standard for Clothing Storage Units*, 88 FR 28403 (2023), the rule that makes ASTM F2057-23 mandatory (16 CFR 1261). ASTM's own text is copyrighted; what is quoted here is the Commission's public description of its tests.
 
 Copyrighted standards (EN 14749, EN 16121 and EN 16122, ASTM F2057, ANSI/BIFMA X5.9, ANSI/AWI 0641) are cited here and never copied in.
@@ -31,7 +31,7 @@ A design tree pins the package and mounts the knowledge beside its pieces:
 
 ```sh
 uv add "furniture-design @ git+https://github.com/xag/furniture-design"
-uv run quern --registry <checkout of xag/quern-registry> pin furniture-design@0.1.0
+uv run quern --registry <checkout of xag/quern-registry> pin furniture-design@0.2.0
 uv run quern --registry <checkout of xag/quern-registry> --natives furniture_design sync
 ```
 

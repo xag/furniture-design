@@ -35,6 +35,16 @@
     "digest": "8041cb9f7875"
   },
   {
+    "path": "an-equation-is-applied-only-where-its-source-says-it-holds",
+    "kind": "decision",
+    "digest": "479319611df5"
+  },
+  {
+    "path": "an-equation-is-applied-only-where-its-source-says-it-holds/apply-everywhere",
+    "kind": "alternative",
+    "digest": "d70551e7a886"
+  },
+  {
     "path": "the-method-is-public-and-names-no-home",
     "kind": "decision",
     "digest": "350516740f94"
