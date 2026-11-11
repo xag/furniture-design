@@ -77,7 +77,7 @@ LABELS = {
 }
 
 SCALES = [1, 2, 2.5, 5, 10, 20]
-SLOT = (64.0, 10.0)  # a connector's groove as drawn: length along the joint, width across
+DOT = 0.8  # mm on paper: a connector whose node states no size is drawn as a dot
 
 
 def _fmt(v: float) -> str:
@@ -297,16 +297,21 @@ def draw_cuts(pen: Pen, placed: Placed, part: Part, offset=(0, 0, 0), color=MARK
 
 
 def draw_slots(pen: Pen, placed: Placed, positions, along_axis: int, normal_axis: int,
-               offset=(0, 0, 0), color=MARK):
-    """Connector grooves at `positions`, flat on the face they sit in."""
+               offset=(0, 0, 0), color=MARK, size=None):
+    """Connectors at `positions`, flat on the face they sit in, at the size their node states
+    (length along, thickness across), or a dot where it states none."""
     across = ({0, 1, 2} - {along_axis, normal_axis}).pop()
     for p in positions:
         p = tuple(a + o for a, o in zip(p, offset))
+        if size is None:
+            x, y = placed(p)
+            pen.circle(x, y, DOT, fill=color, stroke=color, w=0)
+            continue
         corners = []
         for du, dv in ((-1, -1), (1, -1), (1, 1), (-1, 1)):
             q = list(p)
-            q[along_axis] += du * SLOT[0] / 2
-            q[across] += dv * SLOT[1] / 2
+            q[along_axis] += du * size[0] / 2
+            q[across] += dv * size[1] / 2
             corners.append(placed(tuple(q)))
         pen.poly(corners, fill=color, stroke=None)
 
@@ -490,15 +495,19 @@ def _part_drawing(pen: Pen, sc: Scene, p: Part, x, y, w, h, L: dict):
         on_face = j.normal_axis == t
         for q in j.positions:
             cu, cv = P(q)
+            if j.size is None:
+                pen.circle(cu, cv, DOT, fill=MARK, stroke=MARK, w=0)
+                continue
+            length, thickness = j.size
             if on_face:
-                du = SLOT[0] / 2 * s if j.along_axis == u else SLOT[1] / 2 * s
-                dv = SLOT[1] / 2 * s if j.along_axis == u else SLOT[0] / 2 * s
+                du = length / 2 * s if j.along_axis == u else thickness / 2 * s
+                dv = thickness / 2 * s if j.along_axis == u else length / 2 * s
                 pen.rect(cu - du, cv - dv, 2 * du, 2 * dv, fill=MARK, stroke=None)
             else:  # in the edge: a tick across the outline
                 if j.along_axis == u:
-                    pen.rect(cu - SLOT[0] / 2 * s, cv - 1.2, SLOT[0] * s, 2.4, fill=MARK, stroke=None)
+                    pen.rect(cu - length / 2 * s, cv - 1.2, length * s, 2.4, fill=MARK, stroke=None)
                 else:
-                    pen.rect(cu - 1.2, cv - SLOT[0] / 2 * s, 2.4, SLOT[0] * s, fill=MARK, stroke=None)
+                    pen.rect(cu - 1.2, cv - length / 2 * s, 2.4, length * s, fill=MARK, stroke=None)
     pen.dim((ox, oy), (ox + lu * s, oy), -6, _fmt(lu))
     pen.dim((ox, oy), (ox, oy + lv * s), -6, _fmt(lv), horizontal=False)
     thick = p.size[t] / p.sheets
@@ -541,8 +550,9 @@ def _sheet_parts(c: Canvas, sc: Scene, L: dict, sheets: int):
         jbottom = _parts_table(pen, 238, H - 26, jrows, [16, 50, 10, 16, 72],
                                [L["joins"], "", L["count"], L["setting"], L["tool"]],
                                row_h=6.0, size=2.6)
-        pen.text(238, jbottom - 4, L["positions_note"], 2.4, THIN)
-        jbottom -= 6
+        if any(not j.stated for j in sc.joints):
+            pen.text(238, jbottom - 4, L["positions_note"], 2.4, THIN)
+            jbottom -= 6
     # one drawing per distinct board, in a grid
     top = min(bottom, jbottom) - 6
     cols = 3
@@ -660,7 +670,7 @@ def _assembly_picture(pen: Pen, sc: Scene, placed_ids: list[str], new_ids: list[
         moving = next((i for i in j.parts if i in new_ids), None)
         fixed = next((i for i in j.parts if i not in new_ids), None)
         off = (0, 0, 0) if fixed in placed_ids or fixed is None else offsets.get(fixed, (0, 0, 0))
-        draw_slots(pen, placed, j.positions, j.along_axis, j.normal_axis, off)
+        draw_slots(pen, placed, j.positions, j.along_axis, j.normal_axis, off, size=j.size)
     for p in new:
         o = offsets[p.id]
         a = placed(tuple(c + k for c, k in zip(p.centre, o)))
@@ -721,7 +731,8 @@ def _prepare_picture(pen: Pen, sc: Scene, step, box):
             continue
         for pid in j.parts:
             if pid in offsets:
-                draw_slots(pen, placed, j.positions, j.along_axis, j.normal_axis, offsets[pid])
+                draw_slots(pen, placed, j.positions, j.along_axis, j.normal_axis, offsets[pid],
+                           size=j.size)
     for q, at, home in extra:
         a = placed(tuple(c + k for c, k in zip(q.centre, at)))
         b = placed(tuple(c + k for c, k in zip(q.centre, home)))

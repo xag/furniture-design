@@ -114,7 +114,9 @@ DATA.parts.forEach((p, i) => {
 });
 const connectors = [];
 DATA.joints.forEach(j => j.positions.forEach(q => {
-  const s = [10, 10, 10]; s[j.along] = 64; s[j.normal] = 3;
+  const s = [8, 8, 8], across = 3 - j.along - j.normal;
+  if (j.size) { s[j.along] = j.size[0]; s[across] = j.size[1]; }
+  s[j.normal] = 3;
   const geo = new THREE.BoxGeometry(s[0], s[2], s[1]);
   const c = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({color:0xc0392b}));
   c.userData = {joint:j, home:T(q[0], q[1], q[2])};
@@ -229,7 +231,7 @@ def viewer_html(sc: Scene, path: Path, lang: str = "fr") -> Path:
                    "sheets": p.sheets, "material": p.material_name,
                    "profile": _profile(p)} for p in sc.parts],
         "joints": [{"id": j.id, "parts": j.parts, "along": j.along_axis, "normal": j.normal_axis,
-                    "positions": j.positions} for j in sc.joints],
+                    "positions": j.positions, "size": j.size} for j in sc.joints],
         "steps": [{"text": s.text, "add": s.add, "prepare": s.prepare} for s in sc.steps],
     }
     page = (PAGE.replace("__DATA__", json.dumps(data, ensure_ascii=False))

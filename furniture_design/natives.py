@@ -46,6 +46,63 @@ def _param(tree, path: str, name: str) -> float | None:
     return None if q is None else q.value
 
 
+@dataclass
+class Layout:
+    """Where a joint's connectors sit, in the piece's frame: the face its two parts meet on
+    (lo, hi, the axis it is perpendicular to), the axis along it the connectors follow, and
+    each connector's centre. `stated` when the joint gives the positions itself."""
+    lo: tuple[float, float, float]
+    hi: tuple[float, float, float]
+    normal: int
+    along: int
+    positions: list[tuple[float, float, float]]
+    stated: bool
+
+
+def contact(a, b):
+    """The face where boxes a and b (each with lo and hi) touch: (lo, hi, normal), or None."""
+    lo, hi, normal = [], [], None
+    for i in range(3):
+        low, high = max(a.lo[i], b.lo[i]), min(a.hi[i], b.hi[i])
+        if high < low - TOUCH_MM:
+            return None
+        if high - low <= TOUCH_MM:
+            normal = i
+            low = high = (low + high) / 2
+        lo.append(low)
+        hi.append(high)
+    return (tuple(lo), tuple(hi), normal) if normal is not None else None
+
+
+def joint_layout(tree: Quern, jpath: str, node: Node, boxes: dict) -> Layout | None:
+    """The one place a joint's connectors are placed, for the checks and the documents alike:
+    along the longer side of the face its parts meet on, at the middle across it, at the
+    offsets the joint states (`positions`, mm from the start of that side) or else spread
+    evenly, count of them. None when the joint does not join two of `boxes`."""
+    ends = [boxes.get("/".join(_segs(t))) for t in (node.links or {}).get("joins", [])]
+    if len(ends) != 2 or None in ends:
+        return None
+    touch = contact(*ends)
+    if touch is None:
+        raise ValueError(f"joint '{jpath}' joins parts that do not touch")
+    lo, hi, normal = touch
+    in_plane = [i for i in range(3) if i != normal]
+    along = max(in_plane, key=lambda i: hi[i] - lo[i])
+    across = next(i for i in in_plane if i != along)
+    count = int(_param(tree, jpath, "count") or 0)
+    length = hi[along] - lo[along]
+    stated = (node.payload or {}).get("positions")
+    offsets = stated or [length * (k + 1) / (count + 1) for k in range(count)]
+    positions = []
+    for o in offsets:
+        p = [0.0, 0.0, 0.0]
+        p[normal] = lo[normal]
+        p[along] = lo[along] + float(o)
+        p[across] = (lo[across] + hi[across]) / 2
+        positions.append(tuple(p))
+    return Layout(lo, hi, normal, along, positions, bool(stated))
+
+
 def _size(tree, path: str, node) -> list[float]:
     shape = (node.payload or {}).get("shape")
     if not shape or shape.get("op") != "box":
@@ -399,14 +456,15 @@ def _brace_margin(tree: Quern, piece: str, force: float) -> float:
       connectors (pushed one way, one side's connectors are pulled), plus its part of the
       pair of forces that holds the side square to the brace: each side carries F/2 down to
       the floor, so at the brace's bottom edge it bends by F/2 times the brace's height
-      above the floor, and that moment is passed by the edge's outermost connectors, spaced
-      as evenly spread connectors are (the edge's length times (n - 1)/(n + 1));
+      above the floor, and that moment is passed by the edge's outermost connectors, as far
+      apart in height as the joint places them (joint_layout: where it states, else spread
+      evenly, the edge's length times (n - 1)/(n + 1));
     - of each connector along a side edge, in shear, F times the brace's height over its
       width, shared (the vertical pair that keeps the brace from turning);
     - of each side, that same bending moment at most its material's design bending stress
       times its section (its depth times its thickness squared over 6), given here as the
       force at the floor it leaves to spare.
-    A side edge with a single connector cannot pass a moment: if the brace stops above the
+    A side edge whose connectors sit at one height (a single one) cannot pass a moment: if the brace stops above the
     floor, half the push has no way down by this path, and the margin is -F/2. A piece with
     no brace carries nothing across by this path: -F.
 
@@ -421,6 +479,7 @@ def _brace_margin(tree: Quern, piece: str, force: float) -> float:
     box = {b.path: b for b in bs}
     floor = min(b.lo[2] for b in bs)
     joints = [(p, n) for p, n in tree.walk("") if n.kind == "joint"]
+    nodes = dict(joints)
 
     def rated(jpath: str, mode: str, parts: tuple[str, str]) -> float:
         return _rated(tree, jpath, mode, parts)
@@ -453,7 +512,12 @@ def _brace_margin(tree: Quern, piece: str, force: float) -> float:
             raise ValueError(f"brace '{brace}' must be joined along its top edge and both "
                              "side edges to carry a sideways force")
         moment = force / 2 * drop
-        if moment > 0 and any(count(jp) < 2 for jp, _ in side):
+        arm = {}
+        for jp, _ in side:
+            lay = joint_layout(tree, jp, nodes[jp], box)
+            zs = [p[2] for p in lay.positions] if lay else []
+            arm[jp] = max(zs) - min(zs) if len(zs) > 1 else 0.0
+        if moment > 0 and any(arm[jp] <= 0 for jp, _ in side):
             # a shortfall no rating can make up, so it is answered before any rating is read
             return -force / 2
         n_top = sum(count(jp) for jp, _ in top)
@@ -461,10 +525,7 @@ def _brace_margin(tree: Quern, piece: str, force: float) -> float:
             worst = min(worst, rated(jpath, "shear", (bpath, other)) - force / n_top)
         for jpath, other in side:
             n = count(jpath)
-            if n < 2 and moment > 0:
-                worst = min(worst, -force / 2)
-                continue
-            couple = moment / (height * (n - 1) / (n + 1)) if moment > 0 else 0.0
+            couple = moment / arm[jpath] if moment > 0 else 0.0
             worst = min(worst, rated(jpath, "pull_out", (bpath, other)) - (force / n + couple))
             worst = min(worst, rated(jpath, "shear", (bpath, other)) - force * height / width / n)
             o = box[other]

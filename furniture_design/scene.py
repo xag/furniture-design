@@ -4,9 +4,10 @@ all draw. Everything is read from the quern tree; nothing here is typed twice.
 - parts, placed in the piece's frame (x across from the left, y from the front to the
   back, z up from the floor, mm), each with the letter it carries in the cut list (parts
   of the same size, material and grain share a letter, as identical boards do);
-- joints, with the face where the parts meet and where its connectors sit: spread evenly
-  along the longer side of that face, at its middle across it. A design that places its
-  connectors itself states `positions` (mm along that side) in the joint's payload;
+- joints, with the face where the parts meet and where its connectors sit, placed by
+  natives.joint_layout as the checks place them (spread evenly along the longer side of that
+  face unless the joint states `positions`, mm along that side), and the connector's size
+  (its params length and thickness) when its node states it;
 - cuts a part carries in its payload (`cuts`: boxes {at, size} in the part's own frame,
   such as a notch for a skirting board), drawn but not counted by the checks;
 - the steps: the piece's payload `steps`, each {text, add, joints, prepare, tools,
@@ -24,9 +25,9 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from quern import Quern
-from quern.tree import get_node
+from quern.tree import _segs, get_node
 
-from .natives import _param, bodies
+from .natives import _param, bodies, joint_layout
 
 DIRECTIONS = {"up": (0, 0, 1), "down": (0, 0, -1), "left": (-1, 0, 0), "right": (1, 0, 0),
               "front": (0, -1, 0), "back": (0, 1, 0)}
@@ -109,6 +110,8 @@ class Joint:
     normal_axis: int                      # the axis the face is perpendicular to
     along_axis: int                       # the axis the connectors are spread along
     positions: list[tuple[float, float, float]] = field(default_factory=list)
+    stated: bool = False                  # the joint gives its connectors' positions itself
+    size: tuple[float, float] | None = None   # a connector's length along, thickness across
 
 
 @dataclass
@@ -148,21 +151,6 @@ class Scene:
         return sum(j.count for j in self.joints)
 
 
-def _contact(a: Part, b: Part):
-    """The face where boxes a and b touch: (lo, hi, normal axis), or None."""
-    lo, hi, normal = [], [], None
-    for i in range(3):
-        l, h = max(a.lo[i], b.lo[i]), min(a.hi[i], b.hi[i])
-        if h < l - TOUCH:
-            return None
-        if h - l <= TOUCH:
-            normal = i
-            l = h = (l + h) / 2
-        lo.append(l)
-        hi.append(h)
-    return (tuple(lo), tuple(hi), normal) if normal is not None else None
-
-
 def scene(tree: Quern, piece: str) -> Scene:
     from .drawings import cut_list
 
@@ -192,34 +180,24 @@ def scene(tree: Quern, piece: str) -> Scene:
         if node.kind != "joint" or not path.startswith(prefix):
             continue
         links = node.links or {}
-        ps = [by_path[t] for t in links.get("joins", []) if t in by_path]
-        if len(ps) != 2:
+        lay = joint_layout(tree, path, node, by_path)
+        if lay is None:
             continue
-        touch = _contact(*ps)
-        if touch is None:
-            raise ValueError(f"joint '{path}' joins parts that do not touch")
-        lo, hi, normal = touch
-        in_plane = [i for i in range(3) if i != normal]
-        along = max(in_plane, key=lambda i: hi[i] - lo[i])
-        across = next(i for i in in_plane if i != along)
-        count = int(_param(tree, path, "count") or 0)
-        length = hi[along] - lo[along]
-        stated = (node.payload or {}).get("positions")
-        offsets = stated or [length * (k + 1) / (count + 1) for k in range(count)]
-        positions = []
-        for o in offsets:
-            p = [0.0, 0.0, 0.0]
-            p[normal] = lo[normal]
-            p[along] = lo[along] + o
-            p[across] = (lo[across] + hi[across]) / 2
-            positions.append(tuple(p))
+        ps = [by_path["/".join(_segs(t))] for t in links.get("joins", [])]
         connector = ", ".join((get_node(tree, c).name or c.rsplit("/", 1)[-1])
                               for c in links.get("uses", []))
         tools = [(get_node(tree, t).name or t.rsplit("/", 1)[-1])
                  for t in links.get("made_with", [])]
+        size = None
+        for c in links.get("uses", []):
+            length, thickness = _param(tree, c, "length"), _param(tree, c, "thickness")
+            if length is not None and thickness is not None:
+                size = (length, thickness)
+                break
         joints.append(Joint(path, node.id, node.name or node.id, [p.id for p in ps], connector,
-                            count, (node.payload or {}).get("setting", ""), tools, lo, hi,
-                            normal, along, positions))
+                            int(_param(tree, path, "count") or 0),
+                            (node.payload or {}).get("setting", ""), tools, lay.lo, lay.hi,
+                            lay.normal, lay.along, lay.positions, lay.stated, size))
     root = get_node(tree, piece)
     payload = root.payload or {}
     steps = []

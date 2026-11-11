@@ -108,20 +108,27 @@ VOCABULARY = [
         "min_thickness_<cut> (mm, per kind of cut: edge, surface, intermediate, mitre), "
         "pull_out_<material> and shear_<material> (N), moment_opening_<material> and "
         "moment_closing_<material> (N mm: one connector's share of what a corner joint "
-        "resists being bent open or shut) — each derived from a clause."),
+        "resists being bent open or shut) — each derived from a clause; and its size as its "
+        "maker states it, length (mm, along the joint) and thickness (mm, across it), which "
+        "the documents draw it at."),
         params={"min_width": "mm", "min_thickness_<cut>": "mm", "pull_out_<material>": "N",
                 "shear_<material>": "N",
                 "moment_opening_<material>": "N mm, one connector's share of what a corner "
                                              "joint resists being bent open",
-                "moment_closing_<material>": "N mm, the same, bent shut"},
+                "moment_closing_<material>": "N mm, the same, bent shut",
+                "length": "mm, the connector's length along the joint",
+                "thickness": "mm, its thickness across the joint"},
         links={"needs": "the tools that can cut its seat; any one of them will do",
                "per": "the clauses its limits come from"}),
     KindDef(kind="joint", description=(
         "Where parts are joined. Links joins (the parts), uses (the connector it is made "
         "with, whose limits it reads as its own) and made_with (the tools that cut it); "
         "payload cut (edge, surface, intermediate or mitre: which of the connector's "
-        "min_thickness_<cut> applies) and setting (the machine setting it is cut at); param "
-        "count (connectors in it). A joined part states its width and thickness."),
+        "min_thickness_<cut> applies), setting (the machine setting it is cut at) and, when "
+        "the design places its connectors, positions (mm along the longer side of the face "
+        "the parts meet on; otherwise they are spread evenly, for the checks and the "
+        "documents alike); param count (connectors in it). A joined part states its width "
+        "and thickness."),
         params={"count": "connectors in the joint"},
         links={"joins": "the parts it joins", "uses": "its connector",
                "made_with": "the tools it is cut with"}),
@@ -346,7 +353,11 @@ def _joinery(*, thickness: float = 18, width: float = 300, tool: str = "tools/gr
                                             "moment_opening_birch-yellow": Quantity(
                                         value=5000, unit="N mm", provenance="published"),
                                             "moment_closing_birch-yellow": Quantity(
-                                        value=5000, unit="N mm", provenance="published")})])
+                                        value=5000, unit="N mm", provenance="published"),
+                                            "length": Quantity(value=60, unit="mm",
+                                                               provenance="published"),
+                                            "thickness": Quantity(value=8, unit="mm",
+                                                                  provenance="published")})])
     per = ["sources/example-catalogue/technical-data"] if cited else []
     connector = Node(id="example-connector", kind="connector",
                      payload={"maker": "an example maker", "setting": "S-1"},
@@ -366,7 +377,11 @@ def _joinery(*, thickness: float = 18, width: float = 300, tool: str = "tools/gr
                                  derived_from=["sources/example-catalogue/technical-data"]),
                              "moment_closing_birch-yellow": Quantity(
                                  value=5000, unit="N mm", provenance="derived",
-                                 derived_from=["sources/example-catalogue/technical-data"])},
+                                 derived_from=["sources/example-catalogue/technical-data"]),
+                             "length": Quantity(value=60, unit="mm", provenance="derived",
+                                                derived_from=["sources/example-catalogue/technical-data"]),
+                             "thickness": Quantity(value=8, unit="mm", provenance="derived",
+                                                   derived_from=["sources/example-catalogue/technical-data"])},
                      links={"needs": ["tools/groove-cutter"], "per": per})
     tools = [Node(id="groove-cutter", kind="tool", payload={"maker": "an example maker"}),
              Node(id="drill", kind="tool", payload={"maker": "any"})]

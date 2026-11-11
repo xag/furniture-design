@@ -1,6 +1,7 @@
 """The drawings read the tree: the example bench's cut list, joints and plans."""
 
 from quern import Quern
+from quern.tree import get_node
 
 from furniture_design import drawings
 from furniture_design.package import EXAMPLES, PACKAGE
@@ -45,6 +46,23 @@ def test_the_scene_letters_equal_boards_alike_and_spreads_connectors_along_the_j
     top = next(j for j in sc.joints if j.id == "back-top")
     xs = sorted(p[0] for p in top.positions)   # 4 connectors along the 960 mm back
     assert len(xs) == 4 and abs(xs[0] - (20 + 960 / 5)) < 1e-6
+
+
+def test_a_connector_is_drawn_at_the_size_its_node_states():
+    from furniture_design.scene import scene
+    tree = _tree()
+    joint = next(j for j in scene(tree, BENCH).joints if j.id == "back-top")
+    assert joint.size == (60.0, 8.0)   # the example maker's catalogue: 60 long, 8 thick
+    del get_node(tree, "connectors/example-connector").params["length"]
+    assert next(j for j in scene(tree, BENCH).joints if j.id == "back-top").size is None
+
+
+def test_stated_positions_are_drawn_where_they_are_stated():
+    from furniture_design.scene import scene
+    tree = _tree()
+    get_node(tree, f"{BENCH}/back-top").payload["positions"] = [100, 300, 660, 860]
+    joint = next(j for j in scene(tree, BENCH).joints if j.id == "back-top")
+    assert [p[0] for p in joint.positions] == [120, 320, 680, 880] and joint.stated
 
 
 def test_the_checks_read_as_sentences_with_their_numbers():

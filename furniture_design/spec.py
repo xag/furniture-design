@@ -115,11 +115,13 @@ _BENDING = 5 / 384 * _W * 1000 ** 3 * 12 / (10_000 * 100 * 10 ** 3)
 _SHEAR = 1 / 8 * _W * 1000 * 6 / (5 * 700 * 100 * 10)
 
 def braced(top_count: float = 4, side_count: float = 2, brace: bool = True,
-            key: str = "wood", moment: float = 5000) -> list[Node]:
+            key: str = "wood", moment: float = 5000,
+            side_positions: list[float] | None = None) -> list[Node]:
     """A seat 1040 wide: two 20 mm sides 600 tall, a top on them, and a back panel 1000 wide
     and 500 tall between the sides, under the top, joined to the top and to each side. The
     connector carries 500 N in shear and 1000 N in pull-out in `wood`; the case asks for
-    900 N across. Bent open or shut as a corner joint, it resists `moment` N mm."""
+    900 N across. Bent open or shut as a corner joint, it resists `moment` N mm. With
+    `side_positions`, each side joint states where its connectors sit (mm up its edge)."""
     def q(v: float, unit: str = "") -> Quantity:
         return Quantity(value=v, unit=unit, provenance="design-target", grounded=False)
 
@@ -128,13 +130,14 @@ def braced(top_count: float = 4, side_count: float = 2, brace: bool = True,
                     params={"mass": q(5, "kg")},
                     payload={"shape": {"op": "box", "size": size}, "transform": {"translate": at}})
 
-    def joint(id_: str, a: str, count: float) -> Node:
+    def joint(id_: str, a: str, count: float, positions: list[float] | None = None) -> Node:
         return Node(id=id_, kind="joint", params={"count": q(count)},
+                    payload={"positions": positions} if positions else {},
                     links={"joins": ["seat/back", f"seat/{a}"], "uses": ["connectors/c"]})
     parts = [part("left", [20, 300, 600], [0, 0, 0]), part("right", [20, 300, 600], [1020, 0, 0]),
              part("top", [1040, 300, 20], [0, 0, 600]), part("back", [1000, 20, 500], [20, 280, 100]),
-             joint("back-top", "top", top_count), joint("back-left", "left", side_count),
-             joint("back-right", "right", side_count)]
+             joint("back-top", "top", top_count), joint("back-left", "left", side_count, side_positions),
+             joint("back-right", "right", side_count, side_positions)]
     seat = Node(id="seat", kind="piece", children=parts,
                 links={"braced_by": ["seat/back"]} if brace else {})
     panel = Node(id="panel", kind="material", payload={"connector_key": key},
@@ -157,6 +160,11 @@ SPEC = {
                   "passed by 2 connectors 500/3 apart, 270 N each; pull-out 1000 - (450 + "
                   "270) = 280; shear 500 - 900 x 500/1000/2 = 275; the side, 300 x 20, takes "
                   "10 x 300 x 20 x 20/6 = 200000 N mm, (200000 - 45000)/100 = 1550 N to spare"),
+        d("sideways_margin", braced(side_positions=[200, 300]), ["seat", "requirements/across"],
+          expect=100,
+          because="the side joints state their two connectors 100 mm apart, not 500/3: the 45000 "
+                  "N mm passes as 45000/100 = 450 N each; pull-out 1000 - (450 + 450) = 100, "
+                  "under the top edge's 275 and above what the frame alone holds"),
         d("sideways_margin", braced(side_count=1), ["seat", "requirements/across"], expect=-450,
           because="one connector per side edge passes no moment: the back stops above the "
                   "floor, so half the push has no way down"),
