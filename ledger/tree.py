@@ -489,6 +489,32 @@ def entries() -> list[Node]:
                      "Leaves a maker who sells a piece designed with it unsure they may."),
             ],
         ),
+        Node(
+            id="a-dimension-is-stated-once-and-parts-follow-it", kind="decision",
+            name="Each entry of a part's size, position and cuts is a number or an expression in "
+                 "quern's rule grammar over params, the part's own and then those of the parts and "
+                 "piece holding it, nearest first; a piece states a dimension once as a param and "
+                 "every part that depends on it is written in terms of it. A design is data, not a "
+                 "program that computes its numbers",
+            payload={"decided_on": "2026-11-11",
+                     "the_owner": "3 est-il une bonne pratique? ... et les autres points?",
+                     "why": "The shoe bench was a Python file that computed each part's size and "
+                            "place from constants: every number lived in the code and again in the "
+                            "nodes, and the app that edits it had to run the code an assistant "
+                            "wrote. A part could only name its own params, and a position took "
+                            "numbers only, so a stored tree would have had to write every derived "
+                            "number down. quern's grammar already evaluates arithmetic over names, "
+                            "safely."},
+            links={"rests_on": ["the-documents-are-for-the-people-who-build"]},
+            children=[
+                _alt("a-program-per-design", "Keep writing a design as Python that builds its nodes",
+                     "Each number is written twice, and editing a design means running code."),
+                _alt("own-params-only", "Let a size name only the part's own params",
+                     "A position derived from the piece's dimensions still has to be computed elsewhere."),
+                _alt("mates-and-a-solver", "Place parts by constraints between them (mates) and a solver",
+                     "Far more than boxes placed in one frame need."),
+            ],
+        ),
     ]
 
 

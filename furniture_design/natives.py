@@ -5,9 +5,12 @@ piece (mass times lever arm), and the grammar sums one list at a time. Everythin
 calculation needs to know comes from the tree (parts, materials, requirements); nothing a
 source states is written in this file.
 
-The frame is geometry@'s: a part's `shape` is a box {size [x, y, z]} in mm, a size entry may
-name one of the part's params, and `transform.translate` places its minimum corner relative
-to the enclosing part (or the piece). For furniture, y runs from the front (smallest y) to
+The frame is geometry@'s: a part's `shape` is a box {size [x, y, z]} in mm, and
+`transform.translate` places its minimum corner relative to the enclosing part (or the
+piece). Each entry of either is a number or an expression in quern's rule grammar over
+params: the part's own, then those of the parts and the piece it sits in, the nearest first
+(`"height - top"`, or a single name). So a piece states a dimension once and every part that
+depends on it follows. For furniture, y runs from the front (smallest y) to
 the back and z is up from the floor.
 
 A part is a node of kind `part`. Its mass is its own `mass` param when it has one (hardware,
@@ -23,7 +26,7 @@ import math
 from dataclasses import dataclass
 
 from quern.cache import OPENS_ONLY
-from quern.expr import Absent
+from quern.expr import Absent, compile_expr
 from quern.tree import Node, Quern, _segs, get_node, register_native, resolve_params
 
 from .units import STANDARD_GRAVITY
@@ -103,28 +106,46 @@ def joint_layout(tree: Quern, jpath: str, node: Node, boxes: dict) -> Layout | N
     return Layout(lo, hi, normal, along, positions, bool(stated))
 
 
+def _in_scope(tree, path: str) -> dict[str, float]:
+    """The params a part's shape may name: its own, then each enclosing node's, nearest first."""
+    out: dict[str, float] = {}
+    segs = _segs(path)
+    for k in range(len(segs), 0, -1):
+        for name, q in resolve_params(tree, "/".join(segs[:k])).items():
+            out.setdefault(name, q.value)
+    return out
+
+
+def number(tree, path: str, v, what: str) -> float:
+    """A number as written in a part's payload: a number, or an expression over the params in
+    scope at `path` (_in_scope). `what` names the entry in a refusal."""
+    if not isinstance(v, str):
+        return float(v)
+    expr = compile_expr(v)
+    scope = _in_scope(tree, path)
+    missing = [n for n in expr.reads.names if n not in scope]
+    if missing or expr.reads.functions:
+        raise ValueError(f"part '{path}' gives its {what} as '{v}', and "
+                         + (f"{', '.join(missing)} is not a param of it or of what holds it"
+                            if missing else "calls a function, which a dimension may not"))
+    return float(expr.evaluate({}, scope))
+
+
 def _size(tree, path: str, node) -> list[float]:
     shape = (node.payload or {}).get("shape")
     if not shape or shape.get("op") != "box":
         raise ValueError(f"part '{path}' has no box shape; only boxes are modelled")
-    out = []
-    for v in shape.get("size", []):
-        if isinstance(v, str):
-            got = _param(tree, path, v)
-            if got is None:
-                raise ValueError(f"part '{path}' sizes its shape by '{v}', which it does not carry")
-            v = got
-        out.append(float(v))
+    out = [number(tree, path, v, "size") for v in shape.get("size", [])]
     if len(out) != 3:
         raise ValueError(f"part '{path}' box size must have three entries")
     return out
 
 
-def _translate(node) -> list[float]:
+def _translate(tree, path: str, node) -> list[float]:
     t = (node.payload or {}).get("transform") or {}
     if t.get("rotate"):
         raise ValueError(f"part '{node.id}' is rotated; only unrotated boxes are modelled")
-    return [float(x) for x in (t.get("translate") or [0, 0, 0])]
+    return [number(tree, path, x, "position") for x in (t.get("translate") or [0, 0, 0])]
 
 
 def bodies(tree: Quern, piece: str) -> list[Body]:
@@ -141,7 +162,7 @@ def bodies(tree: Quern, piece: str) -> list[Body]:
             return
         if (node.payload or {}).get("hinged"):
             raise ValueError(f"part '{path}' is hinged; doors are not modelled yet")
-        lo = [o + t for o, t in zip(origin, _translate(node))]
+        lo = [o + t for o, t in zip(origin, _translate(tree, path, node))]
         size = _size(tree, path, node)
         own = _param(tree, path, "mass")
         if own is None:

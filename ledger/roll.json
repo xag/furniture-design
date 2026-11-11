@@ -70,6 +70,26 @@
     "digest": "8239c98e3207"
   },
   {
+    "path": "a-dimension-is-stated-once-and-parts-follow-it",
+    "kind": "decision",
+    "digest": "b7bccb520cac"
+  },
+  {
+    "path": "a-dimension-is-stated-once-and-parts-follow-it/a-program-per-design",
+    "kind": "alternative",
+    "digest": "0974a6f932b6"
+  },
+  {
+    "path": "a-dimension-is-stated-once-and-parts-follow-it/mates-and-a-solver",
+    "kind": "alternative",
+    "digest": "8f35fce9a33d"
+  },
+  {
+    "path": "a-dimension-is-stated-once-and-parts-follow-it/own-params-only",
+    "kind": "alternative",
+    "digest": "cf39a362d53b"
+  },
+  {
     "path": "a-makers-products-are-their-own-package",
     "kind": "decision",
     "digest": "e3edc58f97d7"

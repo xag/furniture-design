@@ -72,9 +72,11 @@ VOCABULARY = [
                             "joined along their top and side edges, that carry it to the "
                             "floor"}),
     KindDef(kind="part", description=(
-        "A component to make. payload shape {op: box, size: [x, y, z]} with sizes in mm or "
-        "naming the part's params, transform {translate} placing its minimum corner "
-        "relative to the enclosing part or piece (geometry@'s convention); extends (mm it "
+        "A component to make. payload shape {op: box, size: [x, y, z]} in mm, transform "
+        "{translate} placing its minimum corner relative to the enclosing part or piece "
+        "(geometry@'s convention), each entry a number or an expression over params (the "
+        "part's own, then those of the parts and piece holding it, nearest first), so a "
+        "dimension the piece states once moves every part that depends on it; extends (mm it "
         "opens towards the front) for a drawer or pull-out shelf; hinged for a door "
         "(not modelled yet); span_along (grain, face grain) for a part that bends: the way "
         "its grain runs along its span; shear_modulus naming the material property that is G for it "

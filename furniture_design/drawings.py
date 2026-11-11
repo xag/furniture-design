@@ -3,7 +3,7 @@ list and, through documents(), the interactive 3D view (viewer.py), the design d
 the assembly instructions (sheets.py), with the checks in plain words (report.py).
 
 Everything here reads the tree; nothing is typed twice. A part's sizes come from its box
-(sizes may name its params), its place from its transform, its name from the node's
+(sizes may be expressions over params), its place from its transform, its name from the node's
 `name` (else its id). The piece's payload carries its `steps` (scene.py says how), its
 `version`, `authors`, `date` and `description` (design notes, one paragraph each).
 

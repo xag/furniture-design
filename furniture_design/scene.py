@@ -9,6 +9,7 @@ all draw. Everything is read from the quern tree; nothing here is typed twice.
   face unless the joint states `positions`, mm along that side), and the connector's size
   (its params length and thickness) when its node states it;
 - cuts a part carries in its payload (`cuts`: boxes {at, size} in the part's own frame,
+  each entry a number or an expression over params, as for a part's own size,
   such as a notch for a skirting board), drawn but not counted by the checks;
 - the steps: the piece's payload `steps`, each {text, add, joints, prepare, tools,
   direction}: `add` the part ids it brings in, `joints` the joint ids it closes,
@@ -27,7 +28,7 @@ from dataclasses import dataclass, field
 from quern import Quern
 from quern.tree import _segs, get_node
 
-from .natives import _param, bodies, joint_layout
+from .natives import _param, bodies, joint_layout, number
 
 DIRECTIONS = {"up": (0, 0, 1), "down": (0, 0, -1), "left": (-1, 0, 0), "right": (1, 0, 0),
               "front": (0, -1, 0), "back": (0, 1, 0)}
@@ -165,8 +166,10 @@ def scene(tree: Quern, piece: str) -> Scene:
         payload = node.payload or {}
         cuts = []
         for c in payload.get("cuts", []):
-            lo = tuple(b.lo[i] + c["at"][i] for i in range(3))
-            cuts.append((lo, tuple(lo[i] + c["size"][i] for i in range(3))))
+            at = [number(tree, b.path, v, "cut's place") for v in c["at"]]
+            size = [number(tree, b.path, v, "cut's size") for v in c["size"]]
+            lo = tuple(b.lo[i] + at[i] for i in range(3))
+            cuts.append((lo, tuple(lo[i] + size[i] for i in range(3))))
         material = uses[0].rsplit("/", 1)[-1] if uses else ""
         label = names.get(material) or ((mat.name if mat else "") or "").split(",")[0]
         parts.append(Part(b.path, node.id, node.name or node.id, marks.get(b.path, ""),

@@ -65,6 +65,33 @@ def test_stated_positions_are_drawn_where_they_are_stated():
     assert [p[0] for p in joint.positions] == [120, 320, 680, 880] and joint.stated
 
 
+def test_a_part_is_sized_and_placed_by_expressions_over_its_pieces_params():
+    from furniture_design.natives import bodies
+    from quern.provenance import Quantity
+    tree = _tree()
+    bench = get_node(tree, BENCH)
+    bench.params.update({k: Quantity(value=v, unit="mm", provenance="design-target")
+                         for k, v in {"height": 600.0, "board": 20.0, "lift": 100.0}.items()})
+    top = get_node(tree, f"{BENCH}/top")
+    top.payload["shape"]["size"][2] = "board"
+    top.payload["transform"]["translate"][2] = "height - board"
+    back = get_node(tree, f"{BENCH}/back")
+    back.payload["shape"]["size"][2] = "height - board - lift"
+    back.payload["transform"]["translate"][2] = "lift"
+    boxes = {b.path.rsplit("/", 1)[-1]: b for b in bodies(tree, BENCH)}
+    assert boxes["top"].lo[2] == 580 and boxes["top"].hi[2] == 600
+    assert boxes["back"].lo[2] == 100 and boxes["back"].hi[2] == 580
+
+
+def test_an_expression_naming_no_param_is_refused():
+    import pytest
+    from furniture_design.natives import bodies
+    tree = _tree()
+    get_node(tree, f"{BENCH}/top").payload["transform"]["translate"][2] = "height - 20"
+    with pytest.raises(ValueError, match="height"):
+        bodies(tree, BENCH)
+
+
 def test_the_checks_read_as_sentences_with_their_numbers():
     from furniture_design.report import checks
     rows = checks(_tree(), BENCH)
