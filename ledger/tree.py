@@ -129,6 +129,25 @@ def entries() -> list[Node]:
             ],
         ),
         Node(
+            id="a-makers-products-are-their-own-package", kind="decision",
+            name="Knowledge of one maker's products (Lamello's connectors and machines) is not in "
+                 "furniture-design@: it is an unofficial package of its own, which requires furniture-design@ "
+                 "and adds that maker's products as data on furniture-design's kinds. furniture-design names "
+                 "no maker",
+            payload={"decided_on": "2026-11-11",
+                     "the_owner": "lamello specific should not be in furniture design package, they should be in "
+                                  "a lamello unofficial package.",
+                     "why": "furniture-design is the general method. A maker's catalogue changes when the maker "
+                            "changes it, its pages are the maker's copyrighted text, and 'unofficial' says the "
+                            "maker neither wrote nor endorsed the package."},
+            links={"rests_on": ["the-rules-read-the-knowledge"]},
+            children=[
+                _alt("makers-in-the-knowledge-base", "Add Lamello's connectors to furniture-design's knowledge base",
+                     "Ties the general method's releases to one maker's catalogue, and puts a maker's name in a "
+                     "package meant for every maker."),
+            ],
+        ),
+        Node(
             id="the-package-is-in-the-open-registry", kind="decision",
             name="furniture-design@ is published to the public registry (xag/quern-registry), not the "
                  "private fleet registry",

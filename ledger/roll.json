@@ -25,6 +25,16 @@
     "digest": "cbbb602450a1"
   },
   {
+    "path": "a-makers-products-are-their-own-package",
+    "kind": "decision",
+    "digest": "e3edc58f97d7"
+  },
+  {
+    "path": "a-makers-products-are-their-own-package/makers-in-the-knowledge-base",
+    "kind": "alternative",
+    "digest": "8041cb9f7875"
+  },
+  {
     "path": "the-method-is-public-and-names-no-home",
     "kind": "decision",
     "digest": "350516740f94"
