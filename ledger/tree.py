@@ -259,6 +259,72 @@ def entries() -> list[Node]:
                      "Each would read a param the other's parts do not carry and answer 'absent' there."),
             ],
         ),
+        Node(
+            id="a-sideways-push-goes-through-a-panel-across", kind="decision",
+            name="A seat is held to the light-service sidethrust of GSA's leg test (890 N across, at seat "
+                 "height), and the push must reach the sides through a panel standing in its plane (a "
+                 "back): its top-edge connectors take it in shear, each side edge's connectors take it in "
+                 "pull-out and the force times height over width in shear, no bearing of one part on "
+                 "another credited. A piece with no such panel is short the whole force; a connector not "
+                 "rated in the joined material leaves the check absent",
+            payload={"decided_on": "2026-11-11",
+                     "the_owner": "check the sideway wobble.",
+                     "why": "Nothing public here rates how much a knock-down joint resists bending, so a "
+                            "box held square only by its corner joints cannot be shown to stand; a panel "
+                            "in the plane of the push turns it into forces along the joints, which a "
+                            "connector maker does rate. FNAE-80-214A is the only public seating test found "
+                            "that states a sideways force; it is written for upholstered sofas and chairs, "
+                            "and its licence could not be established, so it is cited by locator and values.",
+                     "caveat": "A strength check, not a stiffness one: how far the piece moves under the push "
+                               "is not computed, and the sides bending out of their plane on the way to the "
+                               "floor are not checked."},
+            links={"rests_on": ["the-rules-read-the-knowledge",
+                                "what-the-grammar-cannot-sum-is-a-calculation-with-cases"]},
+            children=[
+                _alt("corner-joint-moments", "Let the corner joints carry the push by resisting bending",
+                     "No public source here rates a connector's bending resistance."),
+                _alt("credit-bearing", "Credit the panel bearing on the side it is pushed against",
+                     "Pushed the other way, the connectors are pulled; the check takes the worse way."),
+            ],
+        ),
+        Node(
+            id="a-panel-bent-two-ways-is-two-materials", kind="decision",
+            name="A panel used both flat and on its edge is two material nodes naming the same panel "
+                 "(same_panel_as), each with the values measured the way it is bent: on edge, the in-plane "
+                 "moduli of Table 19-2 (the lower, 8.9 GPa), the species' GLT as in-plane shear modulus, and "
+                 "the edgewise compressive strength as the limit of the bending stress",
+            payload={"decided_on": "2026-11-11",
+                     "the_owner": "We use the same material everywhere.",
+                     "why": "A rail or a back is plywood standing on its edge, and its flatwise bending "
+                            "values do not describe it. Table 19-2 gives the crossband laminate's strengths "
+                            "and moduli edgewise and lengthwise; plies of rotary-cut veneer have their "
+                            "annual rings in the plane of the sheet (Table 19-3 footnote b), so the in-plane "
+                            "shear modulus is the species' GLT, crossed or not. Of the two edgewise "
+                            "strengths, compression (40 MPa) is the lower, so limiting the bending stress "
+                            "to it is the safe side."},
+            links={"rests_on": ["a-material-says-which-way-its-values-were-measured"]},
+            children=[
+                _alt("one-material-with-orientation-params", "One material with flat and on-edge params",
+                     "Every rule would have to pick the param by orientation; two nodes keep the rules as "
+                     "they are."),
+            ],
+        ),
+        Node(
+            id="drawings-are-generated-from-the-tree", kind="decision",
+            name="A piece's plans, cut list, joint list, 3D views and build document are generated from its "
+                 "quern nodes (furniture_design.drawings), the 3D views through geometry@'s renderer; nothing "
+                 "is drawn or typed a second time",
+            payload={"decided_on": "2026-11-11",
+                     "the_owner": "Can you generate 3D views and 2D plans and how to build doc from it?",
+                     "why": "A dimension typed into a drawing drifts from the model the rules judged; "
+                            "generated, the plans show what was checked."},
+            children=[
+                _alt("a-cad-file", "Export to a CAD program and draw there",
+                     "The drawing would leave the tree the rules judge."),
+                _alt("our-own-3d-renderer", "Render 3D in furniture-design",
+                     "geometry@ already realizes and renders the same boxes."),
+            ],
+        ),
     ]
 
 

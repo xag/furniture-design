@@ -80,6 +80,16 @@
     "digest": "8c71d095242a"
   },
   {
+    "path": "a-panel-bent-two-ways-is-two-materials",
+    "kind": "decision",
+    "digest": "911d07e4e9f4"
+  },
+  {
+    "path": "a-panel-bent-two-ways-is-two-materials/one-material-with-orientation-params",
+    "kind": "alternative",
+    "digest": "e52eaebe8ca7"
+  },
+  {
     "path": "a-panels-tested-modulus-takes-no-shear-term",
     "kind": "decision",
     "digest": "1c34eeb1f754"
@@ -95,6 +105,21 @@
     "digest": "57319dbe036f"
   },
   {
+    "path": "a-sideways-push-goes-through-a-panel-across",
+    "kind": "decision",
+    "digest": "667dbc709e59"
+  },
+  {
+    "path": "a-sideways-push-goes-through-a-panel-across/corner-joint-moments",
+    "kind": "alternative",
+    "digest": "1ab43f64291b"
+  },
+  {
+    "path": "a-sideways-push-goes-through-a-panel-across/credit-bearing",
+    "kind": "alternative",
+    "digest": "978c23dfe4e7"
+  },
+  {
     "path": "an-equation-is-applied-only-where-its-source-says-it-holds",
     "kind": "decision",
     "digest": "479319611df5"
@@ -103,6 +128,21 @@
     "path": "an-equation-is-applied-only-where-its-source-says-it-holds/apply-everywhere",
     "kind": "alternative",
     "digest": "d70551e7a886"
+  },
+  {
+    "path": "drawings-are-generated-from-the-tree",
+    "kind": "decision",
+    "digest": "65db1c3b2bf8"
+  },
+  {
+    "path": "drawings-are-generated-from-the-tree/a-cad-file",
+    "kind": "alternative",
+    "digest": "5afa5ebe8c23"
+  },
+  {
+    "path": "drawings-are-generated-from-the-tree/our-own-3d-renderer",
+    "kind": "alternative",
+    "digest": "2e0ada388c38"
   },
   {
     "path": "the-method-is-public-and-names-no-home",

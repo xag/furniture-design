@@ -21,8 +21,19 @@ def _flat(text: str) -> str:
 def _clauses():
     sources = knowledge()[0]
     for source in sources.children:
+        if source.payload["licence"] != "public-domain":
+            continue  # cited by locator and values: test_cited_sources_carry_no_quote
         for clause in source.children:
             yield source, clause
+
+
+def test_cited_sources_carry_no_quote_and_no_capture_here():
+    cited = [s for s in knowledge()[0].children if s.payload["licence"] != "public-domain"]
+    assert cited, "the GSA test method is cited"
+    for s in cited:
+        assert s.payload["licence"] in ("copyrighted", "unstated")
+        assert "capture" not in s.payload or "private" in s.payload["capture"]
+        assert all("quote" not in c.payload for c in s.children)
 
 
 @pytest.mark.parametrize("source,clause", list(_clauses()),

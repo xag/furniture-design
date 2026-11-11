@@ -28,7 +28,7 @@ from __future__ import annotations
 from quern.provenance import Quantity
 from quern.tree import Node
 
-from .units import CUBIC_FOOT_MM3, INCH_MM, POUND_KG, POUND_PER_CUBIC_FOOT_KG_M3
+from .units import CUBIC_FOOT_MM3, INCH_MM, POUND_FORCE_N, POUND_KG, POUND_PER_CUBIC_FOOT_KG_M3
 
 SOURCES = "sources"
 MATERIALS = "materials"
@@ -36,6 +36,11 @@ REQUIREMENTS = "requirements"
 
 WOOD_HANDBOOK = f"{SOURCES}/wood-handbook"
 FEDERAL_REGISTER = f"{SOURCES}/federal-register-2023-08997"
+GSA_FNAE = f"{SOURCES}/gsa-fnae-80-214a"
+
+# FNAE-80-214A, Table 1: the acceptance levels of the sidethrust load test on legs (7.4),
+# pounds of force, each held for 25,000 cycles
+SIDETHRUST_LEG_LBF = {"light": 200, "medium": 250, "heavy": 350}
 
 
 def published(value: float, unit: str, where: str, note: str | None = None) -> Quantity:
@@ -299,6 +304,26 @@ def wood_handbook() -> Node:
                 params={"modulus_of_rupture": published(90.3, "MPa", "Table 19–2"),
                         "modulus_of_elasticity": published(9000.0, "MPa", "Table 19–2",
                                                            "9.0 GPa")}),
+        _clause("table-19-2-crossband-edgewise", "Chapter 19, Table 19–2, Crossband laminates, "
+                "Normal laminated wood column, p. 19–8",
+                "Compression parallel to face grain (edgewise)",
+                transcribed="Crossband laminates, Normal laminated wood: Compression parallel to "
+                            "face grain (edgewise), Ultimate strength 40.0 MPa (5,800 lb in–2), "
+                            "Modulus of elasticity 9.4 GPa; Tension parallel to face grain "
+                            "(lengthwise), Ultimate strength 84.8 MPa (12,300 lb in–2), Modulus "
+                            "of elasticity 8.9 GPa; read from the page",
+                params={"compression_strength": published(40.0, "MPa", "Table 19–2"),
+                        "compression_modulus": published(9400.0, "MPa", "Table 19–2", "9.4 GPa"),
+                        "tension_strength": published(84.8, "MPa", "Table 19–2"),
+                        "tension_modulus": published(8900.0, "MPa", "Table 19–2", "8.9 GPa")}),
+        _clause("table-19-2-note-f", "Chapter 19, Table 19–2, footnote f, p. 19–8",
+                "fForest Products Laboratory (FPL) test procedure: load applied to edge of "
+                "laminations (perpendicular to laminating pressure direction)."),
+        _clause("table-19-3-note-b", "Chapter 19, Table 19–3, footnote b, p. 19–8",
+                "bAll wood laminates made from rotary-cut veneer, annual rings in plane of sheet."),
+        _clause("cov-table-5-6-compression", "Chapter 5, Table 5–6, p. 5–26",
+                "Compression parallel to grain 18",
+                params={"cov_compression_parallel": published(0.18, "", "Table 5–6", "18%")}),
         _clause("table-19-3-birch-laminate", "Chapter 19, Table 19–3, p. 19–8",
                 "Yellow birch laminate 0.72 3.1 3.254 40.29 36.64 80.18",
                 params={"specific_gravity": published(0.72, "", "Table 19–3",
@@ -357,29 +382,31 @@ def wood_handbook() -> Node:
                 children=clauses)
 
 
-def _design_stress(mor: float, mor_ref: str) -> Quantity:
+def _design_stress(mor: float, mor_ref: str, cov: float = 0.16,
+                   cov_ref: str = "cov-table-5-6/cov_modulus_of_rupture") -> Quantity:
     """The bending stress a part may be designed to: the near-minimum (5% exclusion) modulus
     of rupture, estimated from the mean with Table 5-6's coefficient of variation, divided by
     the factor the Handbook applies for 10-year duration of load and safety."""
     wh = WOOD_HANDBOOK
-    cov = 0.16
     return derived(mor * (1 - NORMAL_5_PERCENT * cov) / 2.1, "MPa",
-                   [mor_ref, f"{wh}/cov-table-5-6/cov_modulus_of_rupture",
+                   [mor_ref, f"{wh}/{cov_ref}",
                     f"{wh}/near-minimum-7-6/exclusion", f"{wh}/design-factor-7-10/bending_factor"],
-                   "MOR (1 − 1.645 × 0.16) / 2.1: the 5% point of a normal distribution with "
-                   "Table 5–6's coefficient of variation, over the p. 7–10 factor for 10-year "
-                   "duration of load and safety")
+                   f"strength (1 − 1.645 × {cov}) / 2.1: the 5% point of a normal distribution "
+                   "with Table 5–6's coefficient of variation, over the p. 7–10 factor for "
+                   "10-year duration of load and safety")
 
 
 def _panel(id_: str, name: str, *, form: str, sg: float, sg_ref: str, e: float, e_ref: str,
-           mor: float, mor_ref: str, bent: str, per: list[str], note: str = "") -> Node:
+           mor: float, mor_ref: str, bent: str, per: list[str], note: str = "",
+           connector_key: str = "plywood") -> Node:
     """A panel product: its bending modulus is the one measured on the panel (shear
     deflection included, so no shear term is added to it), and its values hold only bent the
     way the source says it bent them (`measured_along`; 'unstated' when it does not say)."""
     wh = WOOD_HANDBOOK
     return Node(
         id=id_, kind="material", name=name,
-        payload={"form": form, "measured_along": bent, "modulus": "apparent", **(
+        payload={"form": form, "measured_along": bent, "modulus": "apparent",
+                 "connector_key": connector_key, **(
             {"note": note} if note else {})},
         params={
             "density": derived(1000.0 * sg, "kg/m3", [sg_ref, f"{wh}/density-4-14/water_density"],
@@ -393,6 +420,50 @@ def _panel(id_: str, name: str, *, form: str, sg: float, sg_ref: str, e: float, 
         links={"per": per})
 
 
+def _birch_on_edge() -> Node:
+    """The same yellow birch plywood standing on its edge (a rail, an apron, a back): bent in
+    its own plane, so the moduli and strengths that count are the in-plane ones Table 19-2
+    measured edgewise and lengthwise, not the flatwise bending ones. Its modulus is an axial
+    one, true rather than apparent, so the shear term is added; the in-plane shear modulus
+    of plies of rotary-cut veneer, crossed or not, is the species' GLT (Table 19-3 footnote
+    b: annual rings in the plane of the sheet)."""
+    wh = WOOD_HANDBOOK
+    edge = f"{wh}/table-19-2-crossband-edgewise"
+    el = 1.10 * 13_900
+    return Node(
+        id="plywood-birch-yellow-on-edge",
+        name="Yellow birch plywood (Table 19–2's crossband laminate) standing on its edge",
+        payload={"form": "plywood", "measured_along": "face grain, on edge", "modulus": "true",
+                 "connector_key": "plywood",
+                 "same_panel_as": "plywood-birch-yellow",
+                 "note": "The flatwise and on-edge values are one panel bent two ways; a part "
+                         "uses the one that matches how it is bent."},
+        kind="material",
+        params={
+            "density": derived(720.0, "kg/m3", [f"{wh}/table-19-3-birch-laminate/specific_gravity",
+                                                f"{wh}/density-4-14/water_density"],
+                               "specific gravity 0.72 times the density of water"),
+            "modulus_of_elasticity": derived(8900.0, "MPa", [f"{edge}/tension_modulus",
+                                                             f"{edge}/compression_modulus"],
+                                             "the lower of the in-plane moduli, tension 8.9 GPa "
+                                             "and compression 9.4 GPa"),
+            "shear_modulus_inplane": derived(0.068 * el, "MPa",
+                                             [f"{wh}/table-5-1-birch-yellow/glt_ratio",
+                                              f"{wh}/table-5-3a-birch-yellow/modulus_of_elasticity_table",
+                                              f"{wh}/table-5-3a-note-c/shear_correction",
+                                              f"{wh}/table-19-3-note-b"],
+                                             "GLT of yellow birch: (GLT/EL) EL, Table 5–1 and 5–3a"),
+            "design_bending_stress": _design_stress(
+                40.0, f"{edge}/compression_strength", 0.18,
+                "cov-table-5-6-compression/cov_compression_parallel"),
+        },
+        links={"per": [edge, f"{wh}/table-19-2-note-a", f"{wh}/table-19-2-note-b",
+                       f"{wh}/table-19-2-note-f", f"{wh}/table-19-3-note-b",
+                       f"{wh}/table-19-3-birch-laminate", f"{wh}/table-5-1-birch-yellow",
+                       f"{wh}/table-5-3a-birch-yellow", f"{wh}/cov-table-5-6-compression",
+                       f"{wh}/near-minimum-7-6", f"{wh}/design-factor-7-10"]})
+
+
 def panels() -> list[Node]:
     """Plywood and fibre panels the Handbook gives bending values for."""
     wh = WOOD_HANDBOOK
@@ -402,12 +473,13 @@ def panels() -> list[Node]:
         "phenol resin film", form="plywood", sg=0.72,
         sg_ref=f"{wh}/table-19-3-birch-laminate/specific_gravity", e=9000.0,
         e_ref=f"{laminate}/modulus_of_elasticity", mor=90.3,
-        mor_ref=f"{laminate}/modulus_of_rupture", bent="face grain",
+        mor_ref=f"{laminate}/modulus_of_rupture", bent="face grain, flat",
         per=[laminate, f"{wh}/table-19-2-note-a", f"{wh}/table-19-2-note-b",
              f"{wh}/table-19-3-birch-laminate", f"{wh}/cov-table-5-6", f"{wh}/near-minimum-7-6",
              f"{wh}/design-factor-7-10", f"{wh}/panels-uniform-12-2"],
         note="Tested as a 27 mm laminate, load on the face, face grain along the span. A "
              "panel with other ply thicknesses or another glue is near it, not it.")]
+    out.append(_birch_on_edge())
     for id_, name, _row, g, e, mor in PLYWOOD_SHEATHING:
         ref = f"{wh}/table-12-2-{id_}"
         out.append(_panel(
@@ -422,7 +494,7 @@ def panels() -> list[Node]:
             id_, f"{name}, the low end of the Handbook's range", form=name.lower(), sg=g0,
             sg_ref=f"{ref}/specific_gravity_low", e=e0 * 1000,
             e_ref=f"{ref}/modulus_of_elasticity_low", mor=m0, mor_ref=f"{ref}/modulus_of_rupture_low",
-            bent="unstated",
+            bent="unstated", connector_key={"medium-density-fiberboard": "mdf"}.get(id_, id_),
             per=[ref, f"{wh}/cov-table-5-6", f"{wh}/near-minimum-7-6", f"{wh}/design-factor-7-10",
                  f"{wh}/panels-uniform-12-2"]))
     return out
@@ -440,7 +512,7 @@ def materials() -> Node:
         out.append(Node(
             id=id_, kind="material", name=f"{name}, air-dried, 12% moisture content",
             payload={"form": "solid wood", "moisture_content_percent": 12, "dried": True,
-                     "measured_along": "grain", "modulus": "true"},
+                     "measured_along": "grain", "modulus": "true", "connector_key": id_},
             params={
                 "modulus_of_rupture": derived(mor, "MPa", [f"{row}/modulus_of_rupture_table"],
                                               "Table 5–3a, mean of clear wood"),
@@ -536,6 +608,42 @@ def federal_register() -> Node:
                 children=clauses)
 
 
+def gsa_fnae() -> Node:
+    """GSA's test method for upholstered seating. Its licence could not be established (GSA
+    says most of its site is free of copyright, and that some material on it is a third
+    party's), so it is cited by locator and values, never quoted, and the copy it is checked
+    against is kept privately."""
+    sidethrust = {f"side_force_{level}": published(lbf * POUND_FORCE_N, "N", "Table 1",
+                                                     f"{lbf} pounds")
+                  for level, lbf in SIDETHRUST_LEG_LBF.items()}
+    return Node(
+        id="gsa-fnae-80-214a", kind="source",
+        name="Upholstered Furniture Test Method, FNAE-80-214A (1998)",
+        payload={"publisher": "U.S. General Services Administration", "year": 1998,
+                 "identifier": "FNAE-80-214A",
+                 "url": "https://www.gsa.gov/system/files/Upholstered_Furniture_Test_Method_508.pdf",
+                 "sha256": "6b389ae4b5402dd9617827ad9c79a9101dab3d9c004bea743041e1ad400c86ee",
+                 "licence": "unstated",
+                 "licence_note": "GSA's site policy: most material on it is free of copyright, "
+                                 "some is a third party's; this document carries no notice "
+                                 "either way, so it is cited as if copyrighted"},
+        children=[
+            Node(id="sidethrust-leg-7-4", kind="clause",
+                 payload={"locator": "7.4 Sidethrust Load Test on Legs, and Table 1",
+                          "in_our_words": "a force parallel to the floor, across the piece, on "
+                                          "a side rail at one end midway between its front "
+                                          "and back legs, resisted by the legs at the other "
+                                          "end; 25,000 cycles at each level; Table 1 gives "
+                                          "the levels a light, medium and heavy service "
+                                          "piece must reach without disabling damage"},
+                 params=sidethrust),
+            Node(id="scope-1-0", kind="clause",
+                 payload={"locator": "1.0 Scope",
+                          "in_our_words": "sofas, dual purpose units, recliners and lounge "
+                                          "chairs, whatever their materials and construction"}),
+        ])
+
+
 def requirements() -> Node:
     fr = FEDERAL_REGISTER
 
@@ -584,12 +692,27 @@ def requirements() -> Node:
                                       "60 pounds")},
         links={"per": [f"{fr}/test-9-2-3", f"{fr}/1261-1-b", f"{fr}/1261-2",
                        f"{fr}/scope-height", f"{fr}/scope-mass", f"{fr}/scope-storage-volume"]})
-    return Node(id="requirements", kind="", children=[clothing, carpet])
+    gsa = GSA_FNAE
+    sideways = Node(
+        id="seating-sidethrust-light", kind="requirement",
+        name="A seat carries the light-service sidethrust of GSA's leg test across it at seat "
+             "height, without a joint giving way",
+        payload={"measure": "sideways", "scope": {"category": "seating"},
+                 "applied": "parallel to the floor, across the piece, at seat height",
+                 "prediction": "A static check of the force's path predicts a cyclic physical "
+                               "test (25,000 cycles); passing it is not passing the test.",
+                 "reach": "FNAE-80-214A is written for upholstered sofas and chairs; a bench "
+                          "is held to it as the nearest public seating test"},
+        params={"side_force": derived(SIDETHRUST_LEG_LBF["light"] * POUND_FORCE_N, "N",
+                                      [f"{gsa}/sidethrust-leg-7-4/side_force_light"],
+                                      "200 pounds of force")},
+        links={"per": [f"{gsa}/sidethrust-leg-7-4", f"{gsa}/scope-1-0"]})
+    return Node(id="requirements", kind="", children=[clothing, carpet, sideways])
 
 
 def knowledge() -> list[Node]:
     """The three top-level branches a design tree mounts: sources, materials, requirements."""
-    return [Node(id="sources", kind="", children=[wood_handbook(), federal_register()]),
+    return [Node(id="sources", kind="", children=[wood_handbook(), federal_register(), gsa_fnae()]),
             materials(), requirements()]
 
 

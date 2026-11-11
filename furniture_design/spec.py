@@ -114,7 +114,57 @@ _W = 10 * G
 _BENDING = 5 / 384 * _W * 1000 ** 3 * 12 / (10_000 * 100 * 10 ** 3)
 _SHEAR = 1 / 8 * _W * 1000 * 6 / (5 * 700 * 100 * 10)
 
+def braced(top_count: float = 4, side_count: float = 2, brace: bool = True,
+            key: str = "wood") -> list[Node]:
+    """A seat 1040 wide: two 20 mm sides 600 tall, a top on them, and a back panel 1000 wide
+    and 500 tall between the sides, under the top, joined to the top and to each side. The
+    connector carries 500 N in shear and 1000 N in pull-out in `wood`; the case asks for
+    900 N across."""
+    def q(v: float, unit: str = "") -> Quantity:
+        return Quantity(value=v, unit=unit, provenance="design-target", grounded=False)
+
+    def part(id_: str, size: list, at: list) -> Node:
+        return Node(id=id_, kind="part", links={"uses": ["materials/panel"]},
+                    params={"mass": q(5, "kg")},
+                    payload={"shape": {"op": "box", "size": size}, "transform": {"translate": at}})
+
+    def joint(id_: str, a: str, count: float) -> Node:
+        return Node(id=id_, kind="joint", params={"count": q(count)},
+                    links={"joins": ["seat/back", f"seat/{a}"], "uses": ["connectors/c"]})
+    parts = [part("left", [20, 300, 600], [0, 0, 0]), part("right", [20, 300, 600], [1020, 0, 0]),
+             part("top", [1040, 300, 20], [0, 0, 600]), part("back", [1000, 20, 500], [20, 280, 100]),
+             joint("back-top", "top", top_count), joint("back-left", "left", side_count),
+             joint("back-right", "right", side_count)]
+    seat = Node(id="seat", kind="piece", children=parts,
+                links={"braced_by": ["seat/back"]} if brace else {})
+    panel = Node(id="panel", kind="material", payload={"connector_key": key})
+    c = Node(id="c", kind="connector", params={"shear_wood": q(500, "N"),
+                                               "pull_out_wood": q(1000, "N")})
+    case = Node(id="across", kind="requirement", params={"side_force": q(900, "N")})
+    return [seat, Node(id="materials", kind="", children=[panel]),
+            Node(id="connectors", kind="", children=[c]),
+            Node(id="requirements", kind="", children=[case])]
+
+
 SPEC = {
+    "furniture/sideways_margin": [
+        d("sideways_margin", braced(), ["seat", "requirements/across"], expect=550,
+          because="top edge: 4 x 500 - 900 = 1100 in shear; each side edge: 2 x 500 - "
+                  "900 x 500/1000 = 550 in shear, 2 x 1000 - 900 = 1100 in pull-out: the "
+                  "side edges' shear governs, 550 N to spare"),
+        d("sideways_margin", braced(side_count=1), ["seat", "requirements/across"], expect=50,
+          because="one connector per side edge: 500 - 450 in shear, 1000 - 900 = 100 in "
+                  "pull-out: shear governs"),
+        d("sideways_margin", braced(top_count=1), ["seat", "requirements/across"], expect=-400,
+          because="one connector along the top edge takes the whole 900 N against 500"),
+        d("sideways_margin", braced(brace=False), ["seat", "requirements/across"],
+          expect=-900,
+          because="an unbraced piece would rely on joints resisting bending, which nothing "
+                  "here rates: the whole force is its shortfall"),
+        d("sideways_margin", braced(key="plywood"), ["seat", "requirements/across"],
+          expect_error="states no shear strength in plywood",
+          because="a connector rated only in other materials says nothing about this one"),
+    ],
     "furniture/deflection": [
         d("deflection", beam(), ["shelf/board"], expect=_BENDING + _SHEAR,
           because="solid wood: the bending term with the true modulus, plus the shear term "

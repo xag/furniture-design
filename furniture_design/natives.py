@@ -23,7 +23,8 @@ import math
 from dataclasses import dataclass
 
 from quern.cache import OPENS_ONLY
-from quern.tree import Quern, _segs, get_node, register_native, resolve_params
+from quern.expr import Absent
+from quern.tree import Node, Quern, _segs, get_node, register_native, resolve_params
 
 from .units import STANDARD_GRAVITY
 
@@ -285,8 +286,95 @@ def deflection(tree: Quern, part: str) -> float:
     return bending + need["ks"] * w * span * 6 / (5 * g * b * h)
 
 
+def _material(tree: Quern, path: str):
+    uses = (get_node(tree, path).links or {}).get("uses", [])
+    return get_node(tree, uses[0]) if uses else None
+
+
+def sideways_margin(tree: Quern, piece: str, case: str) -> float:
+    """N: the smallest margin, over the joints along the edges of the panels that brace
+    `piece` across (the parts it links as `braced_by`), between what a joint's connectors
+    carry in shear and what the requirement `case`'s `side_force` asks of that joint.
+
+    A brace is a panel standing in the plane of the sideways force (x across, z up), as a
+    back panel does, held along its two side edges by the parts beside it. The force enters
+    along its top edge and leaves through its side edges. Asked of the joints, without
+    crediting any bearing of one part on another:
+    - along the top edge, the whole force, in shear across the connectors;
+    - along each side edge, the whole force as pull-out (pushed one way, the connectors of
+      one side are pulled), and, in shear, the force times the panel's height over its
+      width (the vertical pair of forces that keeps the panel from turning, taken at its
+      largest, as if the force had to come down to the panel's bottom edge).
+    A joint is good for its `count` of connectors times the connector's `shear_<key>` or
+    `pull_out_<key>`, the key being the `connector_key` of each joined part's material, the
+    weaker part governing. The margin is the smallest capacity less demand, in N.
+
+    Not checked here: the parts the brace hands the force to (the sides) bending out of
+    their plane on the way to the floor.
+
+    A piece with no brace carries nothing across by this path: its margin is the whole
+    force, short (its joints would have to resist bending, which no source here rates).
+    Absent, rather than answered: a joint with no count, a connector that states no
+    strength in a joined material. Refused: a brace whose top edge or a side edge is joined
+    to nothing."""
+    node = get_node(tree, piece)
+    if node is None:
+        raise ValueError(f"no piece at '{piece}'")
+    force = _param(tree, case, "side_force")
+    if force is None:
+        raise ValueError(f"requirement '{case}' states no side_force")
+    braces = node.links.get("braced_by", [])
+    if not braces:
+        return -force
+    box = {b.path: b for b in bodies(tree, piece)}
+    joints = [(p, n) for p, n in tree.walk("") if n.kind == "joint"]
+    worst = math.inf
+    for brace in braces:
+        bpath = "/".join(_segs(brace))
+        b = box.get(bpath)
+        if b is None:
+            raise ValueError(f"brace '{brace}' is not a part of '{piece}'")
+        width, height = b.hi[0] - b.lo[0], b.hi[2] - b.lo[2]
+        edges = {"top": [], "side": []}
+        for jpath, j in joints:
+            joined = ["/".join(_segs(t)) for t in j.links.get("joins", [])]
+            if bpath not in joined:
+                continue
+            for other in joined:
+                o = box.get(other)
+                if o is None or other == bpath:
+                    continue
+                if abs(o.lo[2] - b.hi[2]) <= TOUCH_MM:
+                    edges["top"].append((jpath, j, other))
+                elif abs(o.hi[0] - b.lo[0]) <= TOUCH_MM or abs(o.lo[0] - b.hi[0]) <= TOUCH_MM:
+                    edges["side"].append((jpath, j, other))
+        if not edges["top"] or len(edges["side"]) < 2:
+            raise ValueError(f"brace '{brace}' must be joined along its top edge and both "
+                             "side edges to carry a sideways force")
+        demand = {"top": {"shear": force / len(edges["top"])},
+                  "side": {"shear": force * height / width, "pull_out": force}}
+        for edge, found in edges.items():
+            for jpath, j, other in found:
+                count = _param(tree, jpath, "count")
+                if count is None:
+                    raise Absent(f"joint '{jpath}' states no count of connectors")
+                for mode, asked in demand[edge].items():
+                    rated = []
+                    for part in (bpath, other):
+                        key = ((_material(tree, part) or Node(id="x", kind="")).payload
+                               or {}).get("connector_key")
+                        got = _param(tree, jpath, f"{mode}_{key}") if key else None
+                        if got is None:
+                            raise Absent(f"the connector of '{jpath}' states no {mode} "
+                                         f"strength in {key or 'the material of ' + part}")
+                        rated.append(got)
+                    worst = min(worst, count * min(rated) - asked)
+    return worst
+
+
 NATIVES = {
     "furniture/deflection": deflection,
+    "furniture/sideways_margin": sideways_margin,
     "furniture/emc": emc,
     "furniture/mass": mass,
     "furniture/height": height,

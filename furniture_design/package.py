@@ -66,7 +66,11 @@ VOCABULARY = [
         "(smallest y) to the back, z up from the floor, mm. payload category (e.g. "
         "clothing-storage-unit) brings it into a requirement's scope."),
         params={"storage_volume": "mm3, what it holds, when a requirement's scope reads it"},
-        links={"stability_case": "the overturning requirements it is held to"}),
+        links={"stability_case": "the overturning requirements it is held to",
+               "sideways_case": "the sideways-force requirements it is held to",
+               "braced_by": "the panels standing in the plane of a sideways force (a back), "
+                            "joined along their top and side edges, that carry it to the "
+                            "floor"}),
     KindDef(kind="part", description=(
         "A component to make. payload shape {op: box, size: [x, y, z]} with sizes in mm or "
         "naming the part's params, transform {translate} placing its minimum corner "
@@ -135,10 +139,12 @@ RULES = [
          expr="some(s, nodes('source'), s == parent(self)) "
               "and len(payload(self, 'locator', '')) > 0 "
               "and (len(payload(self, 'quote', '')) > 0 "
-              "or payload(parent(self), 'licence', '') == 'copyrighted')",
+              "or payload(parent(self), 'licence', '') == 'copyrighted' "
+              "or payload(parent(self), 'licence', '') == 'unstated')",
          description="A clause sits under the source it comes from, says where in it, and "
-                     "quotes it, unless the source is copyrighted: then it carries the "
-                     "values and the locator, and the words stay with their publisher."),
+                     "quotes it, unless the source is copyrighted, or its licence could not "
+                     "be established (unstated): then it carries the values and the locator, "
+                     "and the words stay with their publisher."),
     Rule(name="a-connector-rests-on-clauses", kind="connector",
          expr="len(linked(self, 'per')) > 0 and "
               "every(c, linked(self, 'per'), some(k, nodes('clause'), k == c))",
@@ -186,6 +192,18 @@ RULES = [
          description="Under every overturning requirement a piece links as stability_case, "
                      "the static moment about its front edge keeps it standing. A prediction "
                      "of the physical test the requirement describes, not a substitute for it."),
+    Rule(name="a-piece-takes-its-sideways-load", kind="piece",
+         expr="every(r, linked(self, 'sideways_case'), "
+              "solve('furniture/sideways_margin', self, r) >= 0)",
+         description="Under every sideways requirement a piece links as sideways_case, the "
+                     "panels it is braced_by carry the side force: the connectors along each "
+                     "panel's top edge take the force in shear, those along each side edge "
+                     "take it in pull-out and the force times the panel's height over its "
+                     "width in shear, each connector good for its strength in the weaker "
+                     "joined material, no bearing credited "
+                     "(furniture/sideways_margin). A piece with no such panel is not judged "
+                     "to stand: its joints would have to resist bending, and no source here "
+                     "rates that."),
     Rule(name="a-beam-sags-within-its-limit", kind="part",
          expr="every(r, linked(self, 'sag_limit'), solve('furniture/deflection', self) "
               "<= param(self, 'initial_share_of_longtime') * param(r, 'limit'))",
@@ -315,7 +333,11 @@ def _joinery(*, thickness: float = 18, width: float = 300, tool: str = "tools/gr
                                     params={"min_thickness_surface": Quantity(
                                         value=15, unit="mm", provenance="published"),
                                             "min_width": Quantity(value=75, unit="mm",
-                                                                  provenance="published")})])
+                                                                  provenance="published"),
+                                            "shear_birch-yellow": Quantity(
+                                        value=600, unit="N", provenance="published"),
+                                            "pull_out_birch-yellow": Quantity(
+                                        value=1000, unit="N", provenance="published")})])
     per = ["sources/example-catalogue/technical-data"] if cited else []
     connector = Node(id="example-connector", kind="connector",
                      payload={"maker": "an example maker", "setting": "S-1"},
@@ -323,7 +345,13 @@ def _joinery(*, thickness: float = 18, width: float = 300, tool: str = "tools/gr
                                  value=15, unit="mm", provenance="derived",
                                  derived_from=["sources/example-catalogue/technical-data"]),
                              "min_width": Quantity(value=75, unit="mm", provenance="derived",
-                                                   derived_from=["sources/example-catalogue/technical-data"])},
+                                                   derived_from=["sources/example-catalogue/technical-data"]),
+                             "shear_birch-yellow": Quantity(
+                                 value=600, unit="N", provenance="derived",
+                                 derived_from=["sources/example-catalogue/technical-data"]),
+                             "pull_out_birch-yellow": Quantity(
+                                 value=1000, unit="N", provenance="derived",
+                                 derived_from=["sources/example-catalogue/technical-data"])},
                      links={"needs": ["tools/groove-cutter"], "per": per})
     tools = [Node(id="groove-cutter", kind="tool", payload={"maker": "an example maker"}),
              Node(id="drill", kind="tool", payload={"maker": "any"})]
@@ -341,9 +369,34 @@ def _joinery(*, thickness: float = 18, width: float = 300, tool: str = "tools/gr
                        Node(id="tools", kind="", children=tools)], box
 
 
+def _seat(back_count: float = 4) -> Node:
+    """A bench of yellow birch boards on the example maker's connectors: two sides, a top
+    and a back panel joined to the top and to each side, held to the light sidethrust."""
+    def board(id_: str, size: list, at: list) -> Node:
+        return Node(id=id_, kind="part", links={"uses": ["materials/birch-yellow"]},
+                    params={"thickness": _target(20, "mm", ""), "width": _target(300, "mm", "")},
+                    payload={"shape": {"op": "box", "size": size}, "transform": {"translate": at}})
+
+    def joint(id_: str, other: str, count: float) -> Node:
+        return Node(id=id_, kind="joint", payload={"cut": "surface", "setting": "S-1"},
+                    params={"count": _target(count, "", "connectors in the joint")},
+                    links={"joins": ["pieces/bench/back", f"pieces/bench/{other}"],
+                           "uses": ["connectors/example-connector"],
+                           "made_with": ["tools/groove-cutter"]})
+    return Node(id="bench", kind="piece", payload={"category": "seating"},
+                links={"sideways_case": [f"{REQUIREMENTS}/seating-sidethrust-light"],
+                       "braced_by": ["pieces/bench/back"]},
+                children=[board("left", [20, 300, 450], [0, 0, 0]),
+                          board("right", [20, 300, 450], [980, 0, 0]),
+                          board("top", [1000, 300, 20], [0, 0, 450]),
+                          board("back", [960, 20, 350], [20, 280, 100]),
+                          joint("back-top", "top", back_count), joint("back-left", "left", 2),
+                          joint("back-right", "right", 2)])
+
+
 def _world(*, chest: Node | None = None, sag_limit: float = 4.0, clearance: float = 8.0,
            rh_max: float = 0.65, books_kg: float = 30, span_along: str = "grain",
-           **joinery) -> list[Node]:
+           back_count: float = 4, **joinery) -> list[Node]:
     kb = knowledge()
     sag, bookshelf = _shelf(sag_limit, books_kg, span_along)
     kb[2].children.append(sag)
@@ -351,7 +404,7 @@ def _world(*, chest: Node | None = None, sag_limit: float = 4.0, clearance: floa
     catalogue, hardware, box = _joinery(**joinery)
     kb[0].children.append(catalogue)
     return kb + hardware + [climates, Node(id="pieces", kind="", children=[
-        chest or _chest(), bookshelf, cabinet, box])]
+        chest or _chest(), bookshelf, cabinet, box, _seat(back_count)])]
 
 
 EXAMPLES = _world()
@@ -396,6 +449,9 @@ COUNTER_EXAMPLES = [
     CounterExample(rule="a-beam-sags-within-its-limit", nodes=_world(sag_limit=1.0),
                    because="the oak shelf deflects about 1.1 mm at once, more than two-thirds "
                            "of a 1 mm longtime limit"),
+    CounterExample(rule="a-piece-takes-its-sideways-load", nodes=_world(back_count=1),
+                   because="one connector along the back's top edge, good for 600 N in "
+                           "birch, takes the whole 890 N of the light sidethrust"),
     CounterExample(rule="a-beam-is-strong-enough", nodes=_world(books_kg=600),
                    because="600 kg on the oak shelf bends it to about 39 MPa, past oak's design "
                            "stress of about 34.7"),
@@ -425,7 +481,7 @@ COUNTER_EXAMPLES = [
 
 PACKAGE = Package(
     name="furniture-design",
-    version="0.4.0",
+    version="0.5.0",
     description=(
         "Furniture designs and the published knowledge they are judged against. Kinds: "
         "source and clause (a publication and its verbatim, located statements, with the "
@@ -434,7 +490,7 @@ PACKAGE = Package(
         "load. Rules: every clause quotes its source; requirements and materials rest on "
         "clauses; a piece in a requirement's scope is held to it; a piece stands in its "
         "stability cases (furniture/tipping_cases); a part bends within its longtime sag "
-        "limit (Wood Handbook Eq. 9-2 to 9-4 and its creep guidance, furniture/deflection, with no shear term for a panel whose modulus was measured on the panel); a part is strong enough (Eq. 9-13 against the near-minimum modulus of rupture over the Handbook's factor for 10-year duration of load and safety); a part bends the way its material's values were measured; a part that swells and "
+        "limit (Wood Handbook Eq. 9-2 to 9-4 and its creep guidance, furniture/deflection, with no shear term for a panel whose modulus was measured on the panel); a part is strong enough (Eq. 9-13 against the near-minimum modulus of rupture over the Handbook's factor for 10-year duration of load and safety); a part bends the way its material's values were measured; a seat carries the light-service sidethrust of GSA's FNAE-80-214A through a panel in the push's plane (furniture/sideways_margin); a part that swells and "
         "shrinks with the air has room to (Eq. 13-3, the moisture content of its climate from "
         "Eq. 4-5, kind climate), and is judged only where that equation holds; a joint is cut with a tool its connector takes, at its setting, in parts thick and wide enough for it (kinds tool, connector, joint; a maker's products are data in a package of their own). The rules carry no "
         "number a source states: limits and properties are read from the knowledge base."),
