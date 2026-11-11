@@ -311,6 +311,22 @@ def entries() -> list[Node]:
         ),
         Node(
             id="drawings-are-generated-from-the-tree", kind="decision",
+            name="A piece's plans, cut list, joint list, 3D views and build document are generated from its "
+                 "quern nodes (furniture_design.drawings), the 3D views through geometry@'s renderer; nothing "
+                 "is drawn or typed a second time",
+            payload={"decided_on": "2026-11-11",
+                     "the_owner": "Can you generate 3D views and 2D plans and how to build doc from it?",
+                     "why": "A dimension typed into a drawing drifts from the model the rules judged; "
+                            "generated, the plans show what was checked."},
+            children=[
+                _alt("a-cad-file", "Export to a CAD program and draw there",
+                     "The drawing would leave the tree the rules judge."),
+                _alt("our-own-3d-renderer", "Render 3D in furniture-design",
+                     "geometry@ already realizes and renders the same boxes."),
+            ],
+        ),
+        Node(
+            id="the-documents-are-for-the-people-who-build", kind="decision",
             name="What a piece is built from is generated from its quern nodes, for the people who build it, "
                  "not for programmers: an interactive 3D view (one HTML page: turn, pull apart, step through "
                  "the assembly, touch a part), a design document (PDF, A3: first-angle views dimensioned, a "
@@ -327,6 +343,7 @@ def entries() -> list[Node]:
                      "why": "A dimension typed into a drawing drifts from the model the rules judged; generated, "
                             "the documents show what was checked. Print needs vector line work, so the boxes "
                             "are projected and ordered here (linework.py) and drawn with reportlab."},
+            links={"supersedes": ["drawings-are-generated-from-the-tree"]},
             children=[
                 _alt("a-cad-file", "Export to a CAD program and draw there",
                      "The drawing would leave the tree the rules judge."),

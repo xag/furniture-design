@@ -145,6 +145,26 @@
     "digest": "2e0ada388c38"
   },
   {
+    "path": "the-documents-are-for-the-people-who-build",
+    "kind": "decision",
+    "digest": "4244002f6cd0"
+  },
+  {
+    "path": "the-documents-are-for-the-people-who-build/a-cad-file",
+    "kind": "alternative",
+    "digest": "5afa5ebe8c23"
+  },
+  {
+    "path": "the-documents-are-for-the-people-who-build/a-markdown-build-document",
+    "kind": "alternative",
+    "digest": "78fc2e5d5ed0"
+  },
+  {
+    "path": "the-documents-are-for-the-people-who-build/geometry-raster-views",
+    "kind": "alternative",
+    "digest": "3ae4c7d50b3c"
+  },
+  {
     "path": "the-method-is-public-and-names-no-home",
     "kind": "decision",
     "digest": "350516740f94"
