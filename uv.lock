@@ -149,22 +149,24 @@ wheels = [
 [[package]]
 name = "furniture-design"
 version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
+dependencies = [
+    { name = "quern" },
+]
 
 [package.dev-dependencies]
 dev = [
     { name = "pytest" },
     { name = "pytest-testmon" },
-    { name = "quern" },
 ]
 
 [package.metadata]
+requires-dist = [{ name = "quern", git = "https://github.com/xag/quern?rev=45b87de" }]
 
 [package.metadata.requires-dev]
 dev = [
     { name = "pytest", specifier = ">=8.0.0" },
     { name = "pytest-testmon", specifier = ">=2.1" },
-    { name = "quern", git = "https://github.com/xag/quern?rev=bbcd9a6" },
 ]
 
 [[package]]
@@ -386,7 +388,7 @@ wheels = [
 [[package]]
 name = "quern"
 version = "0.1.5"
-source = { git = "https://github.com/xag/quern?rev=bbcd9a6#bbcd9a6b45db479394e9734f53ca45aeb9ad69ef" }
+source = { git = "https://github.com/xag/quern?rev=45b87de#45b87deec2fb33459f59363da54d4e87a786172c" }
 dependencies = [
     { name = "pydantic" },
     { name = "wasmtime" },

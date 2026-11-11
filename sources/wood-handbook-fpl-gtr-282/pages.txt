@@ -1,0 +1,2147 @@
+=====PAGE 105=====
+CHAPTER 4  | Moisture Relations and Physical Properties of Wood
+4–11 
+to specific gravity (also known as relative density). 
+ is defined as the ratio of the density of a 
+ at a specified reference 
+temperature, typically 4 °C (39 °F), where ρw is –3). Therefore, 
+ has a specific gravity 
+At constant temperature, the density of materials that do 
+not adsorb moisture is constant. For example, at room 
+temperature the densities of steel, aluminum, and lead are 
+, respectively. For materials that 
+adsorb moisture but do not change volume, such as stone 
+and brick, the density depends upon moisture content. 
+For these materials, the density can be calculated at any 
+moisture content as the ratio of its mass to its volume, and 
+the relationship between density and moisture content is 
+linear. Specific gravity has only one definition for these 
+materials (because volume is constant): the ratio of ovendry 
+In contrast to these materials, for wood, both mass and 
+volume depend on moisture content. The remainder of this 
+section explains the relationships between moisture content, 
+volumetric shrinkage, specific gravity, and density. 
+ varies significantly between 
+species. Although the ovendry density of most species falls 
+ (20 and 45 lb ft–3), the 
+range actually extends from about 160 kg m–3 (10 lb ft–3) for 
+–3) for some other 
+ρ0 varies because 
+of anatomical characteristics such as the ratio of earlywood 
+to latewood and heartwood to sapwood. For a limited 
+as discussed in the following sections. The resulting value 
+should be considered an approximation because of the 
+inherent variability in the properties used in calculating ρx. 
+To make comparisons between species or products, a 
+standard reference basis is desirable. Several valid choices 
+are possible for wood, including ovendry density ρ0 and 
+specific gravity G referenced to a particular volume basis. 
+As shown in Table 4–5, the specific gravity of wood may be 
+referenced to its volume at any moisture content, but in all 
+cases G is based on ovendry mass. Commonly used bases 
+for volume are (a) ovendry, (b) green, and (c) 12% moisture 
+content. The combination of ovendry mass and ovendry 
+volume is used in design specifications for wood, such 
+as contained in the National Design Specification (NDS) 
+for Wood Construction (AWC 2018). The combination 
+of ovendry mass and green volume is referred to as basic 
+specific gravity Gb. Some specific gravity data are reported 
+in Tables 5–3, 5–4, and 5–5 (Chap. 5) on both the green 
+(basic) and 12% MC volume basis. 
+Converting between Different Specific Gravity 
+Bases 
+In general, we use the symbol Gx to denote specific gravity 
+based on the volume at a given moisture content x. If the 
+value of Gx is known for a particular moisture content, the 
+value at any other moisture content can be approximated 
+using expressions for volumetric shrinkage. Explicitly, if the 
+specific gravity is known at moisture content x′, the value at 
+x′′ is 
+                   
+                
+     
+        
+               
+       
+       
+    
+ 
+       
+      
+               
+ 
+                
+                   
+                
+              
+             
+               
+                 
+         
+ 
+       
+ 
+                  
+ 
+                  
+           
+                
+ 
+ 100 100 x xx x SGG S           
+ 
+                
+                  
+    
+ 
+   
+ 
+            
+                
+              
+ 
+   
+ 
+    
+   
+ 
+   
+ 
+ 
+    
+ 
+ 
+ 
+ 
+ 
+      
+ 
+ 
+  
+unknown ring orientations, tangential values are suggested. 
+Shrinkage values for individual pieces will vary from 
+predicted shrinkage values. As noted previously, shrinkage 
+variability is characterized by a coefficient of variation 
+of approximately 15%. This applies to pure tangential or 
+radial ring orientation and is probably somewhat greater 
+in commercial lumber, where ring orientation is seldom 
+aligned perfectly parallel or perpendicular to board faces. 
+Chapter 13 contains additional discussion of shrinkage– 
+moisture content relationships, including a method to 
+estimate shrinkage for the relatively small moisture content 
+changes of wood in service. Shrinkage assumptions for 
+commercial lumber, which typically is not perfectly 
+plainsawn or quartersawn, are discussed in Chapter 7. 
+Density and Specific Gravity 
+The density ρ of a substance is defined as the ratio of its 
+mass to its volume and is expressed in the international 
+system (SI) in units of kilograms per cubic meter (kg m–3), 
+in the inch–pound system (I–P) in units of pounds per cubic 
+foot (lb ft–3), or in the centimeter–gram–second system 
+(CGS) in units of grams per cubic centimeter (g cm–3). 
+The CGS system is convenient because of its relationship 
+Specific gravity G 
+substance to the density of water ρw 
+1.000 g cm–3 (1,000 kg m–3 or 62.43 lb ft 
+a material with a density of 5 g cm–3 
+of 5. 
+7.8, 2.7, and 11.3 g cm–3 
+density to density of water. 
+The density of ovendry wood ρ0 
+between about 320 and 720 kg m–3 
+balsa to more than 1,040 kg m–3 (65 lb ft 
+imported woods. Within a given species, 
+Table 4–5. Expressions for specific gravity and 
+density of wooda 
+Symbol Mass basis V olume basis 
+G0 Ovendry Ovendry 
+Gb (basic specific gravity) Ovendry Green 
+G12 Ovendry 12% MC 
+Gx Ovendry x% MC 
+ρ0 Ovendry Ovendry 
+ρ12 12% MC 12% MC 
+ρx x% MC x% MC 
+ax is any chosen moisture content. 
+number of species, minerals and extractable substances may 
+also affect density. A coefficient of variation of about 10% is 
+considered suitable for describing the variability of ovendry 
+density within common domestic species. 
+Wood is used in a wide range of conditions and thus 
+has a wide range of moisture content values in service. 
+Determining the density of wood (including water) 
+at a given moisture content, ρx, is often necessary for 
+applications such as estimating structural loads or shipping 
+weights. Several methods can be used for determining ρx, 
+(4–10) 
+=====PAGE 106=====
+General Technical Report FPL–GTR–282
+4–12 
+where Sx is the percent volumetric shrinkage from the green 
+condition to moisture content x. In the case where basic 
+specific gravity Gb is known, the value at any moisture 
+content x below the fiber saturation point is 
+                   
+                
+     
+        
+               
+       
+       
+    
+ 
+             
+      
+         
+ 
+                
+                   
+                
+              
+             
+               
+                 
+         
+ 
+       
+ 
+                  
+ 
+                  
+           
+                
+ 
+   
+ 
+  
+              
+                  
+    
+ 
+ b 1 /100xxGG S    
+ 
+            
+                
+              
+ 
+   
+ 
+       
+ 
+   
+ 
+ 
+    
+(4–11) 
+The shrinkage–moisture content relationship can be 
+reasonably approximated using Table 4–3 or 4–4 and 
+Equation (4–9). However, if the total volumetric shrinkage 
+S0 is not known for the species of interest, it can be 
+estimated from the basic specific gravity (Stamm 1964): 
+S0 = 26.5Gb (4–12) 
+Using this relation, Equation (4–11) then becomes 
+                   
+                
+     
+        
+               
+       
+       
+    
+ 
+             
+      
+         
+ 
+                
+                   
+                
+              
+             
+               
+                 
+         
+ 
+       
+ 
+                  
+ 
+                  
+           
+                
+ 
+   
+ 
+  
+              
+                  
+    
+ 
+   
+ 
+            
+                
+              
+ 
+   
+ 
+       
+ 
+ b b fs1 0.265 1 MCxGG G x      
+ 
+     
+Methods for Calculating Density 
+The density of wood (including water) at a given moisture 
+content, ρx, may be determined by any of three methods 
+given below. 
+Method 1—Equations Using Basic Specific Gravity 
+The specific gravity Gx based on volume at the moisture 
+content of interest may be calculated from Equation (4–11) 
+or (4–13) with basic specific gravity taken from Table 5–3, 
+5–4, or 5–5 (Chap. 5). Density is then calculated by 
+ 
+                 
+     
+ 
+   
+   
+                
+                
+       
+ 
+ w 1 100xx Gx    
+ 
+     
+    
+ 
+   
+ 
+  
+                  
+             
+    
+         
+ 
+   
+ 
+ 
+      
+              
+      
+        
+               
+               
+              
+              
+                
+               
+    
+ 
+                 
+                
+                  
+ 
+               
+ 
+               
+                
+         
+ 
+  
+ 
+ 
+            
+      
+(4–14) 
+Method 2—Equations Using Ovendry Density 
+Density is given by 
+ 
+                 
+     
+ 
+   
+   
+                
+                
+       
+ 
+   
+ 
+   
+  
+    
+ 
+  0 0 1001 100 100x x Sx S        
+ 
+                    
+             
+    
+         
+ 
+   
+ 
+ 
+      
+              
+      
+        
+               
+               
+              
+              
+                
+               
+    
+ 
+                 
+                
+                  
+ 
+               
+ 
+               
+                
+         
+ 
+  
+ 
+ 
+            
+      
+(4–15) 
+where Sx is calculated using Equation (4–9) and S0 is taken 
+from Table 4–3 or 4–4. If S0 is not known for the particular 
+species of interest, it can be estimated using the same 
+relation as in Equation (4–12), which in terms of ovendry 
+density is 
+ 
+                 
+     
+ 
+   
+   
+                
+                
+       
+ 
+   
+ 
+   
+  
+    
+ 
+   
+ 
+  
+                  
+             
+    
+         
+ 
+ 0 0w 026.5 0.265S      
+ 
+       
+              
+      
+        
+               
+               
+              
+              
+                
+               
+    
+ 
+                 
+                
+                  
+ 
+               
+ 
+               
+                
+         
+ 
+  
+ 
+ 
+            
+      
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  
+ 
+ 
+ 
+      
+  
+   
+  
+(4–13) 
+(4–16) 
+Method 3—Using Figure 4–7 and Table 4–6 
+Figure 4–7 depicts the relationship between specific gravity 
+Gx and moisture content for different values of basic 
+specific gravity. This figure adjusts for average dimensional 
+changes that occur below the fiber saturation point (assumed 
+to be 30% MC) and incorporates the assumptions in 
+Equations (4–9), (4–12), and (4–13). The specific gravity 
+of wood does not change at moisture content values above 
+approximately 30%, because the volume does not change. 
+Specific gravity Gx (volume at current moisture content) 
+0.82 
+0.78 
+0.74 
+0.70 
+0.66 
+0.62 
+0.58 
+0.54 
+0.50 
+0.46 
+0.42 
+0.38 
+0.34 
+0.30 
+0.26 
+0.22 
+0.18 
+0 2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 
+0.20 
+0.24 
+0.28 
+0.32 
+0.36 
+0.40 
+0.44 
+0.48 
+0.52 
+0.56 
+0.60 
+0.64 
+Basic specific gravity Gb 
+(volume when green) 
+Moisture content (%) 
+Figure 4–7. Relationship of specific gravity and moisture 
+content. 
+To use Figure 4–7, locate the inclined line corresponding 
+to the known basic specific gravity (volume when green). 
+From this point, move left parallel to the inclined lines until 
+vertically above the target moisture content. Then read the 
+specific gravity Gx corresponding to this point at the left-
+hand side of the graph. 
+For example, to estimate the density of white ash at 12% 
+moisture content, consult Table 5–3a in Chapter 5. The 
+average basic specific gravity Gb for this species is 0.55 
+(volume when green). Using Figure 4–7, the dashed curve 
+for Gb = 0.55 is found to intersect with the vertical 12% 
+moisture content dashed line at a point corresponding to 
+G12 = 0.605. The density of wood (including water) at 
+this moisture content can then be obtained from Table 4–6 
+(these values are based on Eq. (4–14)). By interpolation, the 
+specific gravity of 0.605 corresponds to a density at 
+12% MC of 678 kg m–3 (42.2 lb ft–3). 
+Thermal Properties 
+Four important thermal properties of wood are thermal 
+conductivity, heat capacity, thermal diffusivity, and 
+coefficient of thermal expansion. 
+=====PAGE 118=====
+General Technical Report FPL–GTR–282
+5–2 
+Elastic Properties 
+Twelve constants (nine are independent) are needed to 
+describe the elastic behavior of wood: three moduli of 
+elasticity E, three moduli of rigidity G, and six Poisson’s 
+ratios μ. The moduli of elasticity and Poisson’s ratios are 
+related by expressions of the form 
+ 
+  
+ 
+   
+ 
+   
+ 
+ 
+               
+              
+              
+               
+      
+ 
+               
+            
+                
+                
+             
+             
+      
+ 
+               
+               
+             
+             
+ 
+ 
+                 
+              
+             
+             
+    
+ 
+     
+ 
+               
+            
+                  
+                  
+                 
+ 
+   
+ 
+              
+                  
+ 
+          
+ 
+ ,,ij ji
+ij
+i j i, j L, R,TEE
+
+    
+ 
+ 
+ 
+    
+   
+    
+     
+     
+     
+     
+    
+     
+     
+     
+   
+   
+    
+    
+  
+    
+   
+    
+    
+    
+     
+   
+   
+    
+    
+    
+   
+    
+    
+   
+    
+    
+   
+ 
+Figure 5–1. Three principal axes of wood with respect to 
+grain direction and growth rings. 
+(5–1) 
+General relations between stress and strain for a 
+homogeneous orthotropic material can be found in texts 
+on anisotropic elasticity. 
+Modulus of Elasticity 
+Elasticity implies that deformations produced by low stress 
+are completely recoverable after loads are removed. When 
+loaded to higher stress levels, plastic deformation or failure 
+occurs. The three moduli of elasticity, which are denoted 
+by EL, ER, and ET, respectively, are the elastic moduli 
+along the longitudinal, radial, and tangential axes of wood. 
+These moduli are usually obtained from compression tests; 
+however, data for ER and ET are not extensive. Average 
+values of ER and ET for samples from a few species are 
+presented in Table 5–1 as ratios with EL; the Poisson’s ratios 
+are shown in Table 5–2. The elastic ratios, and the elastic 
+constants themselves, vary within and between species and 
+with moisture content and specific gravity. 
+The modulus of elasticity determined from bending, EL, 
+rather than from an axial test, may be the only modulus 
+of elasticity available for a species. Average EL values 
+obtained from bending tests are given in Tables 5–3 to 5–5. 
+Representative coefficients of variation of EL determined 
+with bending tests for clear wood are reported in Table 5–6. 
+As tabulated, EL includes an effect of shear deflection; EL 
+from bending can be increased by 10% to remove this effect 
+approximately. This adjusted bending EL can be used to 
+determine ER and ET based on the ratios in Table 5–1. 
+Table 5–1. Elastic ratios for various species at 
+approximately 12% moisture contenta 
+Species ET/EL ER/EL GLR/EL GLT/EL GRT/EL 
+Hardwoods 
+Ash, white 0.080 0.125 0.109 0.077 — 
+Balsa 0.015 0.046 0.054 0.037 0.005 
+Basswood 0.027 0.066 0.056 0.046 — 
+Birch, yellow 0.050 0.078 0.074 0.068 0.017 
+Cherry, black 0.086 0.197 0.147 0.097 — 
+Cottonwood, eastern 0.047 0.083 0.076 0.052 — 
+Mahogany, African 0.050 0.111 0.088 0.059 0.021 
+Mahogany, Honduras 0.064 0.107 0.066 0.086 0.028 
+Maple, sugar 0.065 0.132 0.111 0.063 — 
+Maple, red 0.067 0.140 0.133 0.074 — 
+Oak, red 0.082 0.154 0.089 0.081 — 
+Oak, white 0.072 0.163 0.086 — — 
+Sweetgum 0.050 0.115 0.089 0.061 0.021 
+Walnut, black 0.056 0.106 0.085 0.062 0.021 
+Yellow-poplar 0.043 0.092 0.075 0.069 0.011 
+Softwoods 
+Baldcypress 0.039 0. 084 0.063 0.054 0.007 
+Cedar, northern white 0.081 0.183 0.210 0.187 0.015 
+Cedar, western red 0.055 0.081 0.087 0.086 0.005 
+Douglas-fir 0.050 0.068 0.064 0.078 0.007 
+Fir, subalpine 0.039 0.102 0.070 0.058 0.006 
+Hemlock, western 0.031 0.058 0.038 0.032 0.003 
+Larch, western 0.065 0.079 0.063 0.069 0.007 
+Pine 
+Loblolly 0.078 0.113 0.082 0.081 0.013 
+Lodgepole 0.068 0.102 0.049 0.046 0.005 
+Longleaf 0.055 0.102 0.071 0.060 0.012 
+Pond 0.041 0.071 0.050 0.045 0.009 
+Ponderosa 0.083 0.122 0.138 0.115 0.017 
+Red 0.044 0.088 0.096 0.081 0.011 
+Slash 0.045 0.074 0.055 0.053 0.010 
+Sugar 0.087 0.131 0.124 0.113 0.019 
+Western white 0.038 0.078 0.052 0.048 0.005 
+Redwood 0.089 0.087 0.066 0.077 0.011 
+Spruce, Sitka 0.043 0.078 0.064 0.061 0.003 
+Spruce, Engelmann 0.059 0.128 0.124 0.120 0.010 
+aEL may be approximated by increasing modulus of elasticity values in 
+Table 5–3 by 10%. 
+Poisson’s Ratio 
+When a member is loaded axially, the deformation 
+perpendicular to the direction of the load is proportional to 
+the deformation parallel to the direction of the load. The 
+ratio of the transverse to axial strain is called Poisson’s ratio. 
+The Poisson’s ratios are denoted by μLR, μRL, μLT, μTL, μRT, 
+and μTR. The first letter of the subscript refers to direction 
+of applied stress and the second letter to direction of lateral 
+deformation. For example, μLR is the Poisson’s ratio for 
+deformation along the radial axis caused by stress along 
+the longitudinal axis. Average values of experimentally 
+determined Poisson’s ratios for samples of a few species are 
+given in Table 5–2. The ideal relationship between Poisson’s 
+ratio and the moduli of elasticity given in Equation (5–1) are 
+not always closely met. Two of the Poisson’s ratios, μRL and 
+μTL, are very small and are less precisely determined than 
+=====PAGE 119=====
+CHAPTER 5  | Mechanical Properties of Wood
+5–3 
+ 
+ 
+  
+ 
+   
+   
+ 
+  
+   
+   
+  
+   
+  
+  
+  
+   
+ 
+  
+  
+  
+ 
+  
+  
+  
+     
+    
+   
+    
+ 
+    
+ 
+ 
+  
+ 
+    
+  
+ 
+ 
+ 
+Table 5–2. Poisson’s ratios for various species at 
+approximately 12% moisture content 
+Species µLR µLT µRT µTR µRL µTL 
+Hardwoods 
+Ash, white 0.371 0.440 0.684 0.360 0.059 0.051 
+Aspen, quaking 0.489 0. 374 — 0.496 0.054 0.022 
+Balsa 0.229 0.488 0.665 0.231 0.018 0.009 
+Basswood 0.364 0.406 0.912 0.346 0.034 0.022 
+Birch, yellow 0.426 0.451 0.697 0.426 0.043 0.024 
+Cherry, black 0.392 0.428 0.695 0.282 0.086 0.048 
+Cottonwood, eastern 0.344 0. 420 0.875 0.292 0.043 0.018 
+Mahogany, African 0.297 0.641 0.604 0.264 0.033 0.032 
+Mahogany, Honduras 0.314 0.533 0.600 0.326 0.033 0.034 
+Maple, sugar 0.424 0.476 0.774 0.349 0.065 0.037 
+Maple, red 0.434 0.509 0.762 0.354 0.063 0.044 
+Oak, red 0.350 0.448 0.560 0.292 0.064 0.033 
+Oak, white 0.369 0.428 0.618 0.300 0.074 0.036 
+Sweetgum 0.325 0.403 0.682 0.309 0.044 0.023 
+Walnut, black 0.495 0.632 0.718 0.367 0.052 0.036 
+Yellow-poplar 0.318 0.392 0.703 0.329 0.030 0.019 
+Softwoods 
+Baldcypress 0.338 0.326 0.411 0.356 — — 
+Cedar, northern white 0.337 0.340 0.458 0.345 — — 
+Cedar, western red 0.378 0.296 0.484 0.403 — — 
+Douglas-fir 0.292 0.449 0.390 0.374 0.036 0.029 
+Fir, subalpine 0.341 0.332 0.437 0.336 — — 
+Hemlock, western 0.485 0.423 0.442 0.382 — — 
+Larch, western 0.355 0.276 0.389 0.352 — — 
+Pine 
+Loblolly 0.328 0.292 0.382 0.362 — — 
+Lodgepole 0.316 0.347 0.469 0.381 — — 
+Longleaf 0.332 0.365 0.384 0.342 — — 
+Pond 0.280 0.364 0.389 0.320 — — 
+Ponderosa 0.337 0.400 0.426 0.359 — — 
+Red 0.347 0.315 0.408 0.308 — — 
+Slash 0.392 0.444 0.447 0.387 — — 
+Sugar 0.356 0.349 0.428 0.358 — — 
+Western white 0.329 0.344 0.410 0.334 — — 
+Redwood 0.360 0.346 0.373 0.400 — — 
+Spruce, Sitka 0.372 0.467 0.435 0.245 0.040 0.025 
+Spruce, Engelmann 0.422 0. 462 0.530 0.255 0.083 0.058 
+are those for other Poisson’s ratios. Poisson’s ratios vary 
+within and between species and are affected by moisture 
+content and specific gravity. 
+Modulus of Rigidity 
+The modulus of rigidity, also called shear modulus, 
+indicates the resistance to deflection of a member caused by 
+shear stresses. The three moduli of rigidity denoted by GLR, 
+GLT, and GRT are the elastic constants in the LR, LT, and 
+RT planes, respectively. For example, GLR is the modulus 
+of rigidity based on shear strain in the LR plane and shear 
+stresses in the LT and RT planes. Average values of shear 
+moduli for samples of a few species expressed as ratios with 
+EL are given in Table 5–1. As with moduli of elasticity, the 
+moduli of rigidity vary within and between species and with 
+moisture content and specific gravity. 
+Strength Properties 
+Common Properties 
+Mechanical properties most commonly measured and 
+represented as “strength properties” for design include 
+modulus of rupture in bending, maximum stress in 
+compression parallel to grain, compressive stress 
+perpendicular to grain, and shear strength parallel to grain. 
+Additional measurements are often made to evaluate work 
+to maximum load in bending, impact bending strength, 
+tensile strength perpendicular to grain, and hardness. 
+These properties, grouped according to the broad forest 
+tree categories of hardwood and softwood (not correlated 
+with hardness or softness), are given in Tables 5–3 to 5–5 
+for many of the commercially important species. Average 
+coefficients of variation for these properties from a limited 
+sampling of specimens are reported in Table 5–6. 
+Modulus of rupture—Reflects the maximum load-carrying 
+capacity of a member in bending and is proportional to 
+maximum moment borne by the specimen. Modulus of 
+rupture is an accepted criterion of strength, although it is not 
+a true stress because the formula by which it is computed is 
+valid only to the elastic limit. 
+Work to maximum load in bending—Ability to absorb 
+shock with some permanent deformation and more or less 
+injury to a specimen. Work to maximum load is a measure 
+of the combined strength and toughness of wood under 
+bending stresses. 
+Compressive strength parallel to grain—Maximum stress 
+sustained by a compression parallel-to-grain specimen 
+having a ratio of length to least dimension of less than 11. 
+Compressive stress perpendicular to grain—Reported 
+as stress at proportional limit. There is no clearly defined 
+ultimate stress for this property. 
+Shear strength parallel to grain—Ability to resist internal 
+slipping of one part upon another along the grain. Values 
+presented are average strength in radial and tangential shear 
+planes. 
+Impact bending—In the impact bending test, a hammer 
+of given weight is dropped upon a beam from successively 
+increased heights until rupture occurs or the beam deflects 
+152 mm (6 in.) or more. The height of the maximum drop, 
+or the drop that causes failure, is a comparative value that 
+represents the ability of wood to absorb shocks that cause 
+stresses beyond the proportional limit. 
+Tensile strength perpendicular to grain—Resistance of 
+wood to forces acting across the grain that tend to split a 
+member. Values presented are the average of radial and 
+tangential observations. 
+Hardness—Generally defined as resistance to indentation 
+using a modified Janka hardness test, measured by the load 
+required to embed a 11.28-mm (0.444-in.) ball to one-half 
+=====PAGE 120=====
+General Technical Report FPL–GTR–282
+5–4 
+     
+  
+ 
+ 
+ 
+ 
+ 
+ 
+  
+ 
+ 
+ 
+ 
+ 
+  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+       
+      
+ 
+       
+       
+          
+          
+       
+       
+      
+       
+      
+          
+        
+         
+       
+      
+          
+      
+         
+          
+ 
+         
+          
+        
+          
+          
+          
+         
+       
+        
+       
+           
+       
+ 
+        
+         
+       
+      
+       
+      
+ 
+         
+       
+         
+           
+        
+          
+        
+          
+Table 5–3a. Strength properties of some commercially important woods grown in the United States (metric)a 
+Static bending Com-
+Work to Com- pression Shear Tension 
+Modulus Modulus maxi- pression perpen- parallel perpen- Side 
+of of mum Impact parallel dicular to dicular hard-
+Common species 
+names 
+Moisture 
+content 
+Specific 
+gravityb 
+rupture 
+(kPa) 
+elasticityc 
+(MPa) 
+load 
+(kJ m–3) 
+bending 
+(mm) 
+to grain 
+(kPa) 
+to grain 
+(kPa) 
+grain 
+(kPa) 
+to grain 
+(kPa) 
+ness 
+(N) 
+Hardwoods 
+Alder, red Green 0.37 45,000 8,100 55 560 20,400 1,700  5,300 2,700 2,000 
+12% 0.41 68,000 9,500 58 510 40,100 3,000  7,400 2,900 2,600 
+Ash 
+Black Green 0.45 41,000 7,200 83 840 15,900 2,400  5,900 3,400 2,300 
+12% 0.49 87,000 11,000 103 890 41,200 5,200 10,800 4,800 3,800 
+Blue Green 0.53 66,000 8,500 101 — 28,800 5,600 10,600 — — 
+12% 0.58 95,000 9,700 99 — 48,100 9,800 14,000 — — 
+Green Green 0.53 66,000 9,700 81 890 29,000 5,000  8,700 4,100 3,900 
+12% 0.56 97,000 11,400 92 810 48,800 9,000 13,200 4,800 5,300 
+Oregon Green 0.50 52,000 7,800 84 990 24,200 3,700  8,200 4,100 3,500 
+12% 0.55 88,000 9,400 99 840 41,600 8,600 12,300 5,000 5,200 
+White Green 0.55 66,000 9,900 108 970 27,500 4,600  9,300 4,100 4,300 
+12% 0.60 106,000 12,000 115 1,090 51,100 8,000 13,200 6,500 5,900 
+Aspen 
+Bigtooth Green 0.36 37,000 7,700 39 — 17,200 1,400  5,000 — — 
+12% 0.39 63,000 9,900 53 — 36,500 3,100  7,400 — — 
+Quaking Green 0.35 35,000 5,900 44 560 14,800 1,200  4,600 1,600 1,300 
+12% 0.38 58,000 8,100 52 530 29,300 2,600  5,900 1,800 1,600 
+Basswood, American Green 0.32 34,000 7,200 37 410 15,300 1,200  4,100 1,900 1,100 
+12% 0.37 60,000 10,100 50 410 32,600 2,600  6,800 2,400 1,800 
+Beech, American Green 0.56 59,000 9,500 82 1,090 24,500 3,700  8,900 5,000 3,800 
+12% 0.64 103,000 11,900 104 1,040 50,300 7,000 13,900 7,000 5,800 
+Birch 
+Paper Green 0.48 44,000 8,100 112 1,240 16,300 1,900 5,800 2,600 2,500 
+12% 0.55 85,000 11,000 110 860 39,200 4,100 8,300 — 4,000 
+Sweet Green 0.60 65,000 11,400 108 1,220 25,800 3,200 8,500 3,000 4,300 
+12% 0.65 117,000 15,000 124 1,190 58,900 7,400 15,400 6,600 6,500 
+Yellow Green 0.55 57,000 10,300 111 1,220 23,300 3,000 7,700 3,000 3,600 
+12% 0.62 114,000 13,900 143 1,400 56,300 6,700 13,000 6,300 5,600 
+Butternut Green 0.36 37,000 6,700 57 610 16,700 1,500 5,200 3,000 1,700 
+12% 0.38 56,000 8,100 57 610 36,200 3,200 8,100 3,000 2,200 
+Cherry, black Green 0.47 55,000 9,000 88 840 24,400 2,500 7,800 3,900 2,900 
+12% 0.50 85,000 10,300 79 740 49,000 4,800 11,700 3,900 4,200 
+Chestnut, American Green 0.40 39,000 6,400 48 610 17,000 2,100 5,500 3,000 1,900 
+12% 0.43 59,000 8,500 45 480 36,700 4,300 7,400 3,200 2,400 
+Cottonwood 
+Balsam poplar Green 0.31 27,000 5,200 29 — 11,700 1,000  3,400 — — 
+12% 0.34 47,000 7,600 34 — 27,700 2,100  5,400 — — 
+Black Green 0.31 34,000 7,400 34 510 15,200 1,100  4,200 1,900 1,100 
+12% 0.35 59,000 8,800 46 560 31,000 2,100  7,200 2,300 1,600 
+Eastern Green 0.37 37,000 7,000 50 530 15,700 1,400  4,700 2,800 1,500 
+12% 0.40 59,000 9,400 51 510 33,900 2,600  6,400 4,000 1,900 
+Elm 
+American Green 0.46 50,000 7,700 81 970 20,100 2,500  6,900 4,100 2,800 
+12% 0.50 81,000 9,200 90 990 38,100 4,800 10,400 4,600 3,700 
+Rock Green 0.57 66,000 8,200 137 1,370 26,100 4,200  8,800 — — 
+12% 0.63 102,000 10,600 132 1,420 48,600 8,500 13,200 — — 
+Slippery Green 0.48 55,000 8,500 106 1,190 22,900 2,900  7,700 4,400 2,900 
+12% 0.53 90,000 10,300 117 1,140 43,900 5,700 11,200 3,700 3,800 
+Hackberry Green 0.49 45,000 6,600 100 1,220 18,300 2,800  7,400 4,300 3,100 
+12% 0.53 76,000 8,200 88 1,090 37,500 6,100 11,000 4,000 3,900 
+=====PAGE 121=====
+CHAPTER 5  | Mechanical Properties of Wood
+5–5 
+ 
+ 
+ 
+ 
+ 
+ 
+     
+         
+     
+          
+    
+        
+        
+         
+     
+         
+       
+      
+       
+        
+       
+         
+       
+      
+      
+        
+        
+       
+     
+       
+     
+        
+     
+        
+        
+     
+          
+        
+     
+      
+       
+       
+        
+       
+        
+        
+     
+        
+        
+        
+        
+      
+        
+         
+     
+       
+        
+Table 5–3a. Strength properties of some commercially important woods grown in the United States (metric)a—con. 
+Static bending Com-
+Work to Com- pression Shear Tension 
+Modulus Modulus maxi- pression perpen- parallel perpen- Side 
+of of mum Impact parallel dicular to dicular to hard-
+Common species 
+names 
+Moisture 
+content 
+Specific 
+gravityb 
+rupture 
+(kPa) 
+elasticityc 
+(MPa) 
+load 
+(kJ m–3) bending (mm) to grain (kPa) to grain (kPa) grain (kPa) grain (kPa) ness (N) 
+Hickory, pecan 
+Bitternut Green 0.60 71,000 9,700 138 1,680 31,500 5,500 8,500 — — 
+12% 0.66 118,000 12,300 125 1,680 62,300 11,600 — — — 
+Nutmeg Green 0.56 63,000 8,900 157 1,370 27,400 5,200 7,100 — — 
+12% 0.60 114,000 11,700 173 — 47,600 10,800 — — — 
+Pecan Green 0.60 68,000 9,400 101 1, 350 27,500 5,400 10,200 4,700  5,800 
+12% 0.66 94,000 11,900 95 1, 120 54,100 11,900 14,300 — 8,100 
+Water Green 0.61 74,000 10,800 130 1,420 32,100 6,100 9,900 — — 
+Hickory, trued 
+12% 0.62 123,000 13,900 133 1,350 59,300 10,700 — — — 
+Mockernut Green 0.64 77,000 10,800 180 2,240 30,900 5,600 8,800 — 6,400 
+12% 0.72 132,000 15,300 156 1,960 61,600 11,900 12,000 — 8,800 
+Pignut Green 0.66 81,000 11,400 219 2,260 33,200 6,300 9,400 — 6,800 
+12% 0.75 139,000 15,600 210 1,880 63,400 13,700 14,800 — 9,500 
+Shagbark Green 0.64 76,000 10,800 163 1,880 31,600 5,800 10,500 — 6,500 
+12% 0.72 139,000 14,900 178 1,700 63,500 12,100 16,800 — 8,400 
+Shellbark Green 0.62 72,000 9,200 206 2,640 27,000 5,600 8,200 — 7,400 
+12% 0.69 125,000 13,000 163 2,240 55,200 12,400 14,500 — 8,100 
+Honeylocust Green 0.60 70,000 8,900 87 1,190 30,500 7,900 11,400 6,400  6,200 
+12% — 101,000 11,200 92 1,190 51,700 12,700 15,500 6,200  7,000 
+Locust, black Green 0.66 95,000 12,800 106 1,120 46,900 8,000 12,100 5,300  7,000 
+12% 0.69 134,000 14,100 127 1,450 70,200 12,600 17,100 4,400  7,600 
+Magnolia 
+Cucumbertree Green 0.44 51,000 10,800 69 760 21,600 2,300 6,800 3,000  2,300 
+12% 0.48 85,000 12,500 84 890 43,500 3,900 9,200 4,600  3,100 
+Southern Green 0.46 47,000 7,700 106 1,370 18,600 3,200 7,200 4,200  3,300 
+12% 0.50 77,000 9,700 88 740 37,600 5,900 10,500 5,100  4,500 
+Maple 
+Bigleaf Green 0.44 51,000 7,600 60 580 22,300 3,100 7,700 4,100  2,800 
+12% 0.48 74,000 10,000 54 710 41,000 5,200 11,900 3,700  3,800 
+Black Green 0.52 54,000 9,200 88 1,220 22,500 4,100 7,800 5,000  3,700 
+12% 0.57 92,000 11,200 86 1,020 46,100 7,000 12,500 4,600  5,200 
+Red Green 0.49 53,000 9,600 79 810 22,600 2,800 7,900 — 3,100 
+12% 0.54 92,000 11,300 86 810 45,100 6,900 12,800 — 4,200 
+Silver Green 0.44 40,000 6,500 76 740 17,200 2,600 7,200 3,900  2,600 
+12% 0.47 61,000 7,900 57 640 36,000 5,100 10,200 3,400  3,100 
+Sugar Green 0.56 65,000 10,700 92 1,020 27,700 4,400 10,100 — 4,300 
+12% 0.63 109,000 12,600 114 990 54,000 10,100 16,100 — 6,400 
+Oak, red 
+Black Green 0.56 57,000 8,100 84 1,020 23,900 4,900 8,400 — 4,700 
+12% 0.61 96,000 11,300 94 1, 040 45,000 6,400 13,200 — 5,400 
+Cherrybark Green 0.61 74,000 12,300 101 1,370 31,900 5,200 9,100 5,500  5,500 
+12% 0.68 125,000 15,700 126 1,240 60,300 8,600 13,800 5,800  6,600 
+Laurel Green 0.56 54,000 9,600 77 990 21,900 3,900 8,100 5,300  4,400 
+12% 0.63 87,000 11,700 81 990 48,100 7,300 12,600 5,400  5,400 
+Northern red Green 0.56 57,000 9,300 91 1,120 23,700 4,200 8,300 5,200  4,400 
+12% 0.63 99,000 12,500 100 1,090 46,600 7,000 12,300 5,500  5,700 
+Pin Green 0.58 57,000 9,100 97 1, 220 25,400 5,000 8,900 5,500  4,800 
+12% 0.63 97,000 11,900 102 1,140 47,000 7,000 14,300 7,200  6,700 
+Scarlet Green 0.60 72,000 10,200 103 1,370 28,200 5,700 9,700 4,800  5,300 
+12% 0.67 120,000 13,200 141 1,350 57,400 7,700 13,000 6,000  6,200 
+Southern red Green 0.52 48,000 7,900 55 740 20,900 3,800 6,400 3,300  3,800 
+12% 0.59 75,000 10,300 65 660 42,000 6,000 9,600 3,500  4,700 
+Water Green 0.56 61,000 10,700 77 990 25,800 4,300 8,500 5,700  4,500 
+12% 0.63 106,000 13,900 148 1,120 46,700 7,000 13,900 6,300  5,300 
+=====PAGE 122=====
+General Technical Report FPL–GTR–282
+5–6 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+    
+        
+          
+        
+       
+         
+         
+           
+      
+        
+       
+         
+         
+        
+         
+         
+         
+        
+      
+     
+           
+         
+      
+          
+       
+      
+ 
+ 
+       
+       
+       
+       
+          
+      
+         
+           
+         
+      
+        
+       
+ 
+         
+       
+        
+      
+         
+       
+         
+       
+Table 5–3a. Strength properties of some commercially important woods grown in the United States (metric)a—con. 
+Static bending Com-
+Work to Com- pression Shear Tension 
+Modulus Modulus maxi- pression perpen- parallel perpen- Side 
+of of mum Impact parallel dicular to dicular hard-
+Common species 
+names 
+Moisture 
+content 
+Specific 
+gravityb 
+rupture 
+(kPa) 
+elasticityc 
+(MPa) 
+load 
+(kJ m–3) bending (mm) to grain (kPa) to grain (kPa) grain (kPa) to grain (kPa) ness (N) 
+Oak, red—con. 
+Willow Green 0.56 51,000 8,900 61 890 20,700 4,200 8,100 5,200 4,400 
+12% 0.69 100,000 13,100 101 1,070 48,500 7,800 11,400 — 6,500 
+Oak, white 
+Bur Green 0.58 50,000 6,100 74 1, 120 22,700 4,700 9,300 5,500 4,900 
+12% 0.64 71,000 7,100 68 740 41,800 8,300 12,500 4,700 6,100 
+Chestnut Green 0.57 55,000 9,400 65 890 24,300 3,700 8,300 4,800 4,000 
+12% 0.66 92,000 11,000 76 1,020 47,100 5,800 10,300 — 5,000 
+Live Green 0.80 82,000 10,900 85 — 37,400 14,100 15,200 — — 
+12% 0.88 127,000 13,700 130 — 61,400 19,600 18,300 — — 
+Overcup Green 0.57 55,000 7,900 87 1,120 23,200 3,700 9,100 5,000 4,300 
+12% 0.63 87,000 9,800 108 970 42,700 5,600 13,800 6,500 5,300 
+Post Green 0.60 56,000 7,500 76 1, 120 24,000 5,900 8,800 5,400 5,000 
+12% 0.67 91,000 10,400 91 1,170 45,300 9,900 12,700 5,400 6,000 
+Swamp chestnut Green 0.60 59,000 9,300 88 1,140 24,400 3,900 8,700 4,600 4,900 
+12% 0.67 96,000 12,200 83 1,040 50,100 7,700 13,700 4,800 5,500 
+Swamp white Green 0.64 68,000 11,000 100 1,270 30,100 5,200 9,000 5,900 5,200 
+12% 0.72 122,000 14,100 132 1,240 59,300 8,200 13,800 5,700 7,200 
+White Green 0.60 57,000 8,600 80 1, 070 24,500 4,600 8,600 5,300 4,700 
+12% 0.68 105,000 12,300 102 940 51,300 7,400 13,800 5,500 6,000 
+Sassafras Green 0.42 41,000 6,300 49 — 18,800 2,600 6,600 — — 
+12% 0.46 62,000 7,700 60 — 32,800 5,900 8,500 — — 
+Sweetgum Green 0.46 49,000 8,300 70 910 21,000 2,600 6,800 3,700 2,700 
+12% 0.52 86,000 11,300 82 810 43,600 4,300 11,000 5,200 3,800 
+Sycamore, American Green 0.46 45,000 7,300 52 660 20,100 2,500 6,900 4,300 2,700 
+12% 0.49 69,000 9,800 59 660 37,100 4,800 10,100 5,000 3,400 
+Tanoak Green 0.58 72,000 10,700 92 — 32,100 — — — — 
+12% — — — — — — — — — — 
+Tupelo 
+Black Green 0.46 48,000 7,100 55 760 21,000 3,300 7,600 3,900 2,800 
+12% 0.50 66,000 8,300 43 560 38,100 6,400 9,200 3,400 3,600 
+Water Green 0.46 50,000 7,200 57 760 23,200 3,300 8,200 4,100 3,200 
+12% 0.50 66,000 8,700 48 580 40,800 6,000 11,000 4,800 3,900 
+Walnut, black Green 0.51 66,000 9,800 101 940 29,600 3,400 8,400 3,900 4,000 
+12% 0.55 101,000 11,600 74 860 52,300 7,000 9,400 4,800 4,500 
+Willow, black Green 0.36 33,000 5,400 76 — 14,100 1,200 4,700 — — 
+12% 0.39 54,000 7,000 61 — 28,300 3,000 8,600 — — 
+Yellow-poplar Green 0.40 41,000 8,400 52 660 18,300 1,900 5,400 3,500 2,000 
+12% 0.42 70,000 10,900 61 610 38,200 3,400 8,200 3,700 2,400 
+Softwoods 
+Baldcypress Green 0.42 46,000 8,100 46 640 24,700 2,800 5,600 2,100 1,700 
+12% 0.46 73,000 9,900 57 610 43,900 5,000 6,900 1,900 2,300 
+Cedar 
+Atlantic white Green 0.31 32,000 5,200 41 460 16,500 1,700 4,800 1,200 1,300 
+12% 0.32 47,000 6,400 28 330 32,400 2,800 5,500 1,500 1,600 
+Eastern redcedar Green 0.44 48,000 4,500 103 890 24,600 4,800 7,000 2,300 2,900 
+12% 0.47 61,000 6,100 57 560 41,500 6,300 — — 4,000 
+Incense Green 0.35 43,000 5,800 44 430 21,700 2,600 5,700 1,900 1,700 
+12% 0.37 55,000 7,200 37 430 35,900 4,100 6,100 1,900 2,100 
+Northern white Green 0.29 29,000 4,400 39 380 13,700 1,600 4,300 1,700 1,000 
+12% 0.31 45,000 5,500 33 300 27,300 2,100 5,900 1,700 1,400 
+=====PAGE 123=====
+CHAPTER 5  | Mechanical Properties of Wood
+5–7 
+ 
+  
+ 
+ 
+ 
+ 
+  
+ 
+   
+ 
+         
+      
+         
+      
+      
+      
+      
+      
+          
+      
+          
+      
+          
+      
+        
+      
+          
+      
+      
+      
+      
+      
+          
+          
+        
+         
+        
+      
+         
+         
+         
+         
+        
+      
+          
+      
+         
+      
+      
+      
+        
+      
+        
+      
+         
+      
+        
+         
+Table 5–3a. Strength properties of some commercially important woods grown in the United States (metric)a—con. 
+Static bending Com-
+Work to Com- pression Shear Tension 
+Modulus Modulus maxi- pression perpen- parallel perpen- Side 
+of of mum Impact parallel dicular to dicular hard-
+Common species 
+names 
+Moisture 
+content 
+Specific 
+gravityb 
+rupture 
+(kPa) 
+elasticityc 
+(MPa) 
+load 
+(kJ m–3) bending (mm) to grain (kPa) to grain (kPa) grain (kPa) to grain (kPa) ness (N) 
+Cedar—con. 
+Port-Orford Green 0.39 45,000 9,000 51 530 21,600 2,100 5,800 1,200 1,700 
+12% 0.43 88,000 11,700 63 710 43,100 5,000 9,400 2,800 2,800 
+Western redcedar Green 0.31 35,900 6,500 34 430 19,100 1,700 5,300 1,600 1,200 
+12% 0.32 51,700 7,700 40 430 31,400 3,200 6,800 1,500 1,600 
+Yellow Green 0.42 44,000 7,900 63 690 21,000 2,400 5,800 2,300 2,000 
+12% 0.44 77,000 9,800 72 740 43,500 4,300 7,800 2,500 2,600 
+Douglas-fire 
+Coast Green 0.45 53,000 10,800 52 660 26,100 2,600 6,200 2,100 2,200 
+12% 0.48 85,000 13,400 68 790 49,900 5,500 7,800 2,300 3,200 
+Interior West  Green 0.46 53,000 10,400 50 660 26,700 2,900 6,500 2,000 2,300 
+12% 0.50 87,000 12,600 73 810 51,200 5,200 8,900 2,400 2,900 
+Interior North Green 0.45 51,000 9,700 56 560 23,900 2,500 6,600 2,300 1,900 
+12% 0.48 90,000 12,300 72 660 47,600 5,300 9,700 2,700 2,700 
+Interior South Green 0.43 47,000 8,000 55 380 21,400 2,300 6,600 1,700 1,600 
+12% 0.46 82,000 10,300 62 510 43,000 5,100 10,400 2,300 2,300 
+Fir 
+Balsam Green 0.33 38,000 8,600 32 410 18,100 1,300 4,600 1,200 1,300 
+12% 0.35 63,000 10,000 35 510 36,400 2,800 6,500 1,200 1,700 
+California red Green 0.36 40,000 8,100 44 530 19,000 2,300 5,300 2,600 1,600 
+12% 0.38 72,400 10,300 61 610 37,600 4,200 7,200 2,700 2,200 
+Grand Green 0.35 40,000 8,600 39 560 20,300 1,900 5,100 1,700 1,600 
+12% 0.37 61,400 10,800 52 710 36,500 3,400 6,200 1,700 2,200 
+Noble Green 0.37 43,000 9,500 41 480 20,800 1,900 5,500 1,600 1,300 
+12% 0.39 74,000 11,900 61 580 42,100 3,600 7,200 1,500 1,800 
+Pacific silver Green 0.40 44,000 9,800 41 530 21,600 1,500 5,200 1,700 1,400 
+12% 0.43 75,800 12,100 64 610 44,200 3,100 8,400 — 1,900 
+Subalpine Green 0.31 34,000 7,200 — — 15,900 1,300 4,800 — 1,200 
+12% 0.32 59,000 8,900 — — 33,500 2,700 7,400 — 1,600 
+White Green 0.37 41,000 8,000 39 560 20,000 1,900 5,200 2,100 1,500 
+12% 0.39 68,000 10,300 50 510 40,000 3,700 7,600 2,100 2,100 
+Hemlock 
+Eastern Green 0.38 44,000 7,400 46 530 21,200 2,500 5,900 1,600 1,800 
+12% 0.40 61,000 8,300 47 530 37,300 4,500 7,300 — 2,200 
+Mountain Green 0.42 43,000 7,200 76 810 19,900 2,600 6,400 2,300 2,100 
+12% 0.45 79,000 9,200 72 810 44,400 5,900 10,600 — 3,000 
+Western Green 0.42 46,000 9,000 48 560 23,200 1,900 5,900 2,000 1,800 
+12% 0.45 78,000 11,300 57 580 49,000 3,800 8,600 2,300 2,400 
+Larch, western Green 0.48 53,000 10,100 71 740 25,900 2,800 6,000 2,300 2,300 
+12% 0.52 90,000 12,900 87 890 52,500 6,400 9,400 3,000 3,700 
+Pine 
+Eastern white Green 0.34 34,000 6,800 36 430 16,800 1,500 4,700 1,700 1,300 
+12% 0.35 59,000 8,500 47 460 33,100 3,000 6,200 2,100 1,700 
+Jack Green 0.40 41,000 7,400 50 660 20,300 2,100 5,200 2,500 1,800 
+12% 0.43 68,000 9,300 57 690 39,000 4,000 8,100 2,900 2,500 
+Loblolly Green 0.47 50,000 9,700 57 760 24,200 2,700 5,900 1,800 2,000 
+12% 0.51 88,000 12,300 72 760 49,200 5,400 9,600 3,200 3,100 
+Lodgepole Green 0.38 38,000 7,400 39 510 18,000 1,700 4,700 1,500 1,500 
+12% 0.41 65,000 9,200 47 510 37,000 4,200 6,100 2,000 2,100 
+Longleaf Green 0.54 59,000 11,000 61 890 29,800 3,300 7,200 2,300 2,600 
+12% 0.59 100,000 13,700 81 860 58,400 6,600 10,400 3,200 3,900 
+Pitch Green 0.47 47,000 8,300 63 — 20,300 2,500 5,900 — — 
+12% 0.52 74,000 9,900 63 — 41,000 5,600 9,400 — — 
+=====PAGE 124=====
+General Technical Report FPL–GTR–282
+5–8 
+ 
+  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+    
+          
+          
+         
+        
+       
+        
+          
+      
+          
+        
+          
+      
+       
+           
+        
+        
+         
+        
+          
+           
+         
+        
+          
+        
+        
+           
+          
+        
+       
+        
+       
+        
+         
+        
+          
+        
+ 
+  
+   
+ 
+  
+ 
+   
+Table 5–3a. Strength properties of some commercially important woods grown in the United States (metric)a—con. 
+Static bending Com-
+Work to Com- pression Shear Tension 
+Modulus Modulus maxi- pression perpen- parallel perpen- Side 
+of of mum Impact parallel icular to dicular hard-
+Common species 
+names 
+Moisture 
+content 
+Specific 
+gravityb 
+rupture 
+(kPa) 
+elasticityc 
+(MPa) 
+load 
+(kJ m–3) bending (mm) to grain (kPa) to grain (kPa) grain (kPa) to grain (kPa) ness (N) 
+Pine—con. 
+Pond Green 0.51 51,000 8,800 52 — 25,200 3,000 6,500 — — 
+12% 0.56 80,000 12,100 59 — 52,000 6,300 9,500 — — 
+Ponderosa Green 0.38 35,000 6,900 36 530 16,900 1,900 4,800 2,100 1,400 
+12% 0.40 65,000 8,900 49 480 36, 700 4,000 7,800 2,900 2,000 
+Red Green 0.41 40,000 8,800 42 660 18,800 1,800 4,800 2,100 1,500 
+12% 0.46 76,000 11,200 68 660 41, 900 4,100 8,400 3,200 2,500 
+Sand Green 0.46 52,000 7,000 66 — 23,700 3,100 7,900 — — 
+12% 0.48 80,000 9,700 66 — 47,700 5,800 — — — 
+Shortleaf Green 0.47 51,000 9,600 57 760 24,300 2,400 6,300 2,200 2,000 
+12% 0.51 90,000 12,100 76 840 50, 100 5,700 9,600 3,200 3,100 
+Slash Green 0.54 60,000 10,500 66 — 26,300 3,700 6,600 — — 
+12% 0.59 112,000 13,700 91 — 56,100 7,000 11,600 — — 
+Spruce Green 0.41 41,000 6,900 — — 19,600 1,900 6,200 — 2,000 
+12% 0.44 72,000 8,500 — — 39,000 5,000 10,300 — 2,900 
+Sugar Green 0.34 34,000 7,100 37 430 17,000 1,400 5,000 1,900 1,200 
+12% 0.36 57,000 8,200 38 460 30, 800 3,400 7,800 2,400 1,700 
+Virginia Green 0.45 50,000 8,400 75 860 23,600 2,700 6,100 2,800 2,400 
+12% 0.48 90,000 10,500 94 810 46, 300 6,300 9,300 2,600 3,300 
+Western white Green 0.36 32,000 8,200 34 480 16,800 1,300 4,700 1,800 1,200 
+12% 0.35 67,000 10,100 61 580 34,700 3,200 7,200 — 1,900 
+Redwood 
+Old-growth Green 0.38 52,000 8,100 51 530 29,000 2,900 5,500 1,800 1,800 
+12% 0.40 69,000 9,200 48 480 42, 400 4,800 6,500 1,700 2,100 
+Young-growth Green 0.34 41,000 6,600 39 410 21,400 1,900 6,100 2,100 1,600 
+12% 0.35 54,000 7,600 36 380 36, 000 3,600 7,600 1,700 1,900 
+Spruce 
+Black Green 0.38 42,000 9,500 51 610 19,600 1,700 5,100 700 1,500 
+12% 0.42 74,000 11,100 72 580 41,100 3,800 8,500 — 2,400 
+Engelmann Green 0.33 32,000 7,100 35 410 15,000 1,400 4,400 1,700 1,150 
+12% 0.35 64,000 8,900 44 460 30, 900 2,800 8,300 2,400 1,750 
+Red Green 0.37 41,000 9,200 48 460 18,800 1,800 5,200 1,500 1,600 
+12% 0.40 74,000 11,400 58 640 38, 200 3,800 8,900 2,400 2,200 
+Sitka Green 0.37 39,000 8,500 43 610 18,400 1,900 5,200 1,700 1,600 
+12% 0.40 70,000 10,800 65 640 38, 700 4,000 7,900 2,600 2,300 
+White Green 0.33 34,000 7,900 41 560 16,200 1,400 4,400 1,500 1,200 
+12% 0.36 65,000 9,600 53 510 35, 700 3,000 6,700 2,500 1,800 
+Tamarack Green 0.49 50,000 8,500 50 710 24,000 2,700 5,900 1,800 1,700 
+12% 0.53 80,000 11,300 49 580 49, 400 5,500 8,800 2,800 2,600 
+aResults of tests on clear specimens in the green and air-dried conditions, converted to metric units directly from Table 5–3b. Definition of properties: 
+impact bending is height of drop that causes complete failure, using 0.71-kg (50-lb) hammer; compression parallel to grain is also called maximum 
+crushing strength; compression perpendicular to grain is fiber stress at proportional limit; shear is maximum shearing strength; tension is maximum tensile 
+strength; and side hardness is hardness measured when load is perpendicular to grain. 
+bSpecific gravity is based on weight when ovendry and volume when green or at 12% moisture content. 
+cModulus of elasticity measured from a simply supported, center-loaded beam, on a span depth ratio of 14/1. To correct for shear deflection, the modulus 
+can be increased by 10%.
+dValues for side hardness of the true hickories are from Bendtsen and Ethington (1975). 
+eCoast Douglas-fir is defined as Douglas-fir growing in Oregon and Washington State west of the Cascade Mountains summit. Interior West includes 
+California and all counties in Oregon and Washington east of, but adjacent to, the Cascade summit; Interior North, the remainder of Oregon and 
+Washington plus Idaho, Montana, and Wyoming; and Interior South, Utah, Colorado, Arizona, and New Mexico. 
+=====PAGE 155=====
+CHAPTER 5  | Mechanical Properties of Wood
+5–39 
+ 
+ 
+ 
+Figure 5–21 illustrates how strength decreases with time 
+to maximum load. The variability in the trend shown is 
+based on results from several studies pertaining to bending, 
+compression, and shear. 
+Creep and Relaxation 
+When initially loaded, a wood member deforms elastically. 
+If the load is maintained, additional time-dependent 
+deformation occurs. This is called creep. Creep occurs at 
+even very low stresses, and it will continue over a period 
+of years. For sufficiently high stresses, failure eventually 
+occurs. This failure phenomenon, called duration of load (or 
+creep rupture), is discussed in the next section. 
+At typical design levels and use environments, after 
+several years the additional deformation caused by creep 
+may approximately equal the initial, instantaneous elastic 
+deformation. For illustration, a creep curve based on creep 
+as a function of initial deflection (relative creep) at several 
+stress levels is shown in Figure 5–22; creep is greater under 
+higher stresses than under lower ones. 
+Ordinary climatic variations in temperature and humidity 
+will cause creep to increase. An increase of about 28 °C 
+(50 °F) in temperature can cause a two- to threefold increase 
+in creep. Green wood may creep four to six times the initial 
+deformation as it dries under load. 
+Unloading a member results in immediate and complete 
+recovery of the original elastic deformation and after time, a 
+recovery of approximately one-half the creep at deformation 
+as well. Fluctuations in temperature and humidity increase 
+the magnitude of the recovered deformation. 
+Relative creep at low stress levels is similar in bending, 
+tension, or compression parallel to grain, although it may 
+be somewhat less in tension than in bending or compression 
+under varying moisture conditions. Relative creep across the 
+grain is qualitatively similar to, but likely to be greater than, 
+creep parallel to the grain. The creep behavior of all species 
+studied is approximately the same. 
+If instead of controlling load or stress, a constant 
+deformation is imposed and maintained on a wood member, 
+the initial stress relaxes at a decreasing rate to about 60% 
+to 70% of its original value within a few months. This 
+reduction of stress with time is commonly called relaxation. 
+In limited bending tests carried out between approximately 
+18 °C (64 °F) and 49 °C (120 °F) over 2 to 3 months, 
+the curve of stress as a function of time that expresses 
+relaxation is approximately the mirror image of the creep 
+curve (deformation as a function of time). These tests were 
+carried out at initial stresses up to about 50% of the bending 
+strength of the wood. As with creep, relaxation is markedly 
+affected by fluctuations in temperature and humidity. 
+Duration of Load 
+The duration of load, or the time during which a load acts 
+on a wood member either continuously or intermittently, is 
+Figure 5–20. Residual MOR for solid-sawn lumber at 82 °C 
+(180 °F) and 80% relative humidity (RH); SPF at 66 °C 
+(150 °F) and 75% RH shown for comparison. SPF is Spruce– 
+Pine–Fir; MSR, machine stress rated; DF, Douglas-fir; and 
+So. pine, Southern Pine (Green and others 2005). 
+Figure 5–21. Relationship of ultimate stress at short-time 
+loading to that at 5-min loading, based on composite of 
+results from rate-of-load studies on bending, compression, 
+and shear parallel to grain. Variability in reported trends is 
+indicated by width of band. 
+Figure 5–22. Influence of four levels of stress on creep 
+(Kingston 1962). 
+=====PAGE 234=====
+General Technical Report FPL–GTR–282
+9–2 
+Deformation Equations 
+Equations for deformation of wood members are presented 
+as functions of applied loads, moduli of elasticity and 
+rigidity, and member dimensions. They may be solved to 
+determine minimum required cross-sectional dimensions to 
+meet deformation limitations imposed in design. Average 
+moduli of elasticity (E) and rigidity (G) are given in 
+Chapter 5. Consideration must be given to variability in 
+material. 
+Axial Load 
+The deformation of an axially loaded member does not 
+usually take precedence over other loading, stability, or 
+serviceability considerations. Axial load produces a change 
+of length given by 
+  
+ 
+  
+ 
+       
+      
+      
+ 
+ 
+              
+               
+                
+                  
+        
+ 
+              
+                
+                
+                 
+               
+ 
+                
+                
+               
+               
+              
+         
+  
+             
+              
+               
+                
+                  
+              
+               
+             
+ 
+   
+ 
+                 
+              
+                  
+           
+ 
+   
+ 
+                 
+           
+ 
+ δ PL AE   
+ 
+                    
+ 
+                  
+        
+ 
+Bending 
+Straight Beam Deflection 
+The deflection of straight beams that are elastically stressed 
+and have a constant cross section throughout their length is 
+given by 
+  
+ 
+ 
+   
+ 
+                 
+    
+ 
+ 
+3
+bsδ k WL k WL EI GA     
+ 
+                     
+ 
+                 
+                   
+                      
+  
+                  
+ 
+                   
+                   
+ 
+       
+ 
+                     
+   
+ 
+           
+        
+ 
+  
+                 
+ 
+         
+         
+ 
+ 
+                
+                 
+         
+ 
+    
+ 
+                   
+                   
+ 
+              
+                    
+ 
+                    
+                   
+            
+ 
+      
+   
+(9–2) 
+ total beam load acting 
+ beam span, kb and ks 
+constants dependent upon beam loading, support conditions, 
+and location of point whose deflection is to be calculated, 
+′ modified beam area, E beam 
+modulus of elasticity (for beams having grain direction 
+ beam shear modulus 
+(for beams with flat-grained vertical faces, G G LT, and for 
+bending deflection and the second term the shear deflection. 
+Figure 9–2 illustrates both deflection components with 
+a cantilever case. Values of kb and ks for several cases of 
+loading and support are given in Table 9–1. 
+For reference axes coinciding with the centroid, C, of the 
+cross section (Fig. 9–3), the moment of inertia I of the 
+beams is given by 
+  
+ 
+ 
+   
+ 
+                 
+    
+ 
+   
+ 
+  
+                   
+ 
+                 
+                   
+                      
+  
+                  
+ 
+                   
+                   
+ 
+       
+ 
+                     
+   
+ 
+  
+3
+ 12 bhI   for beam of rectangular cross section  
+ 
+4
+64
+d  for beam of circular cross section 
+ 
+                   
+ 
+         
+         
+ 
+ 
+                
+                 
+         
+ 
+    
+ 
+                   
+                   
+ 
+              
+                    
+ 
+                    
+                   
+            
+ 
+      
+   
+(9–3) 
+where b is beam width, h beam depth, and d beam diameter. 
+The modified area A′ is given by 
+  
+ 
+ 
+   
+ 
+                 
+    
+ 
+   
+ 
+  
+                   
+ 
+                 
+                   
+                      
+  
+                  
+ 
+                   
+                   
+ 
+       
+ 
+                     
+   
+ 
+           
+        
+ 
+  
+                 
+ 
+ 5 6A = bh  for beam of rectangular cross section  
+  29 40=d   for beam of circular cross section 
+ 
+                 
+                 
+         
+ 
+    
+ 
+                   
+                   
+ 
+              
+                    
+ 
+                    
+                   
+            
+ 
+      
+   
+ 
+ 
+ 
+Figure 9–1. Axial load deformations. 
+Figure 9–2. Components of straight beam deflection. 
+(9–1) 
+where δ is change of length, L initial length, A cross-
+sectional area, E modulus of elasticity (EL when grain 
+runs parallel to member axis), and P axial force parallel to 
+member axis. Figure 9–1 illustrates axial deformations of 
+a member shortening in compression and lengthening in 
+tension. 
+where δ is deflection, W 
+perpendicular to beam neutral axis, L 
+I beam moment of inertia, A 
+parallel to their axis, E = EL), and G
+ = 
+beams with edge-grained vertical faces, G = GLR). Elastic 
+property values are given in Tables 5–1 to 5–5 (Chap. 5). 
+The first term on the right side of Equation (9–2) gives the 
+(9–4) 
+If the beam has initial geometric imperfections such as 
+bow (lateral bend) or twist, these imperfections could 
+amplify deformations and lead to instability. Lateral or 
+torsional restraints, therefore, may be necessary to hold 
+such members in line. (See Interaction of Buckling Modes 
+section.) 
+Tapered Beam Deflection 
+Figures 9–4 and 9–5, from Maki and Kuenzi (1965), 
+are useful in the design of tapered beams. The equation 
+determining the ordinates factors design criteria such 
+as span, loading, difference in beam height (hc – h0) as 
+required by roof slope or architectural effect, and maximum 
+allowable deflection, together with material properties. 
+From this, the value of the abscissa can be determined and 
+the smallest beam depth h0 can be calculated for comparison 
+with that given by the design criteria. Conversely, the 
+deflection of a beam can be calculated if the value of the 
+abscissa is known. Tapered beams deflect as a result of shear 
+deflection in addition to bending deflections (Figs. 9–4 
+and 9–5), and this shear deflection Δs can be closely 
+approximated by 
+=====PAGE 235=====
+CHAPTER 9  | Structural Analysis Equations
+9–3 
+Table 9–1. Values of kb and ks for several beam loadings 
+Loading 
+Uniformly distributed 
+Beam ends 
+Both simply 
+supported 
+Diagram Deflection at 
+Midspan 
+kb 
+5/384 
+ks 
+1/8 
+Both clamped Midspan 1/384 1/8 
+Concentrated at 
+midspan 
+Both simply 
+supported 
+Midspan 1/48 1/4 
+Both clamped Midspan 1/192 1/4 
+Concentrated at outer 
+quarter span points 
+Both simply 
+supported 
+Midspan 11/768 1/8 
+Both clamped Load point 1/96 1/8 
+Uniformly distributed Cantilever, 
+one free, one 
+clamped 
+Free end 1/8 1/2 
+Concentrated at free 
+end 
+Cantilever, 
+one free, one 
+clamped 
+Free end 1/3 1 
+Figure 9–3. Cross-sectional properties of (a) rectangular and (b) circular sections. 
+=====PAGE 236=====
+General Technical Report FPL–GTR–282
+9–4 
+  
+ 
+ 
+   
+ 
+                 
+    
+ 
+   
+ 
+  
+                   
+ 
+                 
+                   
+                      
+  
+                  
+ 
+                   
+                   
+ 
+       
+ 
+                     
+   
+ 
+           
+        
+ 
+  
+                 
+ 
+         
+         
+ 
+ 
+                
+                 
+         
+ 
+    
+ 
+                   
+                   
+ 
+              
+                    
+ 
+                    
+                   
+            
+ 
+ s
+0
+3
+20
+WL
+Gbh  for uniformly distributed load 
+   
+(9–5) 
+  
+0
+3
+10
+PL
+Gbh  for midspan-concentrated load 
+ 
+                   
+                
+               
+ 
+      
+ 
+                 
+                  
+                
+ 
+                
+      
+ 
+      
+ 
+                 
+                 
+                  
+                     
+                   
+ 
+                     
+                
+                   
+                  
+                     
+          
+ 
+   
+ 
+                  
+               
+                     
+    
+ 
+   
+ 
+  
+                 
+ 
+      
+ 
+   
+ 
+                  
+                
+                
+  
+ 
+   
+ 
+Figure 9–4. Graph for determining tapered beam size 
+based on deflection under uniformly distributed load. 
+The final beam design should consider the total deflection as 
+the sum of the shear and bending deflections, and iterations 
+may be necessary to arrive at final beam dimensions. 
+Equations (9–5) are applicable to either single-tapered or 
+double-tapered beams. As with straight beams, lateral or 
+torsional restraint may be necessary. 
+Effect of Notches and Holes 
+The deflection of a beam increases if holes or notches, for 
+example, reduce effective cross-sectional dimensions. The 
+deflection of such beams can be determined by considering 
+them of variable cross section along their length and 
+appropriately solving the general differential equations of 
+the elastic curves, EI(d2y/dx2) = M, to obtain deflection 
+expressions or by the application of Castigliano’s theorem. 
+(These procedures are given in most texts on mechanics of 
+materials or structural analysis.) 
+Effect of Time: Creep Deflections 
+In addition to the elastic deflections previously discussed, 
+wood beams and composite panels usually sag in time 
+Figure 9–5. Graph for determining tapered beam size 
+based on deflection under concentrated midspan load. 
+because of creep. Creep deflection that produces sag slowly 
+accumulates, from the flow of solids under mechanical 
+stresses, and adds to the immediate deflections produced by 
+the applied loads. The amount of creep deflection, or sag, 
+depends on magnitude and duration of the applied loads 
+and the material rate of creep, which can be affected by 
+environmental conditions such as heat and humidity. (See 
+the discussion of creep in Time under Load in Chap. 5.) 
+Green timbers will sag if allowed to dry under load, 
+although partially dried material will also sag to some 
+extent. In thoroughly dried beams, small changes in 
+deflection occur with changes in moisture content but with 
+little permanent increase in deflection. If deflection under 
+longtime load with initially green timber is to be limited, 
+it has been customary to design for an initial deflection of 
+about half the value permitted for longtime deflection. If 
+deflection under longtime load with initially dry timber is 
+to be limited, it has been customary to design for an initial 
+deflection of about two-thirds the value permitted for 
+longtime deflection. 
+Water Ponding 
+Ponding of water on roofs already deflected by other 
+loads can cause large increases in deflection. Kuenzi and 
+Bohannan (1964) developed expressions for amplification 
+of the deflections and stresses caused by ponding based on 

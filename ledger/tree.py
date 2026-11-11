@@ -57,6 +57,90 @@ def entries() -> list[Node]:
                      "Leaves the quotes behind the paywalled rules uncheckable by anyone who has not bought them."),
             ],
         ),
+        Node(
+            id="the-rules-read-the-knowledge", kind="decision",
+            name="A rule carries no number a source states: every limit, test condition, material property "
+                 "and coefficient is a param on a knowledge node (a clause quoted verbatim from a captured "
+                 "source, or a material or requirement derived from clauses), and the rule reads it there. "
+                 "A new source adds nodes, not kinds or rules",
+            payload={"decided_on": "2026-11-11",
+                     "the_owner": "Create rules you suggested from public sources and do that by building a smart "
+                                  "knowledge base and implement rules on the knowledge with a quern package. Don't "
+                                  "hardcode the knowledge base structure from these rules; more will come.",
+                     "why": "A number written into a rule hides where it came from and has to be found and edited "
+                            "when its source changes; on a node it carries its clause, its unit and its "
+                            "derivation, and every check that needs it reads the same one."},
+            links={"rests_on": ["a-copyrighted-standard-is-cited-never-copied-here"]},
+            children=[
+                _alt("constants-in-rules", "Write each limit and test load into the rule that uses it",
+                     "The rule then states the source's number without the source, and two rules that need "
+                     "it state it twice."),
+                _alt("a-table-per-check", "One table per check (a sag table, a tip-over table)",
+                     "Shapes the knowledge around the first checks; the next check would need a new table "
+                     "for facts the existing ones already hold."),
+            ],
+        ),
+        Node(
+            id="a-check-reads-its-requirement-over-its-own-link", kind="decision",
+            name="A design names the requirement a check reads over that check's own link (stability_case, "
+                 "sag_limit), not over one shared link filtered by a field of the requirement",
+            payload={"decided_on": "2026-11-11",
+                     "why": "quern's rules evaluate both sides of `or`, and a value a node does not carry is a "
+                            "red. A shared link filtered by `measure` makes every check read the params of every "
+                            "other check's requirements, and go red on their absence."},
+            links={"rests_on": ["the-rules-read-the-knowledge"]},
+            children=[
+                _alt("one-held-to-link", "One `held_to` link, each rule keeping the requirements whose "
+                     "measure it checks",
+                     "Reds that mean only that a sag requirement has no tilt block."),
+            ],
+        ),
+        Node(
+            id="what-the-grammar-cannot-sum-is-a-calculation-with-cases", kind="decision",
+            name="A check that needs more than quern's rule grammar (a sum of products over parts, an opened "
+                 "drawer, a tilt) is a furniture/* calculation registered beside its code, with cases worked "
+                 "by hand in spec.py that quern's publish gate runs; a check the grammar can state stays a rule",
+            payload={"decided_on": "2026-11-11",
+                     "why": "The grammar sums one list at a time, so mass times lever arm over the parts of a "
+                            "piece has no expression; shelf sag is arithmetic over params and stays a rule."},
+            links={"rests_on": ["the-rules-read-the-knowledge"]},
+            children=[
+                _alt("a-weighted-sum-verb-in-quern", "Add a weighted sum to quern's grammar",
+                     "Covers mass times arm, not opening the drawers, tilting the piece or the fill share."),
+                _alt("a-wasm-solver", "Ship the calculation as a wasm solver inside the package",
+                     "It would travel as data, but needs a toolchain this repo does not have, for a "
+                     "calculation every consumer already installs as Python."),
+            ],
+        ),
+        Node(
+            id="the-static-margin-predicts-the-stability-tests", kind="hypothesis",
+            name="The static moment about the front edge, with every extendible element open and the "
+                 "conditions a requirement states, predicts whether a built piece passes ASTM F2057-23's "
+                 "stability tests 9.2.1 and 9.2.3",
+            payload={"stated_on": "2026-11-11",
+                     "basis": "The Federal Register's description of the tests (88 FR 28405): loads, block, "
+                              "open elements. Not modelled: doors, the dynamic pull of 9.2.2, the test's own "
+                              "procedure, which is ASTM's."},
+            links={"rests_on": ["what-the-grammar-cannot-sum-is-a-calculation-with-cases"]},
+            children=[
+                Node(id="a-built-piece-disagrees", kind="falsification",
+                     name="A built piece the calculation passes tips in the physical test, or one it fails "
+                          "stands"),
+            ],
+        ),
+        Node(
+            id="the-package-is-in-the-open-registry", kind="decision",
+            name="furniture-design@ is published to the public registry (xag/quern-registry), not the "
+                 "private fleet registry",
+            payload={"decided_on": "2026-11-11",
+                     "why": "A collaborator on this public repo must be able to pin and sync the package; the "
+                            "fleet registry is private."},
+            links={"rests_on": ["the-method-is-public-and-names-no-home"]},
+            children=[
+                _alt("the-fleet-registry", "Publish beside the estate's other packages in xag/fleet-registry",
+                     "Nobody outside the owner's account could sync it."),
+            ],
+        ),
     ]
 
 

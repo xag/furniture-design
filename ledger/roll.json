@@ -1,5 +1,15 @@
 [
   {
+    "path": "a-check-reads-its-requirement-over-its-own-link",
+    "kind": "decision",
+    "digest": "a8201c3f75bb"
+  },
+  {
+    "path": "a-check-reads-its-requirement-over-its-own-link/one-held-to-link",
+    "kind": "alternative",
+    "digest": "d5db7f755821"
+  },
+  {
     "path": "a-copyrighted-standard-is-cited-never-copied-here",
     "kind": "decision",
     "digest": "7283261b7592"
@@ -28,5 +38,55 @@
     "path": "the-method-is-public-and-names-no-home/one-public-repo-with-everything",
     "kind": "alternative",
     "digest": "a87467aaea1a"
+  },
+  {
+    "path": "the-package-is-in-the-open-registry",
+    "kind": "decision",
+    "digest": "f9dab56bd7b9"
+  },
+  {
+    "path": "the-package-is-in-the-open-registry/the-fleet-registry",
+    "kind": "alternative",
+    "digest": "13fcb517b1d9"
+  },
+  {
+    "path": "the-rules-read-the-knowledge",
+    "kind": "decision",
+    "digest": "de84d14bbb55"
+  },
+  {
+    "path": "the-rules-read-the-knowledge/a-table-per-check",
+    "kind": "alternative",
+    "digest": "b2161256d0ab"
+  },
+  {
+    "path": "the-rules-read-the-knowledge/constants-in-rules",
+    "kind": "alternative",
+    "digest": "df156d2335ca"
+  },
+  {
+    "path": "the-static-margin-predicts-the-stability-tests",
+    "kind": "hypothesis",
+    "digest": "4fdfa5b15c49"
+  },
+  {
+    "path": "the-static-margin-predicts-the-stability-tests/a-built-piece-disagrees",
+    "kind": "falsification",
+    "digest": "1b6308b4d867"
+  },
+  {
+    "path": "what-the-grammar-cannot-sum-is-a-calculation-with-cases",
+    "kind": "decision",
+    "digest": "0a9e2f855a40"
+  },
+  {
+    "path": "what-the-grammar-cannot-sum-is-a-calculation-with-cases/a-wasm-solver",
+    "kind": "alternative",
+    "digest": "6e1225e31bf0"
+  },
+  {
+    "path": "what-the-grammar-cannot-sum-is-a-calculation-with-cases/a-weighted-sum-verb-in-quern",
+    "kind": "alternative",
+    "digest": "5b1b43161b2c"
   }
 ]
