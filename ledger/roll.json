@@ -1,0 +1,32 @@
+[
+  {
+    "path": "a-copyrighted-standard-is-cited-never-copied-here",
+    "kind": "decision",
+    "digest": "7283261b7592"
+  },
+  {
+    "path": "a-copyrighted-standard-is-cited-never-copied-here/copy-every-source-here",
+    "kind": "alternative",
+    "digest": "631cbaa3a7ea"
+  },
+  {
+    "path": "a-copyrighted-standard-is-cited-never-copied-here/copy-no-source-anywhere",
+    "kind": "alternative",
+    "digest": "cbbb602450a1"
+  },
+  {
+    "path": "the-method-is-public-and-names-no-home",
+    "kind": "decision",
+    "digest": "350516740f94"
+  },
+  {
+    "path": "the-method-is-public-and-names-no-home/one-private-repo-with-everything",
+    "kind": "alternative",
+    "digest": "0228a328e31c"
+  },
+  {
+    "path": "the-method-is-public-and-names-no-home/one-public-repo-with-everything",
+    "kind": "alternative",
+    "digest": "a87467aaea1a"
+  }
+]
