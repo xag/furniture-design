@@ -158,7 +158,11 @@ class Pen:
             self.line(ax, y, bx, y, 0.18, DIM)
             self.arrowhead(ax, y, ax - bx, 0, 2.0, DIM)
             self.arrowhead(bx, y, bx - ax, 0, 2.0, DIM)
-            self.text((ax + bx) / 2, y + 0.8, label, size, DIM, "middle")
+            room = abs(bx - ax)
+            if room >= len(label) * size * 0.55 + 1:
+                self.text((ax + bx) / 2, y + 0.8, label, size, DIM, "middle")
+            else:  # too short to hold its figure: write it beside, past the right end
+                self.text(max(ax, bx) + 1.2, y + 0.8, label, size * 0.9, DIM)
         else:
             x = max(ax, bx) + offset if offset > 0 else min(ax, bx) + offset
             for px, py in (a, b):
@@ -167,7 +171,11 @@ class Pen:
             self.line(x, ay, x, by, 0.18, DIM)
             self.arrowhead(x, ay, 0, ay - by, 2.0, DIM)
             self.arrowhead(x, by, 0, by - ay, 2.0, DIM)
-            self.text(x - 0.8, (ay + by) / 2, label, size, DIM, "middle", angle=90)
+            room = abs(by - ay)
+            if room >= len(label) * size * 0.55 + 1:
+                self.text(x - 0.8, (ay + by) / 2, label, size, DIM, "middle", angle=90)
+            else:
+                self.text(x - 0.8, max(ay, by) + 1.2, label, size * 0.9, DIM, angle=90)
 
 
 class Placed:
@@ -188,12 +196,13 @@ def _boxes(parts: list[Part], offsets: dict[str, tuple] | None = None) -> dict:
     out = {}
     for p in parts:
         o = (offsets or {}).get(p.id, (0, 0, 0))
-        out[p.id] = (tuple(a + b for a, b in zip(p.lo, o)), tuple(a + b for a, b in zip(p.hi, o)))
+        out[p.id] = (tuple(a + b for a, b in zip(p.lo, o)), tuple(a + b for a, b in zip(p.hi, o)),
+                     p.profile(o))
     return out
 
 
 def _extent(boxes: dict, view: lw.View):
-    pts = [view.to2d(c) for lo, hi in boxes.values() for c in _box_corners(lo, hi)]
+    pts = [view.to2d(c) for entry in boxes.values() for c in _box_corners(entry[0], entry[1])]
     return lw.bounds(pts)
 
 
@@ -398,8 +407,6 @@ def _sheet_general(c: Canvas, sc: Scene, L: dict, sheets: int):
     top = Placed(lw.TOP, s, fx, fy - 40 - size[1] * s, (sc.lo[0], sc.lo[1]))
     for placed, name in ((front, "front"), (left, "left"), (top, "top")):
         draw_parts(pen, placed, sc.parts, fill_for=white_faces, line=0.35)
-        for p in sc.parts:
-            draw_cuts(pen, placed, p, hatch=False)
         u0, v0, u1, v1 = _extent(boxes, placed.view)
         pen.text(placed.pt((u0, v1))[0], placed.pt((u0, v1))[1] + 4, L[name], 3.2, INK, bold=True)
     _view_dims(pen, front, sc, 0, 2)
@@ -707,7 +714,7 @@ def _prepare_picture(pen: Pen, sc: Scene, step, box):
     placed = _fit(boxes, view, *box, pad=12)
     draw_parts(pen, placed, shown, fill_for=lambda k, sh: _wood(sh), offsets=offsets, line=0.35)
     for p in parts:
-        if p.cuts:
+        if p.cuts and p.id in step.cuts:
             draw_cuts(pen, placed, p, offsets.get(p.id, (0, 0, 0)))
     for j in sc.joints:
         if j.id not in step.joints:
@@ -756,11 +763,17 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr") -> Path:
     for i, p in enumerate(distinct):
         r, k = divmod(i, 3)
         x, y = 15 + k * cw, H - 40 - (r + 1) * ch
-        board = Part(p.path, p.id, p.name, p.mark, (0, 0, 0),
-                     tuple(sorted(p.size, reverse=True)[:2]) + (sorted(p.size)[0] / p.sheets,),
-                     p.material, p.material_name)
-        bplaced = _fit({p.id: (board.lo, board.hi)}, view, x, y + 10, cw - 6, ch - 14, pad=4)
-        draw_parts(pen, bplaced, [board], fill_for=lambda k, sh: _wood(sh), line=0.35)
+        if p.sheets > 1:  # a glued-up part comes as its sheets: draw one, lying flat
+            board = Part(p.path, p.id, p.name, p.mark, (0, 0, 0),
+                         tuple(sorted(p.size, reverse=True)[:2]) + (sorted(p.size)[0] / p.sheets,),
+                         p.material, p.material_name)
+            shift = (0, 0, 0)
+        else:             # as it stands in the piece, with its cuts
+            board, shift = p, tuple(-a for a in p.lo)
+        shown = _boxes([board], {board.id: shift})
+        bplaced = _fit(shown, view, x, y + 10, cw - 6, ch - 14, pad=4)
+        draw_parts(pen, bplaced, [board], fill_for=lambda k, sh: _wood(sh), offsets={board.id: shift},
+                   line=0.35)
         pen.circle(x + 6, y + ch - 8, 4.2, fill=white, w=0.4)
         pen.text(x + 6, y + ch - 9.6, p.mark, 4.6, INK, "middle", bold=True)
         pen.text(x + cw / 2, y + 3, f"{qty[p.mark]} ×", 5, INK, "middle", bold=True)

@@ -292,31 +292,35 @@ def _material(tree: Quern, path: str):
 
 
 def sideways_margin(tree: Quern, piece: str, case: str) -> float:
-    """N: the smallest margin, over the joints along the edges of the panels that brace
-    `piece` across (the parts it links as `braced_by`), between what a joint's connectors
-    carry in shear and what the requirement `case`'s `side_force` asks of that joint.
+    """N: the smallest margin, connector by connector, between what the connectors around
+    the panels that brace `piece` across (the parts it links as `braced_by`) are rated for
+    and what the requirement `case`'s `side_force` F asks of them; and between what the
+    sides below a brace can take in bending and what they are asked.
 
-    A brace is a panel standing in the plane of the sideways force (x across, z up), as a
-    back panel does, held along its two side edges by the parts beside it. The force enters
-    along its top edge and leaves through its side edges. Asked of the joints, without
-    crediting any bearing of one part on another:
-    - along the top edge, the whole force, in shear across the connectors;
-    - along each side edge, the whole force as pull-out (pushed one way, the connectors of
-      one side are pulled), and, in shear, the force times the panel's height over its
-      width (the vertical pair of forces that keeps the panel from turning, taken at its
-      largest, as if the force had to come down to the panel's bottom edge).
-    A joint is good for its `count` of connectors times the connector's `shear_<key>` or
-    `pull_out_<key>`, the key being the `connector_key` of each joined part's material, the
-    weaker part governing. The margin is the smallest capacity less demand, in N.
+    A brace is a panel standing in the plane of the push (x across, z up), as a back or a
+    rail does, held along its two side edges by the parts beside it. The push enters along
+    its top edge and goes down through the sides to the floor. Asked, without crediting any
+    bearing of one part on another:
+    - of each connector along the top edge, F shared among them, in shear;
+    - of each connector along a side edge, in pull-out, F shared among that edge's
+      connectors (pushed one way, one side's connectors are pulled), plus its part of the
+      pair of forces that holds the side square to the brace: each side carries F/2 down to
+      the floor, so at the brace's bottom edge it bends by F/2 times the brace's height
+      above the floor, and that moment is passed by the edge's outermost connectors, spaced
+      as evenly spread connectors are (the edge's length times (n - 1)/(n + 1));
+    - of each connector along a side edge, in shear, F times the brace's height over its
+      width, shared (the vertical pair that keeps the brace from turning);
+    - of each side, that same bending moment at most its material's design bending stress
+      times its section (its depth times its thickness squared over 6), given here as the
+      force at the floor it leaves to spare.
+    A side edge with a single connector cannot pass a moment: if the brace stops above the
+    floor, half the push has no way down, and the margin is -F/2. A piece with no brace
+    carries nothing across by this path: -F (its joints would have to resist bending, which
+    no source here rates).
 
-    Not checked here: the parts the brace hands the force to (the sides) bending out of
-    their plane on the way to the floor.
-
-    A piece with no brace carries nothing across by this path: its margin is the whole
-    force, short (its joints would have to resist bending, which no source here rates).
     Absent, rather than answered: a joint with no count, a connector that states no
-    strength in a joined material. Refused: a brace whose top edge or a side edge is joined
-    to nothing."""
+    strength in a joined material, a side with no design bending stress. Refused: a brace
+    whose top edge or a side edge is joined to nothing."""
     node = get_node(tree, piece)
     if node is None:
         raise ValueError(f"no piece at '{piece}'")
@@ -326,8 +330,29 @@ def sideways_margin(tree: Quern, piece: str, case: str) -> float:
     braces = node.links.get("braced_by", [])
     if not braces:
         return -force
-    box = {b.path: b for b in bodies(tree, piece)}
+    bs = bodies(tree, piece)
+    box = {b.path: b for b in bs}
+    floor = min(b.lo[2] for b in bs)
     joints = [(p, n) for p, n in tree.walk("") if n.kind == "joint"]
+
+    def rated(jpath: str, mode: str, parts: tuple[str, str]) -> float:
+        out = []
+        for part in parts:
+            key = ((_material(tree, part) or Node(id="x", kind="")).payload or {}).get(
+                "connector_key")
+            got = _param(tree, jpath, f"{mode}_{key}") if key else None
+            if got is None:
+                raise Absent(f"the connector of '{jpath}' states no {mode} strength in "
+                             f"{key or 'the material of ' + part}")
+            out.append(got)
+        return min(out)
+
+    def count(jpath: str) -> float:
+        n = _param(tree, jpath, "count")
+        if n is None:
+            raise Absent(f"joint '{jpath}' states no count of connectors")
+        return n
+
     worst = math.inf
     for brace in braces:
         bpath = "/".join(_segs(brace))
@@ -335,7 +360,8 @@ def sideways_margin(tree: Quern, piece: str, case: str) -> float:
         if b is None:
             raise ValueError(f"brace '{brace}' is not a part of '{piece}'")
         width, height = b.hi[0] - b.lo[0], b.hi[2] - b.lo[2]
-        edges = {"top": [], "side": []}
+        drop = b.lo[2] - floor
+        top, side = [], []
         for jpath, j in joints:
             joined = ["/".join(_segs(t)) for t in j.links.get("joins", [])]
             if bpath not in joined:
@@ -345,30 +371,34 @@ def sideways_margin(tree: Quern, piece: str, case: str) -> float:
                 if o is None or other == bpath:
                     continue
                 if abs(o.lo[2] - b.hi[2]) <= TOUCH_MM:
-                    edges["top"].append((jpath, j, other))
+                    top.append((jpath, other))
                 elif abs(o.hi[0] - b.lo[0]) <= TOUCH_MM or abs(o.lo[0] - b.hi[0]) <= TOUCH_MM:
-                    edges["side"].append((jpath, j, other))
-        if not edges["top"] or len(edges["side"]) < 2:
+                    side.append((jpath, other))
+        if not top or len(side) < 2:
             raise ValueError(f"brace '{brace}' must be joined along its top edge and both "
                              "side edges to carry a sideways force")
-        demand = {"top": {"shear": force / len(edges["top"])},
-                  "side": {"shear": force * height / width, "pull_out": force}}
-        for edge, found in edges.items():
-            for jpath, j, other in found:
-                count = _param(tree, jpath, "count")
-                if count is None:
-                    raise Absent(f"joint '{jpath}' states no count of connectors")
-                for mode, asked in demand[edge].items():
-                    rated = []
-                    for part in (bpath, other):
-                        key = ((_material(tree, part) or Node(id="x", kind="")).payload
-                               or {}).get("connector_key")
-                        got = _param(tree, jpath, f"{mode}_{key}") if key else None
-                        if got is None:
-                            raise Absent(f"the connector of '{jpath}' states no {mode} "
-                                         f"strength in {key or 'the material of ' + part}")
-                        rated.append(got)
-                    worst = min(worst, count * min(rated) - asked)
+        moment = force / 2 * drop
+        if moment > 0 and any(count(jp) < 2 for jp, _ in side):
+            # a shortfall no rating can make up, so it is answered before any rating is read
+            return -force / 2
+        n_top = sum(count(jp) for jp, _ in top)
+        for jpath, other in top:
+            worst = min(worst, rated(jpath, "shear", (bpath, other)) - force / n_top)
+        for jpath, other in side:
+            n = count(jpath)
+            if n < 2 and moment > 0:
+                worst = min(worst, -force / 2)
+                continue
+            couple = moment / (height * (n - 1) / (n + 1)) if moment > 0 else 0.0
+            worst = min(worst, rated(jpath, "pull_out", (bpath, other)) - (force / n + couple))
+            worst = min(worst, rated(jpath, "shear", (bpath, other)) - force * height / width / n)
+            o = box[other]
+            if drop > 0:
+                stress = _param(tree, other, "design_bending_stress")
+                if stress is None:
+                    raise Absent(f"'{other}' states no design bending stress")
+                section = (o.hi[1] - o.lo[1]) * (o.hi[0] - o.lo[0]) ** 2 / 6
+                worst = min(worst, (stress * section - moment) / drop)
     return worst
 
 

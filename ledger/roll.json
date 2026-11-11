@@ -1,5 +1,15 @@
 [
   {
+    "path": "a-brace-passes-the-bend-of-the-sides-below-it",
+    "kind": "decision",
+    "digest": "7032763e99f8"
+  },
+  {
+    "path": "a-brace-passes-the-bend-of-the-sides-below-it/brace-as-a-wall-on-a-base",
+    "kind": "alternative",
+    "digest": "e26a562a7d8e"
+  },
+  {
     "path": "a-check-reads-its-requirement-over-its-own-link",
     "kind": "decision",
     "digest": "a8201c3f75bb"

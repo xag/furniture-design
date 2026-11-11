@@ -92,13 +92,21 @@ const size = Math.max(hi[0]-lo[0], hi[1]-lo[1], hi[2]-lo[2]);
 const woodColor = new THREE.Color(0xe6cfa4), newColor = new THREE.Color(0xb07a3c), pick = new THREE.Color(0xf0b45a);
 
 const meshes = [];
+// a piece-frame axis as a three.js direction
+const E = [new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, 1, 0)];
 DATA.parts.forEach((p, i) => {
-  const s = [p.hi[0]-p.lo[0], p.hi[1]-p.lo[1], p.hi[2]-p.lo[2]];
-  const geo = new THREE.BoxGeometry(s[0], s[2], s[1]);
-  const mat = new THREE.MeshStandardMaterial({color: woodColor.clone(), roughness:0.8, transparent:true});
+  // the board's outline in its (u, v) plane, extruded across its thickness t
+  const f = p.profile, shape = new THREE.Shape();
+  f.outline.forEach(([a, b], k) => k ? shape.lineTo(a, b) : shape.moveTo(a, b));
+  const geo = new THREE.ExtrudeGeometry(shape, {depth: f.t1 - f.t0, bevelEnabled: false});
+  const m4 = new THREE.Matrix4().makeBasis(E[f.u], E[f.v], E[f.t]);
+  m4.setPosition(E[f.t].clone().multiplyScalar(f.t0));
+  geo.applyMatrix4(m4);
+  const mat = new THREE.MeshStandardMaterial({color: woodColor.clone(), roughness:0.8,
+    transparent:true, side: THREE.DoubleSide});
   const m = new THREE.Mesh(geo, mat);
-  m.userData = {part:p, home:T((p.lo[0]+p.hi[0])/2, (p.lo[1]+p.hi[1])/2, (p.lo[2]+p.hi[2])/2)};
-  m.position.copy(m.userData.home);
+  const centre = T((p.lo[0]+p.hi[0])/2, (p.lo[1]+p.hi[1])/2, (p.lo[2]+p.hi[2])/2);
+  m.userData = {part:p, home:new THREE.Vector3(0, 0, 0), centre};
   const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geo),
     new THREE.LineBasicMaterial({color:0x3b3428, transparent:true}));
   m.add(edges);
@@ -141,8 +149,8 @@ function apply() {
     m.visible = visible;
     const isNew = k && at === k;
     m.material.color.copy(m.userData.selected ? pick : (isNew ? newColor : woodColor));
-    const dir = m.userData.home.clone().sub(mid);
-    m.position.copy(m.userData.home).add(dir.multiplyScalar(e * 0.9));
+    const dir = m.userData.centre.clone().sub(mid);
+    m.position.copy(dir.multiplyScalar(e * 0.9));
   });
   connectors.forEach(c => {
     const ids = c.userData.joint.parts;
@@ -205,6 +213,11 @@ WORDS = {
 }
 
 
+def _profile(p) -> dict:
+    f = p.profile()
+    return {"u": f.u, "v": f.v, "t": f.t, "outline": f.outline, "t0": f.t0, "t1": f.t1}
+
+
 def viewer_html(sc: Scene, path: Path, lang: str = "fr") -> Path:
     W = WORDS[lang]
     size = [h - l for l, h in zip(sc.lo, sc.hi)]
@@ -213,7 +226,8 @@ def viewer_html(sc: Scene, path: Path, lang: str = "fr") -> Path:
         "subtitle": f"{sc.info.get('version', '')} · {round(size[0])} × {round(size[1])} × "
                     f"{round(size[2])} mm",
         "parts": [{"id": p.id, "mark": p.mark, "name": p.name, "lo": p.lo, "hi": p.hi,
-                   "sheets": p.sheets, "material": p.material_name} for p in sc.parts],
+                   "sheets": p.sheets, "material": p.material_name,
+                   "profile": _profile(p)} for p in sc.parts],
         "joints": [{"id": j.id, "parts": j.parts, "along": j.along_axis, "normal": j.normal_axis,
                     "positions": j.positions} for j in sc.joints],
         "steps": [{"text": s.text, "add": s.add, "prepare": s.prepare} for s in sc.steps],

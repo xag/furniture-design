@@ -12,7 +12,8 @@ all draw. Everything is read from the quern tree; nothing here is typed twice.
 - the steps: the piece's payload `steps`, each {text, add, joints, prepare, tools,
   direction}: `add` the part ids it brings in, `joints` the joint ids it closes,
   `prepare` true for the work done on parts before they are put together, `split` the
-  glued-up parts shown as their separate sheets (the gluing step), `direction`
+  glued-up parts shown as their separate sheets (the gluing step), `cuts` the parts whose
+  cuts the step makes (shown hatched), `direction`
   for each added part the side it comes in from (up: lowered from above; front: slid in
   from the front; ...). Added parts with no direction are set down where they go.
 - `material_names`: how the documents name each material, by its id.
@@ -54,6 +55,44 @@ class Part:
     def centre(self) -> tuple[float, float, float]:
         return tuple((lo + h) / 2 for lo, h in zip(self.lo, self.hi))
 
+    def profile(self, offset=(0.0, 0.0, 0.0)) -> "Profile":
+        """The board as what it is: its outline in the plane of its two longer sides, cuts
+        through its thickness taken out (a notch is a missing corner), extruded across
+        its thickness."""
+        from shapely.geometry import box as rect
+        from shapely.geometry.polygon import orient
+
+        t = min(range(3), key=lambda i: self.size[i])
+        u, v = [i for i in range(3) if i != t]
+        lo = [a + o for a, o in zip(self.lo, offset)]
+        hi = [a + o for a, o in zip(self.hi, offset)]
+        shape = rect(lo[u], lo[v], hi[u], hi[v])
+        for clo, chi in self.cuts:
+            clo = [a + o for a, o in zip(clo, offset)]
+            chi = [a + o for a, o in zip(chi, offset)]
+            if clo[t] <= lo[t] + TOUCH and chi[t] >= hi[t] - TOUCH:
+                shape = shape.difference(rect(clo[u], clo[v], chi[u], chi[v]))
+        shape = orient(shape, 1.0)
+        return Profile(u, v, t, [tuple(p) for p in list(shape.exterior.coords)[:-1]],
+                       lo[t], hi[t])
+
+
+@dataclass
+class Profile:
+    """A board as an outline in its (u, v) plane, piece-frame coordinates, counter-clockwise,
+    extruded along axis t from t0 to t1."""
+    u: int
+    v: int
+    t: int
+    outline: list[tuple[float, float]]
+    t0: float
+    t1: float
+
+    def point(self, a: float, b: float, c: float) -> tuple[float, float, float]:
+        p = [0.0, 0.0, 0.0]
+        p[self.u], p[self.v], p[self.t] = a, b, c
+        return tuple(p)
+
 
 @dataclass
 class Joint:
@@ -82,6 +121,7 @@ class Step:
     tools: list[str]
     direction: dict[str, tuple[int, int, int]]
     split: list[str] = field(default_factory=list)
+    cuts: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -189,7 +229,7 @@ def scene(tree: Quern, piece: str) -> Scene:
         steps.append(Step(i, s["text"], list(s.get("add", [])), list(s.get("joints", [])),
                           bool(s.get("prepare", False)), list(s.get("tools", [])),
                           {k: DIRECTIONS[v] for k, v in (s.get("direction") or {}).items()},
-                          list(s.get("split", []))))
+                          list(s.get("split", [])), list(s.get("cuts", []))))
     info = {k: payload[k] for k in ("version", "authors", "date", "project", "use", "description")
             if k in payload}
     return Scene(root.name or root.id, piece, parts, joints, steps, info)

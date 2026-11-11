@@ -137,7 +137,8 @@ def braced(top_count: float = 4, side_count: float = 2, brace: bool = True,
              joint("back-right", "right", side_count)]
     seat = Node(id="seat", kind="piece", children=parts,
                 links={"braced_by": ["seat/back"]} if brace else {})
-    panel = Node(id="panel", kind="material", payload={"connector_key": key})
+    panel = Node(id="panel", kind="material", payload={"connector_key": key},
+                 params={"design_bending_stress": q(10, "MPa")})
     c = Node(id="c", kind="connector", params={"shear_wood": q(500, "N"),
                                                "pull_out_wood": q(1000, "N")})
     case = Node(id="across", kind="requirement", params={"side_force": q(900, "N")})
@@ -148,13 +149,15 @@ def braced(top_count: float = 4, side_count: float = 2, brace: bool = True,
 
 SPEC = {
     "furniture/sideways_margin": [
-        d("sideways_margin", braced(), ["seat", "requirements/across"], expect=550,
-          because="top edge: 4 x 500 - 900 = 1100 in shear; each side edge: 2 x 500 - "
-                  "900 x 500/1000 = 550 in shear, 2 x 1000 - 900 = 1100 in pull-out: the "
-                  "side edges' shear governs, 550 N to spare"),
-        d("sideways_margin", braced(side_count=1), ["seat", "requirements/across"], expect=50,
-          because="one connector per side edge: 500 - 450 in shear, 1000 - 900 = 100 in "
-                  "pull-out: shear governs"),
+        d("sideways_margin", braced(), ["seat", "requirements/across"], expect=275,
+          because="top edge: 500 - 900/4 = 275 in shear. Each side edge: the back stops 100 "
+                  "above the floor, so each side bends by 450 x 100 = 45000 N mm there, "
+                  "passed by 2 connectors 500/3 apart, 270 N each; pull-out 1000 - (450 + "
+                  "270) = 280; shear 500 - 900 x 500/1000/2 = 275; the side, 300 x 20, takes "
+                  "10 x 300 x 20 x 20/6 = 200000 N mm, (200000 - 45000)/100 = 1550 N to spare"),
+        d("sideways_margin", braced(side_count=1), ["seat", "requirements/across"], expect=-450,
+          because="one connector per side edge passes no moment: the back stops above the "
+                  "floor, so half the push has no way down"),
         d("sideways_margin", braced(top_count=1), ["seat", "requirements/across"], expect=-400,
           because="one connector along the top edge takes the whole 900 N against 500"),
         d("sideways_margin", braced(brace=False), ["seat", "requirements/across"],

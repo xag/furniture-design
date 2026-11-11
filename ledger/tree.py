@@ -353,6 +353,30 @@ def entries() -> list[Node]:
                      "Raster, coloured by kind, no line work for print, and not interactive."),
             ],
         ),
+        Node(
+            id="a-brace-passes-the-bend-of-the-sides-below-it", kind="decision",
+            name="The sideways check follows the push down to the floor: below a brace that stops above "
+                 "the floor, each side bends by F/2 times the brace's height above the floor, and that "
+                 "moment passes into the brace as a pair of forces on its outermost side-edge connectors, "
+                 "added to their pull-out; the side itself is held to its design bending stress there; a "
+                 "side edge with one connector passes no moment, so the piece is short F/2 whatever the "
+                 "connector's rating, and that is answered before any missing rating is asked for",
+            payload={"decided_on": "2026-11-11",
+                     "the_owner": "Le panneau de derrière va beaucoup trop bas, on veut juste une traverse "
+                                  "de taille minimum suffisante pour mettre des clamex.",
+                     "why": "The first form of the check took a brace's side edges only in pull-out and "
+                            "vertical shear, as if the push stopped at the brace: it would have passed a "
+                            "75 mm rail held by one connector at each end, which cannot keep a box square. "
+                            "The push has to reach the floor, and the sides below the brace carry it there "
+                            "in bending."},
+            links={"supersedes": ["a-sideways-push-goes-through-a-panel-across"],
+                   "rests_on": ["the-rules-read-the-knowledge",
+                                "what-the-grammar-cannot-sum-is-a-calculation-with-cases"]},
+            children=[
+                _alt("brace-as-a-wall-on-a-base", "Keep treating a brace as a wall standing on a base",
+                     "A back or a rail between the sides stands on nothing; the sides carry it."),
+            ],
+        ),
     ]
 
 

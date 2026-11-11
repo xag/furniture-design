@@ -119,25 +119,64 @@ def order(boxes: dict[str, tuple[Vec, Vec]], view: View) -> list[str]:
     return out
 
 
-def faces(boxes: dict[str, tuple[Vec, Vec]], view: View) -> list[Face]:
-    """The faces each box shows to the viewer, back to front, with a shade by the way they
-    face: tops lightest, then the face turned most towards the viewer."""
+def _shade(normal: Vec, facing: float) -> float:
+    if normal[2] > 0.5:
+        return 0.0
+    if normal[2] < -0.5:
+        return 0.7
+    return 0.25 + 0.45 * (1 - facing)
+
+
+def _prism_faces(profile, view: View) -> list[tuple[list[Vec], Vec]]:
+    """The faces of an outline extruded across a board's thickness: its two caps and one
+    side per edge of the outline, each with its outward normal."""
     out = []
-    for key in order(boxes, view):
-        lo, hi = boxes[key]
-        for axis, side in _FACES:
-            normal = [0.0, 0.0, 0.0]
-            normal[axis] = 1.0 if side else -1.0
+    t_axis = [0.0, 0.0, 0.0]
+    t_axis[profile.t] = 1.0
+    cap1 = [profile.point(a, b, profile.t1) for a, b in profile.outline]
+    cap0 = [profile.point(a, b, profile.t0) for a, b in profile.outline]
+    # the outline is counter-clockwise in (u, v); whether that makes +t outward for cap1
+    # depends on the handedness of (u, v, t)
+    e_u = [0.0, 0.0, 0.0]
+    e_u[profile.u] = 1.0
+    e_v = [0.0, 0.0, 0.0]
+    e_v[profile.v] = 1.0
+    out.append((cap1, tuple(t_axis)))
+    out.append((cap0, tuple(-a for a in t_axis)))
+    pts = profile.outline
+    for (a0, b0), (a1, b1) in zip(pts, pts[1:] + pts[:1]):
+        du, dv = a1 - a0, b1 - b0
+        n = [0.0, 0.0, 0.0]
+        length = math.hypot(du, dv) or 1.0
+        n[profile.u], n[profile.v] = dv / length, -du / length   # outward for a CCW outline
+        out.append(([profile.point(a0, b0, profile.t0), profile.point(a1, b1, profile.t0),
+                     profile.point(a1, b1, profile.t1), profile.point(a0, b0, profile.t1)],
+                    tuple(n)))
+    return out
+
+
+def faces(boxes: dict, view: View) -> list[Face]:
+    """The faces each solid shows to the viewer, back to front, with a shade by the way they
+    face: tops lightest, then the face turned most towards the viewer. A solid is a box
+    (lo, hi) or a board (lo, hi, profile), drawn from its outline so a notch is a notch."""
+    out = []
+    bounds_only = {k: v[:2] for k, v in boxes.items()}
+    for key in order(bounds_only, view):
+        entry = boxes[key]
+        lo, hi = entry[0], entry[1]
+        if len(entry) > 2 and entry[2] is not None:
+            polys = _prism_faces(entry[2], view)
+        else:
+            polys = []
+            for axis, side in _FACES:
+                normal = [0.0, 0.0, 0.0]
+                normal[axis] = 1.0 if side else -1.0
+                polys.append((_corners(lo, hi, axis, side), tuple(normal)))
+        for corners, normal in polys:
             facing = -sum(n * dk for n, dk in zip(normal, view.direction))
             if facing <= 1e-6:
                 continue
-            if axis == 2 and side == 1:
-                shade = 0.0
-            elif axis == 2:
-                shade = 0.7
-            else:
-                shade = 0.25 + 0.45 * (1 - facing)
-            out.append(Face(key, [view.to2d(p) for p in _corners(lo, hi, axis, side)], shade))
+            out.append(Face(key, [view.to2d(p) for p in corners], _shade(normal, facing)))
     return out
 
 

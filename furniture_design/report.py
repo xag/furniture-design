@@ -31,6 +31,9 @@ TEXT = {
         "sideways_ok": "les connecteurs des panneaux qui la reprennent tiennent, {m} N de marge",
         "sideways_fail": "il manque {m} N : {why}",
         "sideways_unbraced": "aucun panneau dans le plan de la poussée ne la reprend",
+        "single": "une seule Clamex à chaque bout du panneau qui la reprend ne le tient pas "
+                  "d'équerre, et la moitié de la poussée n'a pas de chemin jusqu'au sol",
+        "weak": "les connecteurs ou les côtés ne tiennent pas ce qu'on leur demande",
         "sideways_open": "non tranché : {why}",
         "no_rating": "le connecteur n'a pas de valeur publiée de {mode} dans le {material}",
         "pull_out": "tenue à l'arrachement", "shear": "tenue au cisaillement",
@@ -107,7 +110,8 @@ def checks(tree: Quern, piece: str, lang: str = "fr") -> list[dict]:
             elif m >= 0:
                 row.update(result=T["sideways_ok"].format(m=_fmt(m, 0)), verdict="ok")
             else:
-                row.update(result=T["sideways_fail"].format(m=_fmt(-m, 0), why=""), verdict="fail")
+                why = T["single"] if abs(m + force / 2) < 1e-6 else T["weak"]
+                row.update(result=T["sideways_fail"].format(m=_fmt(-m, 0), why=why), verdict="fail")
         except Absent as e:
             got = re.search(r"states no (\w+) strength in (\S+)", str(e))
             why = T["no_rating"].format(mode=T.get(got.group(1), got.group(1)),
