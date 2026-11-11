@@ -155,6 +155,21 @@
     "digest": "2e0ada388c38"
   },
   {
+    "path": "only-the-owner-earns-from-the-knowledge",
+    "kind": "decision",
+    "digest": "ed2b6fa732e8"
+  },
+  {
+    "path": "only-the-owner-earns-from-the-knowledge/keep-the-odbl",
+    "kind": "alternative",
+    "digest": "8a79ee71ff97"
+  },
+  {
+    "path": "only-the-owner-earns-from-the-knowledge/no-maker-permission",
+    "kind": "alternative",
+    "digest": "49012351dba9"
+  },
+  {
     "path": "the-code-is-agpl-and-the-knowledge-odbl",
     "kind": "decision",
     "digest": "b6c161f4c8f0"

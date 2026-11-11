@@ -467,6 +467,28 @@ def entries() -> list[Node]:
                      "It has no clause making an app publish the database behind it."),
             ],
         ),
+        Node(
+            id="only-the-owner-earns-from-the-knowledge", kind="decision",
+            name="The knowledge base, the database knowledge() returns, is licensed CC BY-NC-SA 4.0 with one "
+                 "added permission (designing, building and selling furniture with it); any other commercial "
+                 "use of the data needs a commercial licence from the copyright holder. The code stays "
+                 "AGPL-3.0-or-later",
+            payload={"decided_on": "2026-11-11",
+                     "the_owner": "Je voudrais être le seul à pouvoir gagner de l'argent avec ces données",
+                     "why": "Under the ODbL anyone could sell an app on the data once they published the "
+                            "database behind it. CC BY-NC-SA 4.0 is a standard licence that also licenses "
+                            "database rights (section 4) for non-commercial use only, and lets the licensor "
+                            "offer separate terms (6(c)): commercial licences, and the added permission "
+                            "for makers. Single values a reader takes from the base are facts and stay "
+                            "outside any licence; extracting a substantial part is not."},
+            links={"supersedes": ["the-code-is-agpl-and-the-knowledge-odbl"]},
+            children=[
+                _alt("keep-the-odbl", "Keep the ODbL",
+                     "Lets anyone earn from the data once they publish their derived database."),
+                _alt("no-maker-permission", "CC BY-NC-SA with no added permission",
+                     "Leaves a maker who sells a piece designed with it unsure they may."),
+            ],
+        ),
     ]
 
 

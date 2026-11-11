@@ -73,10 +73,10 @@ There is no flight-recorder boundary: nothing here touches storage, the network,
 One licence for the code, one for the data:
 
 - **The code** (`furniture_design/`, `skills/`, `tests/`, `ledger/`) is licensed under the [GNU Affero General Public License v3.0 or later](LICENSE). Copyright 2026 Xavier Grehant; the skill `menuiserie-conception-meubles-design` copyright 2026 Joohee. Anyone who runs a modified copy as a network service must offer its users that copy's source.
-- **The knowledge base**, the database `furniture_design.knowledge.knowledge()` returns (its sources, clauses, materials, requirements and every value on them), is licensed under the [Open Database License v1.0](LICENSE-DATA). A database derived from it and used publicly, including one behind an app, must be offered under the ODbL as well. The code that builds it is code, under the AGPL.
+- **The knowledge base**, the database `furniture_design.knowledge.knowledge()` returns (its sources, clauses, materials, requirements and every value on them), is licensed under [Creative Commons Attribution-NonCommercial-ShareAlike 4.0](LICENSE-DATA), database rights included (its section 4). Anyone may use, share and adapt it for a non-commercial purpose, crediting it and sharing what they derive under the same licence. Any commercial use of the data, such as an app or a service that is paid for or earns money, needs a commercial licence from the copyright holder. One permission is given here in addition: designing, building and selling furniture with it is allowed, since what is sold is the furniture, not the data. The code that builds the base is code, under the AGPL.
 - Text copied under `sources/` keeps its own terms: the Wood Handbook and the Federal Register are in the public domain.
 
-Other terms, for instance to use the code or the data without share-alike, can be granted by the copyright holders. To contribute, see [CONTRIBUTING.md](CONTRIBUTING.md).
+A commercial licence for the data, or other terms for the code, can be granted by the copyright holders. To contribute, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Tests
 
