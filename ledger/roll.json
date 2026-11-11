@@ -230,6 +230,16 @@
     "digest": "df156d2335ca"
   },
   {
+    "path": "the-skill-holds-only-the-conversation",
+    "kind": "decision",
+    "digest": "9c60b9206626"
+  },
+  {
+    "path": "the-skill-holds-only-the-conversation/delete-the-skill",
+    "kind": "alternative",
+    "digest": "4308c90abfce"
+  },
+  {
     "path": "the-static-margin-predicts-the-stability-tests",
     "kind": "hypothesis",
     "digest": "4fdfa5b15c49"

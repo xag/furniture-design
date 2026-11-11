@@ -4,9 +4,7 @@ Sélection consultée le 11 novembre 2026. Références primaires, sans affiliat
 1. USDA Forest Products Laboratory, Wood Handbook: Wood as an Engineering Material, édition 2021, FPL-GTR-282.
    https://research.fs.usda.gov/fpl/wood-handbook
    https://research.fs.usda.gov/treesearch/62200
-   Référence sur propriétés du bois, assemblages, matériaux et finitions. Chapitre 13 pour humidité et variations dimensionnelles :
-   https://research.fs.usda.gov/treesearch/62261
-   Consulter le chapitre et les données appropriés avant d'employer une valeur numérique ; ne pas substituer une moyenne générique à la fiche d'un panneau.
+   Ses valeurs (densité, rigidité, résistance, mouvement du bois) sont déjà dans la base de connaissances du dépôt, citées clause par clause : https://github.com/xag/furniture-design/blob/main/furniture_design/knowledge.py. Ne pas substituer une moyenne générique à la fiche d'un panneau.
 
 2. INRS, Utilisation de machines et outils à bois.
    https://www.inrs.fr/metiers/metiers-du-bois/transformation-du-bois/machine-outil.html

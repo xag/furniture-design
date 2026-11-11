@@ -425,6 +425,23 @@ def entries() -> list[Node]:
                      "Would forbid a maker to sell a piece designed with it."),
             ],
         ),
+        Node(
+            id="the-skill-holds-only-the-conversation", kind="decision",
+            name="The skill menuiserie-conception-meubles-design leads the conversation with a beginner (use, "
+                 "space, tools, concept, plain-words verdicts, assembly) and links to the repo's tools; it "
+                 "holds no check, no calculator and no instruction to draw or type a plan, a cut list or "
+                 "assembly steps, which the rules and documents() produce",
+            payload={"decided_on": "2026-11-11",
+                     "the_owner": "réduis la skill à la partie conversation et mets les liens vers les outils du repo",
+                     "why": "Its geometry checklist and cabinet calculator repeated what the model and "
+                            "cut_list do, and its delivery step had the agent write by hand the documents "
+                            "documents() generates."},
+            links={"rests_on": ["the-documents-are-for-the-people-who-build"]},
+            children=[
+                _alt("delete-the-skill", "Delete the skill",
+                     "The conversation with a beginner (what to ask, how to explain a red rule) is in no tool."),
+            ],
+        ),
     ]
 
 
