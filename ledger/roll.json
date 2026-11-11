@@ -175,6 +175,21 @@
     "digest": "3ae4c7d50b3c"
   },
   {
+    "path": "the-frame-holds-by-every-joint-between-uprights-and-cross-parts",
+    "kind": "decision",
+    "digest": "2d45a521e551"
+  },
+  {
+    "path": "the-frame-holds-by-every-joint-between-uprights-and-cross-parts/braces-only",
+    "kind": "alternative",
+    "digest": "d79ff6b57141"
+  },
+  {
+    "path": "the-frame-holds-by-every-joint-between-uprights-and-cross-parts/sum-both-ways",
+    "kind": "alternative",
+    "digest": "ecb602726189"
+  },
+  {
     "path": "the-method-is-public-and-names-no-home",
     "kind": "decision",
     "digest": "350516740f94"

@@ -377,6 +377,30 @@ def entries() -> list[Node]:
                      "A back or a rail between the sides stands on nothing; the sides carry it."),
             ],
         ),
+        Node(
+            id="the-frame-holds-by-every-joint-between-uprights-and-cross-parts", kind="decision",
+            name="A piece takes a sideways push by its braces or by its frame, the better answering: for "
+                 "the frame, the check walks the joints and counts every one between an upright (a side) "
+                 "and a part across it (top, shelf, rail), each resisting with its connectors' rated "
+                 "moment, bent open at one end of a cross part and shut at the other; together they hold "
+                 "the top against the sum of those moments over the piece's height. A way that cannot be "
+                 "judged leaves the check absent unless the other holds",
+            payload={"decided_on": "2026-11-11",
+                     "the_owner": "Il y a les contraintes apportées par les autres pièces. La traverse seule "
+                                  "ne fait pas tout le job. C'est peut-être un cas de règle qui traversent le "
+                                  "graphe",
+                     "why": "Counting only braces called a piece short of the whole push the moment it had "
+                            "no panel across, as if its other joints did nothing. Every corner joint has to "
+                            "turn for the piece to lean, and a published test of the Clamex P-14 as a "
+                            "corner joint (Janíková et al. 2025, CC BY) rates how much each resists."},
+            links={"rests_on": ["a-brace-passes-the-bend-of-the-sides-below-it"]},
+            children=[
+                _alt("braces-only", "Count only panels in the plane of the push",
+                     "Turned down by the owner: the other parts' joints hold the piece too."),
+                _alt("sum-both-ways", "Add the braces' and the frame's resistance",
+                     "They stiffen the piece in different ways; the better one alone is the safe side."),
+            ],
+        ),
     ]
 
 

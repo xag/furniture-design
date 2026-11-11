@@ -115,11 +115,11 @@ _BENDING = 5 / 384 * _W * 1000 ** 3 * 12 / (10_000 * 100 * 10 ** 3)
 _SHEAR = 1 / 8 * _W * 1000 * 6 / (5 * 700 * 100 * 10)
 
 def braced(top_count: float = 4, side_count: float = 2, brace: bool = True,
-            key: str = "wood") -> list[Node]:
+            key: str = "wood", moment: float = 5000) -> list[Node]:
     """A seat 1040 wide: two 20 mm sides 600 tall, a top on them, and a back panel 1000 wide
     and 500 tall between the sides, under the top, joined to the top and to each side. The
     connector carries 500 N in shear and 1000 N in pull-out in `wood`; the case asks for
-    900 N across."""
+    900 N across. Bent open or shut as a corner joint, it resists `moment` N mm."""
     def q(v: float, unit: str = "") -> Quantity:
         return Quantity(value=v, unit=unit, provenance="design-target", grounded=False)
 
@@ -140,7 +140,9 @@ def braced(top_count: float = 4, side_count: float = 2, brace: bool = True,
     panel = Node(id="panel", kind="material", payload={"connector_key": key},
                  params={"design_bending_stress": q(10, "MPa")})
     c = Node(id="c", kind="connector", params={"shear_wood": q(500, "N"),
-                                               "pull_out_wood": q(1000, "N")})
+                                               "pull_out_wood": q(1000, "N"),
+                                               "moment_opening_wood": q(moment, "N mm"),
+                                               "moment_closing_wood": q(moment, "N mm")})
     case = Node(id="across", kind="requirement", params={"side_force": q(900, "N")})
     return [seat, Node(id="materials", kind="", children=[panel]),
             Node(id="connectors", kind="", children=[c]),
@@ -161,9 +163,14 @@ SPEC = {
         d("sideways_margin", braced(top_count=1), ["seat", "requirements/across"], expect=-400,
           because="one connector along the top edge takes the whole 900 N against 500"),
         d("sideways_margin", braced(brace=False), ["seat", "requirements/across"],
-          expect=-900,
-          because="an unbraced piece would rely on joints resisting bending, which nothing "
-                  "here rates: the whole force is its shortfall"),
+          expect=4 * 5000 / 620 - 900,
+          because="unbraced, only its frame holds it: the back's two side joints, 2 "
+                  "connectors each at 5000 N mm, resist 20000 N mm, a force of 20000/620 at "
+                  "its 620 mm top, far short of 900"),
+        d("sideways_margin", braced(brace=False, moment=200_000), ["seat", "requirements/across"],
+          expect=4 * 200_000 / 620 - 900,
+          because="with joints forty times stiffer in bending, the frame alone holds: "
+                  "800000/620 - 900"),
         d("sideways_margin", braced(key="plywood"), ["seat", "requirements/across"],
           expect_error="states no shear strength in plywood",
           because="a connector rated only in other materials says nothing about this one"),

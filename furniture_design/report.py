@@ -31,12 +31,14 @@ TEXT = {
         "sideways_ok": "les connecteurs des panneaux qui la reprennent tiennent, {m} N de marge",
         "sideways_fail": "il manque {m} N : {why}",
         "sideways_unbraced": "aucun panneau dans le plan de la poussée ne la reprend",
-        "single": "une seule Clamex à chaque bout du panneau qui la reprend ne le tient pas "
-                  "d'équerre, et la moitié de la poussée n'a pas de chemin jusqu'au sol",
+        "single": "ni les panneaux dans le plan de la poussée, ni la flexion de tous les "
+                  "assemblages entre les côtés et les pièces horizontales ne la reprennent",
         "weak": "les connecteurs ou les côtés ne tiennent pas ce qu'on leur demande",
         "sideways_open": "non tranché : {why}",
         "no_rating": "le connecteur n'a pas de valeur publiée de {mode} dans le {material}",
         "pull_out": "tenue à l'arrachement", "shear": "tenue au cisaillement",
+        "moment_opening": "tenue en flexion (assemblage d'angle ouvert)",
+        "moment_closing": "tenue en flexion (assemblage d'angle fermé)",
         "joints": "Assemblages : épaisseur et largeur des pièces, outil et réglage du connecteur",
         "joints_ok": "{n} assemblages, tous conformes aux minimums du fabricant",
         "joints_fail": "non conforme : {which}",

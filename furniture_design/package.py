@@ -106,9 +106,14 @@ VOCABULARY = [
         "payload maker and setting (the machine setting its seat is cut at, when it has "
         "one); params its limits — min_width (mm, the narrowest part it may join), "
         "min_thickness_<cut> (mm, per kind of cut: edge, surface, intermediate, mitre), "
-        "pull_out_<material> and shear_<material> (N) — each derived from a clause."),
+        "pull_out_<material> and shear_<material> (N), moment_opening_<material> and "
+        "moment_closing_<material> (N mm: one connector's share of what a corner joint "
+        "resists being bent open or shut) — each derived from a clause."),
         params={"min_width": "mm", "min_thickness_<cut>": "mm", "pull_out_<material>": "N",
-                "shear_<material>": "N"},
+                "shear_<material>": "N",
+                "moment_opening_<material>": "N mm, one connector's share of what a corner "
+                                             "joint resists being bent open",
+                "moment_closing_<material>": "N mm, the same, bent shut"},
         links={"needs": "the tools that can cut its seat; any one of them will do",
                "per": "the clauses its limits come from"}),
     KindDef(kind="joint", description=(
@@ -337,7 +342,11 @@ def _joinery(*, thickness: float = 18, width: float = 300, tool: str = "tools/gr
                                             "shear_birch-yellow": Quantity(
                                         value=600, unit="N", provenance="published"),
                                             "pull_out_birch-yellow": Quantity(
-                                        value=1000, unit="N", provenance="published")})])
+                                        value=1000, unit="N", provenance="published"),
+                                            "moment_opening_birch-yellow": Quantity(
+                                        value=5000, unit="N mm", provenance="published"),
+                                            "moment_closing_birch-yellow": Quantity(
+                                        value=5000, unit="N mm", provenance="published")})])
     per = ["sources/example-catalogue/technical-data"] if cited else []
     connector = Node(id="example-connector", kind="connector",
                      payload={"maker": "an example maker", "setting": "S-1"},
@@ -351,6 +360,12 @@ def _joinery(*, thickness: float = 18, width: float = 300, tool: str = "tools/gr
                                  derived_from=["sources/example-catalogue/technical-data"]),
                              "pull_out_birch-yellow": Quantity(
                                  value=1000, unit="N", provenance="derived",
+                                 derived_from=["sources/example-catalogue/technical-data"]),
+                             "moment_opening_birch-yellow": Quantity(
+                                 value=5000, unit="N mm", provenance="derived",
+                                 derived_from=["sources/example-catalogue/technical-data"]),
+                             "moment_closing_birch-yellow": Quantity(
+                                 value=5000, unit="N mm", provenance="derived",
                                  derived_from=["sources/example-catalogue/technical-data"])},
                      links={"needs": ["tools/groove-cutter"], "per": per})
     tools = [Node(id="groove-cutter", kind="tool", payload={"maker": "an example maker"}),
@@ -481,7 +496,7 @@ COUNTER_EXAMPLES = [
 
 PACKAGE = Package(
     name="furniture-design",
-    version="0.5.1",
+    version="0.5.2",
     description=(
         "Furniture designs and the published knowledge they are judged against. Kinds: "
         "source and clause (a publication and its verbatim, located statements, with the "

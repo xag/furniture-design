@@ -291,11 +291,104 @@ def _material(tree: Quern, path: str):
     return get_node(tree, uses[0]) if uses else None
 
 
+def _rated(tree: Quern, jpath: str, mode: str, parts: tuple[str, ...]) -> float:
+    """What a joint's connector is rated for in `mode` (shear, pull_out, moment_opening,
+    ...), in the weaker of the joined parts' materials (their `connector_key`)."""
+    out = []
+    for part in parts:
+        key = ((_material(tree, part) or Node(id="x", kind="")).payload or {}).get(
+            "connector_key")
+        got = _param(tree, jpath, f"{mode}_{key}") if key else None
+        if got is None:
+            raise Absent(f"the connector of '{jpath}' states no {mode} strength in "
+                         f"{key or 'the material of ' + part}")
+        out.append(got)
+    return min(out)
+
+
+def _count(tree: Quern, jpath: str) -> float:
+    n = _param(tree, jpath, "count")
+    if n is None:
+        raise Absent(f"joint '{jpath}' states no count of connectors")
+    return n
+
+
 def sideways_margin(tree: Quern, piece: str, case: str) -> float:
+    """N: whether `piece` takes the requirement `case`'s `side_force` F across it at the
+    height of its top, by either of the two ways a piece of furniture does, the better
+    one answering:
+
+    - its braces (_brace_margin): panels standing in the plane of the push, held at their
+      edges by connectors working in shear and pull-out;
+    - its frame (_frame_margin): for the piece to lean over, every joint between an upright
+      (a part thin across, like a side) and a part across it (a top, a shelf, a rail) has
+      to turn; the joints resist with their connectors' resistance to being bent open or
+      shut, and the piece holds if together they resist more than F times its height.
+
+    Whichever holds answers. If neither does, a way that could not be judged (a connector
+    not rated in a material) leaves the check absent, since it might have held; if both
+    were judged, the better shortfall is the answer."""
+    node = get_node(tree, piece)
+    if node is None:
+        raise ValueError(f"no piece at '{piece}'")
+    force = _param(tree, case, "side_force")
+    if force is None:
+        raise ValueError(f"requirement '{case}' states no side_force")
+    judged, unknown = [], None
+    for way in (_brace_margin, _frame_margin):
+        try:
+            judged.append(way(tree, piece, force))
+        except Absent as e:
+            unknown = unknown or e
+    best = max(judged) if judged else None
+    if best is not None and best >= 0:
+        return best
+    if unknown is not None:
+        raise unknown
+    return best
+
+
+def _frame_margin(tree: Quern, piece: str, force: float) -> float:
+    """N: what the frame's joints resist, as a force at the top, less F. For the piece to
+    lean by an angle, each joint between an upright and a part across it turns by that
+    angle while the top moves sideways by its height times the angle; so the joints hold
+    the top against a force of the sum of their resisting moments over the height. One end
+    of each cross part is bent shut as the other is bent open, so a joint is counted at the
+    mean of its connectors' `moment_opening_<key>` and `moment_closing_<key>`, times its
+    count. A piece with no such joint: -F."""
+    bs = bodies(tree, piece)
+    box = {b.path: b for b in bs}
+    floor = min(b.lo[2] for b in bs)
+    height = max(b.hi[2] for b in bs) - floor
+
+    def upright(b) -> bool:
+        size = [h - lo for lo, h in zip(b.lo, b.hi)]
+        return size[0] < min(size[1], size[2])
+
+    total, found = 0.0, False
+    for jpath, j in tree.walk(""):
+        if j.kind != "joint":
+            continue
+        joined = ["/".join(_segs(t)) for t in j.links.get("joins", [])]
+        if len(joined) != 2 or not all(p in box for p in joined):
+            continue
+        if upright(box[joined[0]]) == upright(box[joined[1]]):
+            continue
+        found = True
+        n = _count(tree, jpath)
+        opening = _rated(tree, jpath, "moment_opening", tuple(joined))
+        closing = _rated(tree, jpath, "moment_closing", tuple(joined))
+        total += n * (opening + closing) / 2
+    if not found:
+        return -force
+    return total / height - force
+
+
+def _brace_margin(tree: Quern, piece: str, force: float) -> float:
     """N: the smallest margin, connector by connector, between what the connectors around
     the panels that brace `piece` across (the parts it links as `braced_by`) are rated for
-    and what the requirement `case`'s `side_force` F asks of them; and between what the
-    sides below a brace can take in bending and what they are asked.
+    and what F asks of them; and between what the sides below a brace can take in bending
+    and what they are asked.
 
     A brace is a panel standing in the plane of the push (x across, z up), as a back or a
     rail does, held along its two side edges by the parts beside it. The push enters along
@@ -314,19 +407,13 @@ def sideways_margin(tree: Quern, piece: str, case: str) -> float:
       times its section (its depth times its thickness squared over 6), given here as the
       force at the floor it leaves to spare.
     A side edge with a single connector cannot pass a moment: if the brace stops above the
-    floor, half the push has no way down, and the margin is -F/2. A piece with no brace
-    carries nothing across by this path: -F (its joints would have to resist bending, which
-    no source here rates).
+    floor, half the push has no way down by this path, and the margin is -F/2. A piece with
+    no brace carries nothing across by this path: -F.
 
     Absent, rather than answered: a joint with no count, a connector that states no
     strength in a joined material, a side with no design bending stress. Refused: a brace
     whose top edge or a side edge is joined to nothing."""
     node = get_node(tree, piece)
-    if node is None:
-        raise ValueError(f"no piece at '{piece}'")
-    force = _param(tree, case, "side_force")
-    if force is None:
-        raise ValueError(f"requirement '{case}' states no side_force")
     braces = node.links.get("braced_by", [])
     if not braces:
         return -force
@@ -336,22 +423,10 @@ def sideways_margin(tree: Quern, piece: str, case: str) -> float:
     joints = [(p, n) for p, n in tree.walk("") if n.kind == "joint"]
 
     def rated(jpath: str, mode: str, parts: tuple[str, str]) -> float:
-        out = []
-        for part in parts:
-            key = ((_material(tree, part) or Node(id="x", kind="")).payload or {}).get(
-                "connector_key")
-            got = _param(tree, jpath, f"{mode}_{key}") if key else None
-            if got is None:
-                raise Absent(f"the connector of '{jpath}' states no {mode} strength in "
-                             f"{key or 'the material of ' + part}")
-            out.append(got)
-        return min(out)
+        return _rated(tree, jpath, mode, parts)
 
     def count(jpath: str) -> float:
-        n = _param(tree, jpath, "count")
-        if n is None:
-            raise Absent(f"joint '{jpath}' states no count of connectors")
-        return n
+        return _count(tree, jpath)
 
     worst = math.inf
     for brace in braces:
