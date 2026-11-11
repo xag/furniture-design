@@ -37,6 +37,8 @@ Lire references/controle-technique.md avant les plans ou le débit. Définir un 
 
 Utiliser scripts/caisson.py seulement pour sa géométrie documentée : côtés toute hauteur, dessus/dessous entre côtés, fond rapporté inclus dans la profondeur totale, tablettes sans division. Employer --help. Le calculateur vérifie la géométrie, jamais la résistance. Pour tout autre assemblage, établir et vérifier les équations adaptées.
 
+Quand l'environnement exécute Python, décrire le meuble avec les types du paquet quern furniture-design@ de ce dépôt et lancer ses règles (README, « Using it ») : une `piece`, ses `part` avec dimensions en mm et matériau lié par `uses`, les `load` (personne assise, objets), les `joint` avec leur connecteur et l'outil qui les usine. Les règles vérifient la contrainte et la flèche des pièces qui portent, le sens du fil, l'épaisseur et la largeur qu'exige un connecteur, et la stabilité des meubles à tiroirs. Une règle rouge signale une pièce à corriger ou une donnée à fournir, par exemple un outil non choisi. Quand les règles ne couvrent pas la question (effort latéral, tenue d'un connecteur dans ce matériau), la noter comme point ouvert du dossier et la signaler pour qu'elle soit ajoutée au paquet, plutôt que de la trancher par un calcul isolé.
+
 Évaluer le chemin de charge, la flexion, les liaisons, le contreventement (empêcher le meuble de se déformer de côté) et le basculement séparément. Ne jamais annoncer « supporte X kg » sur la base d'une épaisseur ou d'un rendu. Pour banc, lit, chaise, meuble suspendu ou porte-à-faux, expliciter le besoin d'une justification adaptée ; proposer des renforts ou un examen professionnel si les données ne suffisent pas. Continuer le travail esthétique possible.
 
 ### 4. Livrer au bon niveau
