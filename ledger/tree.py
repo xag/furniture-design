@@ -145,6 +145,25 @@ def entries() -> list[Node]:
             ],
         ),
         Node(
+            id="a-copyrighted-source-is-cited-by-locator-and-values", kind="decision",
+            name="A clause from a copyrighted source (a maker's page, a paywalled standard) carries its "
+                 "locator and the values it states, and no quote; its source records the url and the sha256 "
+                 "of what was fetched, and the copy the values can be checked against is kept in a private "
+                 "repo. The clause rule accepts a clause without a quote only when its source says "
+                 "licence: copyrighted",
+            payload={"decided_on": "2026-11-11",
+                     "the_owner": "Public, cite without quote",
+                     "why": "The values are facts a rule needs; the words are the publisher's. A test holds "
+                            "that no clause of a copyrighted source in this repo carries a quote."},
+            links={"rests_on": ["a-copyrighted-standard-is-cited-never-copied-here"]},
+            children=[
+                _alt("private-maker-packages", "Keep a maker's package private, with its quotes",
+                     "A collaborator could not sync it from the private registry."),
+                _alt("short-quotes-as-facts", "Quote the short specification lines publicly as facts",
+                     "Weakens the rule that copyrighted text is never copied in, one line at a time."),
+            ],
+        ),
+        Node(
             id="a-makers-products-are-their-own-package", kind="decision",
             name="Knowledge of one maker's products (Lamello's connectors and machines) is not in "
                  "furniture-design@: it is an unofficial package of its own, which requires furniture-design@ "

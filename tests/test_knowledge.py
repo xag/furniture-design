@@ -34,6 +34,30 @@ def test_every_quote_is_in_the_capture_of_its_source(source, clause):
         f"{clause.id}: the quote is not in {capture.name}"
 
 
+def test_no_copyrighted_words_are_quoted_in_this_repo():
+    """Ledger: a-copyrighted-standard-is-cited-never-copied-here. The package's examples
+    hold a copyrighted catalogue, cited by locator and values; none of its clauses carries
+    a quote."""
+    from furniture_design.package import PACKAGE
+    cited = [s for top in PACKAGE.examples if top.id == "sources" for s in top.children
+             if s.payload.get("licence") == "copyrighted"]
+    assert cited
+    assert all("quote" not in c.payload for s in cited for c in s.children)
+
+
+def test_knowledge_mounted_under_a_branch_keeps_its_links():
+    from quern import Quern, run_rules
+
+    from furniture_design.knowledge import knowledge, mount
+    from furniture_design.package import PACKAGE
+    tree = Quern(vocabulary=PACKAGE.vocabulary, rules=PACKAGE.rules, solvers=PACKAGE.solvers)
+    tree.root.children = [mount(knowledge(), "knowledge")]
+    oak = tree.get("knowledge/materials/oak-northern-red")
+    assert oak.links["per"][0].startswith("knowledge/sources/wood-handbook/")
+    assert oak.params["density"].derived_from[0].startswith("knowledge/sources/")
+    assert [r for r in run_rules(tree) if not r.ok] == []
+
+
 # Table 4-2 as printed (°C, relative humidity, moisture content %), across its range
 TABLE_4_2 = [(-1.1, 0.05, 1.4), (21.1, 0.30, 6.2), (21.1, 0.50, 9.2), (21.1, 0.65, 12.0),
              (21.1, 0.80, 16.0), (48.9, 0.95, 22.0), (87.8, 0.40, 5.0)]

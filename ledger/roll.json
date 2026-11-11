@@ -10,6 +10,21 @@
     "digest": "d5db7f755821"
   },
   {
+    "path": "a-copyrighted-source-is-cited-by-locator-and-values",
+    "kind": "decision",
+    "digest": "19d58e2a5c0e"
+  },
+  {
+    "path": "a-copyrighted-source-is-cited-by-locator-and-values/private-maker-packages",
+    "kind": "alternative",
+    "digest": "09f101b9fb7d"
+  },
+  {
+    "path": "a-copyrighted-source-is-cited-by-locator-and-values/short-quotes-as-facts",
+    "kind": "alternative",
+    "digest": "80eb90ecbdfa"
+  },
+  {
     "path": "a-copyrighted-standard-is-cited-never-copied-here",
     "kind": "decision",
     "digest": "7283261b7592"

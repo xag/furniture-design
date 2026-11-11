@@ -394,3 +394,40 @@ def knowledge() -> list[Node]:
     """The three top-level branches a design tree mounts: sources, materials, requirements."""
     return [Node(id="sources", kind="", children=[wood_handbook(), federal_register()]),
             materials(), requirements()]
+
+
+def merge(*branches: list[Node]) -> list[Node]:
+    """Several knowledge bases as one: top-level branches with the same id (sources,
+    materials...) become one branch holding the children of each. A child id two of them
+    use is refused, since one path would then name two things."""
+    out: dict[str, Node] = {}
+    for nodes in branches:
+        for node in nodes:
+            held = out.setdefault(node.id, Node(id=node.id, kind=node.kind))
+            ids = {c.id for c in held.children}
+            clash = ids & {c.id for c in node.children}
+            if clash:
+                raise ValueError(f"'{node.id}/{sorted(clash)[0]}' is defined by two knowledge bases")
+            held.children.extend(c.model_copy(deep=True) for c in node.children)
+    return list(out.values())
+
+
+def mount(nodes: list[Node], under: str) -> Node:
+    """`nodes` (top-level branches) moved under one branch `under`, every link and every
+    `derived_from` that pointed into them rewritten to the new place — so a tree that has
+    its own top-level `requirements/` can carry the knowledge beside it as
+    `<under>/requirements/...`."""
+    tops = {n.id for n in nodes}
+
+    def moved(ref: str) -> str:
+        return f"{under}/{ref}" if ref.split("/", 1)[0] in tops else ref
+
+    def walk(node: Node) -> Node:
+        node = node.model_copy(deep=True)
+        node.links = {rel: [moved(t) for t in targets] for rel, targets in node.links.items()}
+        for q in node.params.values():
+            q.derived_from = [moved(r) for r in q.derived_from]
+        node.children = [walk(c) for c in node.children]
+        return node
+
+    return Node(id=under, kind="", children=[walk(n) for n in nodes])

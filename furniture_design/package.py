@@ -31,7 +31,9 @@ VOCABULARY = [
     KindDef(kind="clause", description=(
         "A located statement of its parent source: payload locator (chapter, table, page) "
         "and quote (verbatim); transcribed when the statement is an equation or a table row "
-        "text extraction cannot read, read from the page and marked as transcription. Its "
+        "text extraction cannot read, read from the page and marked as transcription. A "
+        "clause of a copyrighted source carries its locator and no quote: the words are the "
+        "publisher's, and the copy they can be checked against is kept where it may be. Its "
         "params are the quantities it states, converted to SI, provenance published."),
         params={"(any)": "a quantity the clause states, in SI, its original wording in note"}),
     KindDef(kind="material", description=(
@@ -76,12 +78,37 @@ VOCABULARY = [
         "has."),
         params={"mass": "kg, when it is not its volume times its material's density",
                 "span": "mm between supports", "depth": "mm, the beam's width b",
-                "thickness": "mm, the beam's depth h", "storage_volume": "mm3",
+                "thickness": "mm, the beam's depth h, and a joined panel's thickness",
+                "width": "mm, a joined panel's width", "storage_volume": "mm3",
                 "clearance": "mm the part may grow across the grain before it is stopped"},
         links={"uses": "its material", "bends_as": "the Table 9-1 clause for its loading "
                "and supports", "sag_limit": "the longtime-sag requirements it is held to",
                "moves_in": "the climates it lives in",
                "moves_per": "the clause of the movement equation it is judged by"}),
+    KindDef(kind="tool", description=(
+        "A machine or jig that cuts or drills what a joint needs: payload maker and what it "
+        "does. A design names the tools it is made with; a connector names the tools that "
+        "can cut its seat."),
+        links={"per": "the clauses that say what it does"}),
+    KindDef(kind="connector", description=(
+        "A manufactured element that joins parts (a knock-down fitting, a biscuit, a dowel): "
+        "payload maker and setting (the machine setting its seat is cut at, when it has "
+        "one); params its limits — min_width (mm, the narrowest part it may join), "
+        "min_thickness_<cut> (mm, per kind of cut: edge, surface, intermediate, mitre), "
+        "pull_out_<material> and shear_<material> (N) — each derived from a clause."),
+        params={"min_width": "mm", "min_thickness_<cut>": "mm", "pull_out_<material>": "N",
+                "shear_<material>": "N"},
+        links={"needs": "the tools that can cut its seat; any one of them will do",
+               "per": "the clauses its limits come from"}),
+    KindDef(kind="joint", description=(
+        "Where parts are joined. Links joins (the parts), uses (the connector it is made "
+        "with, whose limits it reads as its own) and made_with (the tools that cut it); "
+        "payload cut (edge, surface, intermediate or mitre: which of the connector's "
+        "min_thickness_<cut> applies) and setting (the machine setting it is cut at); param "
+        "count (connectors in it). A joined part states its width and thickness."),
+        params={"count": "connectors in the joint"},
+        links={"joins": "the parts it joins", "uses": "its connector",
+               "made_with": "the tools it is cut with"}),
     KindDef(kind="climate", description=(
         "The air a piece lives in: params temperature (°C) and rh_min and rh_max, the "
         "driest and dampest relative humidity it sees, as decimals; a design states it "
@@ -98,8 +125,36 @@ VOCABULARY = [
 
 RULES = [
     Rule(name="a-clause-quotes-its-source", kind="clause",
-         expr="len(payload(self, 'quote', '')) > 0 and some(s, nodes('source'), s == parent(self))",
-         description="A clause sits under the source it is quoted from and quotes it."),
+         expr="some(s, nodes('source'), s == parent(self)) "
+              "and len(payload(self, 'locator', '')) > 0 "
+              "and (len(payload(self, 'quote', '')) > 0 "
+              "or payload(parent(self), 'licence', '') == 'copyrighted')",
+         description="A clause sits under the source it comes from, says where in it, and "
+                     "quotes it, unless the source is copyrighted: then it carries the "
+                     "values and the locator, and the words stay with their publisher."),
+    Rule(name="a-connector-rests-on-clauses", kind="connector",
+         expr="len(linked(self, 'per')) > 0 and "
+              "every(c, linked(self, 'per'), some(k, nodes('clause'), k == c))",
+         description="A connector links `per` to the clauses its limits come from."),
+    Rule(name="a-joined-part-is-thick-enough-for-the-cut", kind="joint",
+         expr="every(p, linked(self, 'joins'), "
+              "param(p, 'thickness') >= param(self, 'min_thickness_' + payload(self, 'cut')))",
+         description="Every part a joint joins is at least as thick as its connector allows "
+                     "for the kind of cut the joint is (the connector's min_thickness_<cut>, "
+                     "read through `uses`)."),
+    Rule(name="a-joined-part-is-wide-enough", kind="joint",
+         expr="every(p, linked(self, 'joins'), param(p, 'width') >= param(self, 'min_width'))",
+         description="Every part a joint joins is at least as wide as its connector allows."),
+    Rule(name="a-joint-is-cut-with-a-tool-its-connector-takes", kind="joint",
+         expr="len(linked(self, 'made_with')) > 0 and every(c, linked(self, 'uses'), "
+              "some(t, linked(c, 'needs'), some(m, linked(self, 'made_with'), m == t)))",
+         description="A joint names the tools it is cut with, and one of them is a tool its "
+                     "connector's seat can be cut with."),
+    Rule(name="a-joint-is-cut-at-its-connectors-setting", kind="joint",
+         expr="every(c, linked(self, 'uses'), payload(c, 'setting', '') == '' "
+              "or payload(self, 'setting', '') == payload(c, 'setting', ''))",
+         description="When a connector's seat is cut at a machine setting, the joint says it "
+                     "is cut at that setting."),
     Rule(name="a-requirement-rests-on-clauses", kind="requirement",
          expr="len(linked(self, 'per')) > 0 and "
               "every(c, linked(self, 'per'), some(k, nodes('clause'), k == c))",
@@ -236,14 +291,54 @@ def _cabinet(clearance_mm: float, rh_max: float) -> list[Node]:
             Node(id="cabinet", kind="piece", children=[panel])]
 
 
+def _joinery(*, thickness: float = 18, width: float = 300, tool: str = "tools/groove-cutter",
+             setting: str = "S-1", cited: bool = True) -> tuple[Node, list[Node], Node]:
+    """An invented maker's catalogue (copyrighted: cited, not quoted), the connector and the
+    tool it describes, and a box whose two sides it joins at the corner, surface cut."""
+    catalogue = Node(id="example-catalogue", kind="source", name="An example maker's catalogue",
+                     payload={"publisher": "an example maker", "licence": "copyrighted",
+                              "url": "https://example.com/connector"},
+                     children=[Node(id="technical-data", kind="clause",
+                                    payload={"locator": "technical data table"},
+                                    params={"min_thickness_surface": Quantity(
+                                        value=15, unit="mm", provenance="published"),
+                                            "min_width": Quantity(value=75, unit="mm",
+                                                                  provenance="published")})])
+    per = ["sources/example-catalogue/technical-data"] if cited else []
+    connector = Node(id="example-connector", kind="connector",
+                     payload={"maker": "an example maker", "setting": "S-1"},
+                     params={"min_thickness_surface": Quantity(
+                                 value=15, unit="mm", provenance="derived",
+                                 derived_from=["sources/example-catalogue/technical-data"]),
+                             "min_width": Quantity(value=75, unit="mm", provenance="derived",
+                                                   derived_from=["sources/example-catalogue/technical-data"])},
+                     links={"needs": ["tools/groove-cutter"], "per": per})
+    tools = [Node(id="groove-cutter", kind="tool", payload={"maker": "an example maker"}),
+             Node(id="drill", kind="tool", payload={"maker": "any"})]
+
+    def side(id_: str) -> Node:
+        return Node(id=id_, kind="part", links={"uses": ["materials/birch-yellow"]},
+                    params={"width": _target(width, "mm", ""), "thickness": _target(thickness, "mm", "")},
+                    payload={"shape": {"op": "box", "size": ["thickness", "width", 400]}})
+    joint = Node(id="corner", kind="joint", payload={"cut": "surface", "setting": setting},
+                 params={"count": _target(2, "", "two connectors")},
+                 links={"joins": ["pieces/box/left", "pieces/box/top"],
+                        "uses": ["connectors/example-connector"], "made_with": [tool]})
+    box = Node(id="box", kind="piece", children=[side("left"), side("top"), joint])
+    return catalogue, [Node(id="connectors", kind="", children=[connector]),
+                       Node(id="tools", kind="", children=tools)], box
+
+
 def _world(*, chest: Node | None = None, sag_limit: float = 4.0, clearance: float = 8.0,
-           rh_max: float = 0.65) -> list[Node]:
+           rh_max: float = 0.65, **joinery) -> list[Node]:
     kb = knowledge()
     sag, bookshelf = _shelf(sag_limit)
     kb[2].children.append(sag)
     climates, cabinet = _cabinet(clearance, rh_max)
-    return kb + [climates,
-                 Node(id="pieces", kind="", children=[chest or _chest(), bookshelf, cabinet])]
+    catalogue, hardware, box = _joinery(**joinery)
+    kb[0].children.append(catalogue)
+    return kb + hardware + [climates, Node(id="pieces", kind="", children=[
+        chest or _chest(), bookshelf, cabinet, box])]
 
 
 EXAMPLES = _world()
@@ -294,11 +389,23 @@ COUNTER_EXAMPLES = [
     CounterExample(rule="a-moving-part-has-room-to-move", nodes=_world(clearance=4.0),
                    because="400 mm of flat-sawn oak moves about 7.1 mm between 30% and 65% "
                            "humidity, and the groove leaves it 4"),
+    CounterExample(rule="a-connector-rests-on-clauses", nodes=_world(cited=False),
+                   because="a connector whose limits come from no clause"),
+    CounterExample(rule="a-joined-part-is-thick-enough-for-the-cut", nodes=_world(thickness=12),
+                   because="12 mm sides joined with a surface cut that needs 15"),
+    CounterExample(rule="a-joined-part-is-wide-enough", nodes=_world(width=60),
+                   because="60 mm wide sides, where the connector needs 75"),
+    CounterExample(rule="a-joint-is-cut-with-a-tool-its-connector-takes",
+                   nodes=_world(tool="tools/drill"),
+                   because="a joint cut with a drill, for a connector whose seat only the "
+                           "groove cutter makes"),
+    CounterExample(rule="a-joint-is-cut-at-its-connectors-setting", nodes=_world(setting="S-2"),
+                   because="the seat cut at the wrong machine setting"),
 ]
 
 PACKAGE = Package(
     name="furniture-design",
-    version="0.2.0",
+    version="0.3.0",
     description=(
         "Furniture designs and the published knowledge they are judged against. Kinds: "
         "source and clause (a publication and its verbatim, located statements, with the "
@@ -309,7 +416,7 @@ PACKAGE = Package(
         "stability cases (furniture/tipping_cases); a part bends within its longtime sag "
         "limit (Wood Handbook Eq. 9-2 to 9-4 and its creep guidance); a part that swells and "
         "shrinks with the air has room to (Eq. 13-3, the moisture content of its climate from "
-        "Eq. 4-5, kind climate), and is judged only where that equation holds. The rules carry no "
+        "Eq. 4-5, kind climate), and is judged only where that equation holds; a joint is cut with a tool its connector takes, at its setting, in parts thick and wide enough for it (kinds tool, connector, joint; a maker's products are data in a package of their own). The rules carry no "
         "number a source states: limits and properties are read from the knowledge base."),
     publisher="xag/furniture-design",
     vocabulary=VOCABULARY,
