@@ -70,7 +70,13 @@ There is no flight-recorder boundary: nothing here touches storage, the network,
 
 ## Licence
 
-The code, the knowledge base as arranged here, the skill and the ledger are licensed under the [GNU Affero General Public License v3.0 or later](LICENSE). Copyright 2026 Xavier Grehant; the skill `menuiserie-conception-meubles-design` copyright 2026 Joohee. Anyone who runs a modified copy as a network service must offer its users that copy's source. A source copied under `sources/` keeps its own terms (the Wood Handbook and the Federal Register are in the public domain). Other terms, for instance to build it into closed software, can be granted by the copyright holders. A contribution is merged only with an agreement that lets them license it under other terms as well.
+One licence for the code, one for the data:
+
+- **The code** (`furniture_design/`, `skills/`, `tests/`, `ledger/`) is licensed under the [GNU Affero General Public License v3.0 or later](LICENSE). Copyright 2026 Xavier Grehant; the skill `menuiserie-conception-meubles-design` copyright 2026 Joohee. Anyone who runs a modified copy as a network service must offer its users that copy's source.
+- **The knowledge base**, the database `furniture_design.knowledge.knowledge()` returns (its sources, clauses, materials, requirements and every value on them), is licensed under the [Open Database License v1.0](LICENSE-DATA). A database derived from it and used publicly, including one behind an app, must be offered under the ODbL as well. The code that builds it is code, under the AGPL.
+- Text copied under `sources/` keeps its own terms: the Wood Handbook and the Federal Register are in the public domain.
+
+Other terms, for instance to use the code or the data without share-alike, can be granted by the copyright holders. To contribute, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Tests
 

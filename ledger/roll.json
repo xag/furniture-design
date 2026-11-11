@@ -155,6 +155,26 @@
     "digest": "2e0ada388c38"
   },
   {
+    "path": "the-code-is-agpl-and-the-knowledge-odbl",
+    "kind": "decision",
+    "digest": "b6c161f4c8f0"
+  },
+  {
+    "path": "the-code-is-agpl-and-the-knowledge-odbl/a-licence-of-our-own",
+    "kind": "alternative",
+    "digest": "4f92385d6602"
+  },
+  {
+    "path": "the-code-is-agpl-and-the-knowledge-odbl/agpl-for-everything",
+    "kind": "alternative",
+    "digest": "28ef9968c744"
+  },
+  {
+    "path": "the-code-is-agpl-and-the-knowledge-odbl/cc-by-sa",
+    "kind": "alternative",
+    "digest": "568f5a9112f0"
+  },
+  {
     "path": "the-documents-are-for-the-people-who-build",
     "kind": "decision",
     "digest": "4244002f6cd0"

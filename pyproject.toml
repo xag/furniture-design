@@ -3,8 +3,8 @@ name = "furniture-design"
 version = "0.1.0"
 description = "Skills, a knowledge base and the furniture-design@ quern package for designing furniture as a beginner, with the ledger of the decisions they are bound by."
 requires-python = ">=3.11"
-license = "AGPL-3.0-or-later"
-license-files = ["LICENSE"]
+license = "AGPL-3.0-or-later AND ODbL-1.0"
+license-files = ["LICENSE", "LICENSE-DATA"]
 dependencies = [
     "quern",
     "reportlab>=5.1.0",

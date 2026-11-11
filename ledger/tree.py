@@ -442,6 +442,31 @@ def entries() -> list[Node]:
                      "The conversation with a beginner (what to ask, how to explain a red rule) is in no tool."),
             ],
         ),
+        Node(
+            id="the-code-is-agpl-and-the-knowledge-odbl", kind="decision",
+            name="The code is licensed AGPL-3.0-or-later and the knowledge base, the database knowledge() "
+                 "returns, ODbL-1.0; a contribution is merged only once its author grants the "
+                 "maintainer the right to license it under other terms as well (CONTRIBUTING.md)",
+            payload={"decided_on": "2026-11-11",
+                     "the_owner": "il faut que ça reste élégant et standard pour ne pas perdre la confiance "
+                                  "des utilisateurs et contributeurs",
+                     "why": "The AGPL is a copyright licence, and the values in the base are facts copyright "
+                            "does not cover. The ODbL rests on copyright, the database right and a contract "
+                            "(section 2.1): a database derived from this one and used publicly must stay "
+                            "under the ODbL (4.4), and so must one behind an app (4.6). A package independent "
+                            "of the base, loaded beside it unmodified, is a Collective Database it does not "
+                            "reach; that is the line standard licences draw, and the owner's own private "
+                            "packages sit on the same side of it."},
+            links={"supersedes": ["this-repos-own-work-is-agpl"]},
+            children=[
+                _alt("agpl-for-everything", "Keep the AGPL on the data too",
+                     "It leaves the values and the database right uncovered."),
+                _alt("a-licence-of-our-own", "Write a licence that also reaches independent packages, as the SSPL does",
+                     "Not standard; the owner wants to keep users' and contributors' trust."),
+                _alt("cc-by-sa", "CC BY-SA 4.0 for the data",
+                     "It has no clause making an app publish the database behind it."),
+            ],
+        ),
     ]
 
 
