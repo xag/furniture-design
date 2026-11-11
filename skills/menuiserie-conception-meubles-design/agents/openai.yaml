@@ -1,0 +1,14 @@
+interface:
+  display_name: Menuiserie et conception de meubles design
+  short_description: Concevoir et fabriquer un meuble, même débutant
+  default_prompt: Utilise $menuiserie-conception-meubles-design pour me guider de
+    mon idée de meuble à un plan réalisable avec mes outils.
+  icon_small: assets/icon.svg
+  icon_large: assets/icon.svg
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true
