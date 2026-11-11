@@ -136,7 +136,7 @@ def plan_svg(tree: Quern, piece: str, view: str, *, scale: float = 0.5, lang: st
     hs, vs = _chain(bs, h_ax), _chain(bs, v_ax)
     h0, h1, v0, v1 = hs[0], hs[-1], vs[0], vs[-1]
     margin_l, margin_b, margin_t, margin_r = 110, 110, 40, 30
-    w = (h1 - h0) * scale + margin_l + margin_r
+    w = max((h1 - h0) * scale + margin_l + margin_r, margin_l + 8 * len(LABELS[lang][view]))
     hgt = (v1 - v0) * scale + margin_b + margin_t
 
     def X(v: float) -> float:
