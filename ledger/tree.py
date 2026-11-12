@@ -515,6 +515,34 @@ def entries() -> list[Node]:
                      "Far more than boxes placed in one frame need."),
             ],
         ),
+        Node(
+            id="the-knowledge-is-shared-unchanged-and-improved-only-here", kind="decision",
+            name="The knowledge base, the database knowledge() returns, is licensed CC BY-NC-ND 4.0 with one "
+                 "added permission (designing, building and selling furniture with it): anyone may use it and "
+                 "share it unchanged for a non-commercial purpose, and adapt it for their own use, but no "
+                 "adapted version and no database built on a substantial part of it may be shared, so an "
+                 "improvement is published here, under the contributor agreement, or not at all. Commercial use "
+                 "needs a commercial licence. The code stays AGPL-3.0-or-later",
+            payload={"decided_on": "2026-11-12",
+                     "the_owner": "je pense que j'ai intérêt à laisser ouvert, et à interdire de dupliquer le "
+                                  "contenu ... c'est exactement ce qu'il faut",
+                     "why": "Under CC BY-NC-SA a copy could grow on its own, with people contributing to it "
+                            "under terms that give the owner no commercial right to what they add. CC BY-NC-ND "
+                            "4.0 lets copies be shared but never an adapted one (2(a)(1), 3(a)), and treats a "
+                            "database holding a substantial part of this one as adapted (4(b)). Keeping the base "
+                            "open is what draws people to use and improve it; closing it would leave nobody "
+                            "building on it."},
+            links={"supersedes": ["only-the-owner-earns-from-the-knowledge"]},
+            children=[
+                _alt("keep-share-alike", "Keep CC BY-NC-SA",
+                     "A copy could grow elsewhere, and what people add there could not be sold by the owner."),
+                _alt("close-the-base", "Move the base to a private repo and take contributions through a platform",
+                     "Turned down by the owner: people would neither build on it nor improve it."),
+                _alt("no-redistribution", "A licence that forbids sharing even unchanged copies",
+                     "No standard licence does, GitHub lets anyone fork a public repo, and an unchanged copy "
+                     "cannot grow."),
+            ],
+        ),
     ]
 
 
