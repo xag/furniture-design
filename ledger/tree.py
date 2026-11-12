@@ -516,6 +516,40 @@ def entries() -> list[Node]:
             ],
         ),
         Node(
+            id="a-cut-is-explained-from-its-shape-and-its-tools-clauses", kind="decision",
+            name="How a part's cut is made is never typed into a piece. The documents read it: where "
+                 "to mark it, measured from the edges the cut touches, and which saw lines make it in "
+                 "which order, from the cut's box against its board; how each tool is used, from the "
+                 "tools the part links made_with, each saying it in sentences that rest on clauses "
+                 "(a rule refuses a part with cuts and no such tool). The kind of cut (notch, slot, "
+                 "cutout, rebate) is read from the geometry and stored nowhere",
+            payload={"decided_on": "2026-11-12",
+                     "the_owner": "we should add in the instructions how to cut the part for the "
+                                  "plinthe. How should that go in a generic way ... Are we defining new "
+                                  "terms for cutting out pieces? ... ok great",
+                     "why": "The shoe bench's cutting step was a sentence typed in the piece that said "
+                            "where the notch was and repeated two of its params, and nothing said how "
+                            "to cut it. The package's part kind did not mention cuts at all, so no rule "
+                            "could reach one and an assistant reading the vocabulary could not learn "
+                            "of them. The joint already names the tools it is cut with; a part's cut "
+                            "follows it, and the knowledge base gains the hand tools and the public "
+                            "manuals (TM 9-243, FM 5-426) that say how they are used."},
+            links={"rests_on": ["the-documents-are-for-the-people-who-build",
+                                "a-dimension-is-stated-once-and-parts-follow-it"]},
+            children=[
+                _alt("typed-per-piece", "Keep the cutting instructions as text in each piece",
+                     "Every piece types the same method again, its numbers drift from its params, "
+                     "and nothing says where the method comes from."),
+                _alt("store-the-kind-of-cut", "Store the kind of cut (notch, slot, cutout, rebate) "
+                     "on each cut, with a method per kind",
+                     "The box already says it; a stored kind can disagree with the box, and it adds "
+                     "terms to the vocabulary that nothing needs."),
+                _alt("a-cut-kind", "A new kind for a cut, beside part and joint",
+                     "A cut is part of one board's shape and has no links of its own to carry; the "
+                     "tools it needs hang off the part as a joint's hang off the joint."),
+            ],
+        ),
+        Node(
             id="the-knowledge-is-shared-unchanged-and-improved-only-here", kind="decision",
             name="The knowledge base, the database knowledge() returns, is licensed CC BY-NC-ND 4.0 with one "
                  "added permission (designing, building and selling furniture with it): anyone may use it and "

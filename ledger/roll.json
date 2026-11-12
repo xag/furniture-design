@@ -50,6 +50,26 @@
     "digest": "cbbb602450a1"
   },
   {
+    "path": "a-cut-is-explained-from-its-shape-and-its-tools-clauses",
+    "kind": "decision",
+    "digest": "b7cc716da27b"
+  },
+  {
+    "path": "a-cut-is-explained-from-its-shape-and-its-tools-clauses/a-cut-kind",
+    "kind": "alternative",
+    "digest": "439616059886"
+  },
+  {
+    "path": "a-cut-is-explained-from-its-shape-and-its-tools-clauses/store-the-kind-of-cut",
+    "kind": "alternative",
+    "digest": "d166bce4403b"
+  },
+  {
+    "path": "a-cut-is-explained-from-its-shape-and-its-tools-clauses/typed-per-piece",
+    "kind": "alternative",
+    "digest": "a410ea9cdb0a"
+  },
+  {
     "path": "a-design-stress-is-the-near-minimum-strength-over-the-handbooks-factor",
     "kind": "decision",
     "digest": "275cfc5702ee"

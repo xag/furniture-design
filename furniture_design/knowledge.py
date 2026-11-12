@@ -2,7 +2,9 @@
 from those clauses (materials, requirements), as quern nodes a design tree mounts beside
 its pieces.
 
-Three branches, each a top-level node of the tree that uses them:
+Four branches, each a top-level node of the tree that uses them (the fourth, tools/, holds
+the hand tools that cut a part's cuts, each saying how it is used and linked `per` the
+clauses that say so):
 
     sources/        one `source` per publication, its `clause`s beneath it. A clause
                     quotes the publication verbatim (`quote`, checked against the
@@ -644,6 +646,110 @@ def gsa_fnae() -> Node:
         ])
 
 
+# --- sawing by hand: two U.S. Army manuals, approved for public release -----------------
+
+def tm_9_243() -> Node:
+    clauses = [
+        _clause("crosscut-46-4-b-c", "46.4 Using the crosscut saw, b and c, p. 46-7",
+                "b. To start the cut, place thumb (3) against the side of the saw blade, being "
+                "careful to hold it well above teeth. c. Start the cut by drawing back a few "
+                "inches of teeth at the heel of the saw a few times."),
+        _clause("crosscut-46-4-d-e", "46.4 Using the crosscut saw, d and e, p. 46-7",
+                "d. At approximately a 45 degree angle, saw only on the downward stroke applying "
+                "pressure evenly. e. Keep the saw blade at a right angle to the work surface by "
+                "checking the saw position occasionally with a try square"),
+        _clause("crosscut-46-4-f", "46.4 Using the crosscut saw, f, p. 46-7",
+                "f. When nearing end of cut, hold the waste side of the wood to prevent board "
+                "breaking off unevenly."),
+        _clause("keyhole-46-5-a", "46.5 Using the keyhole saw, a, p. 46-8",
+                "a. To make an inside-out cut, first drill a hole (1) large enough to admit the "
+                "point of the saw."),
+        _clause("keyhole-46-5-b-c", "46.5 Using the keyhole saw, b and c, p. 46-8",
+                "b. Insert the saw blade (2) and start to cut slowly, with a minimum of pressure. "
+                "c. Be careful not to twist the blade too sharply, as the narrow blade will "
+                "easily bend."),
+    ]
+    return Node(id="tm-9-243", kind="source",
+                name="Use and Care of Hand Tools and Measuring Tools, TM 9-243 (TO 32-1-101)",
+                payload={"publisher": "U.S. Army, Air Force, Navy and Marine Corps",
+                         "year": 2022, "identifier": "TM 9-243, change 2, 8 April 2022",
+                         "url": "https://archive.org/download/tm-9-243-use-and-care-of-handtools-"
+                                "and-measuring-tools-2022/TM9-243_Use_and_care_of_handtools_and_"
+                                "measuring_tools_2022.pdf",
+                         "sha256": "728384d64f82336e96af4b67a620af64a0ccee84433ad844e96ddc2b4d684ee0",
+                         "licence": "public-domain",
+                         "licence_note": "a work of the U.S. Government; Distribution Statement "
+                                         "A, approved for public release, distribution unlimited",
+                         "capture": "sources/tm-9-243/pages.txt"},
+                children=clauses)
+
+
+def fm_5_426() -> Node:
+    return Node(id="fm-5-426", kind="source", name="Carpentry, FM 5-426",
+                payload={"publisher": "Headquarters, Department of the Army", "year": 1995,
+                         "identifier": "FM 5-426, 3 October 1995",
+                         "url": "https://archive.org/download/MManuals/UsArmyEngineerCarpentry1995.pdf",
+                         "sha256": "7fd30a1d3468c6debe06a69d4f7b63e773cc3265687161ed794aa396be1e63ee",
+                         "licence": "public-domain",
+                         "licence_note": "a work of the U.S. Government, approved for public "
+                                         "release, distribution unlimited",
+                         "capture": "sources/fm-5-426/pages.txt"},
+                children=[_clause("waste-side-6", "Chapter 6, Lap Joints, Half-Lap Splice Joint",
+                                  "Overlaps should be sawed on the waste side of the gauge line, "
+                                  "to avoid cutting laps oversize by the thickness of the cut.")])
+
+
+def tools() -> Node:
+    """Hand tools that cut a part's cuts, each saying, per language, its name and how it is
+    used, every sentence resting on the clauses it links `per`. The documents print a
+    tool's method beside the cut it makes; the order of the cuts comes from the cut's
+    shape, not from here."""
+    tm, fm = f"{SOURCES}/tm-9-243", f"{SOURCES}/fm-5-426"
+    saw = Node(
+        id="crosscut-saw", kind="tool", name="Crosscut saw",
+        payload={"does": "saws a straight cut that starts at an edge of the board",
+                 "say": {
+                     "fr": {"name": "Scie égoïne", "method": [
+                         "Scier du côté chute du trait, pour ne pas raccourcir la pièce de "
+                         "l'épaisseur de la coupe.",
+                         "Amorcer en tirant la scie vers soi quelques fois par le talon, le "
+                         "pouce contre la lame, bien au-dessus des dents.",
+                         "Scier en poussant seulement, la scie à environ 45°, sans forcer ; "
+                         "garder la lame d'équerre à la face, en la vérifiant de temps en "
+                         "temps à l'équerre.",
+                         "En fin de coupe, tenir la chute pour qu'elle ne casse pas en "
+                         "arrachant le bord."]},
+                     "en": {"name": "Crosscut saw", "method": [
+                         "Saw on the waste side of the line, so the part is not cut short by "
+                         "the thickness of the cut.",
+                         "Start by drawing the saw back a few times at its heel, your thumb "
+                         "against the blade well above the teeth.",
+                         "Saw only on the downward stroke, at about 45°, pressing evenly; keep "
+                         "the blade at a right angle to the face, checking it now and then "
+                         "with a try square.",
+                         "Near the end of each cut, hold the waste so it does not break off "
+                         "unevenly."]}}},
+        links={"per": [f"{fm}/waste-side-6", f"{tm}/crosscut-46-4-b-c",
+                       f"{tm}/crosscut-46-4-d-e", f"{tm}/crosscut-46-4-f"]})
+    keyhole = Node(
+        id="keyhole-saw", kind="tool", name="Keyhole saw",
+        payload={"does": "saws a cut that starts inside the board, from a drilled hole",
+                 "say": {
+                     "fr": {"name": "Scie à guichet", "method": [
+                         "Percer dans la chute un trou assez grand pour y engager la pointe de "
+                         "la scie.",
+                         "Engager la lame et commencer doucement, sans forcer ; ne pas la "
+                         "tordre, elle plie facilement.",
+                         "Scier du côté chute du trait."]},
+                     "en": {"name": "Keyhole saw", "method": [
+                         "Drill a hole in the waste large enough to admit the point of the saw.",
+                         "Insert the blade and start slowly, with a minimum of pressure; do not "
+                         "twist it sharply, the narrow blade bends easily.",
+                         "Saw on the waste side of the line."]}}},
+        links={"per": [f"{tm}/keyhole-46-5-a", f"{tm}/keyhole-46-5-b-c", f"{fm}/waste-side-6"]})
+    return Node(id="tools", kind="", children=[saw, keyhole])
+
+
 def requirements() -> Node:
     fr = FEDERAL_REGISTER
 
@@ -711,9 +817,11 @@ def requirements() -> Node:
 
 
 def knowledge() -> list[Node]:
-    """The three top-level branches a design tree mounts: sources, materials, requirements."""
-    return [Node(id="sources", kind="", children=[wood_handbook(), federal_register(), gsa_fnae()]),
-            materials(), requirements()]
+    """The top-level branches a design tree mounts: sources, materials, requirements, and
+    the hand tools that cut a part's cuts."""
+    return [Node(id="sources", kind="", children=[wood_handbook(), federal_register(), gsa_fnae(),
+                                                  tm_9_243(), fm_5_426()]),
+            materials(), requirements(), tools()]
 
 
 def merge(*branches: list[Node]) -> list[Node]:

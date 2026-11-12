@@ -10,7 +10,10 @@ all draw. Everything is read from the quern tree; nothing here is typed twice.
   (its params length and thickness) when its node states it;
 - cuts a part carries in its payload (`cuts`: boxes {at, size} in the part's own frame,
   each entry a number or an expression over params, as for a part's own size,
-  such as a notch for a skirting board), drawn but not counted by the checks;
+  such as a notch for a skirting board), drawn but not counted by the checks, and the
+  tools the part links `made_with` with what each says of its use (`say`, per language);
+  cut_plan() reads a cut's shape: the edges it touches, its measures from them, and the
+  saw lines that make it, in order;
 - the steps: the piece's payload `steps`, each {text, add, joints, prepare, tools,
   direction}: `add` the part ids it brings in, `joints` the joint ids it closes,
   `prepare` true for the work done on parts before they are put together, `split` the
@@ -36,6 +39,14 @@ TOUCH = 0.5
 
 
 @dataclass
+class Tool:
+    path: str
+    name: str
+    say: dict                  # per language: {name, method: [sentences]}
+    cites: list[tuple[str, str]]   # each clause it rests on: (its source, its locator)
+
+
+@dataclass
 class Part:
     path: str
     id: str
@@ -48,6 +59,7 @@ class Part:
     grain: str = ""
     sheets: int = 1
     cuts: list[tuple[tuple, tuple]] = field(default_factory=list)  # (lo, hi) in the piece frame
+    tools: list[Tool] = field(default_factory=list)                # what cuts its cuts
 
     @property
     def size(self) -> tuple[float, float, float]:
@@ -77,6 +89,64 @@ class Part:
         shape = orient(shape, 1.0)
         return Profile(u, v, t, [tuple(p) for p in list(shape.exterior.coords)[:-1]],
                        lo[t], hi[t])
+
+
+EDGES = {(2, 0): "bottom", (2, 1): "top", (1, 0): "front", (1, 1): "back",
+         (0, 0): "left", (0, 1): "right"}
+
+
+@dataclass
+class CutPlan:
+    """A cut as the person marking it out sees it, on the board's face: `h` the piece axis
+    drawn across, `v` the one drawn up, `t` the thickness. `measures`: per face axis, the
+    edge it is measured from (an EDGES name) and the distance, with `offset` its start
+    when it touches no edge; `lines`: the saw lines, each (start, end) in (h, v), starting
+    at an edge of the board when it reaches one, those first; `depth` when the cut does
+    not go through the thickness."""
+    h: int
+    v: int
+    t: int
+    measures: list[tuple[int, str, float, float]]   # (axis, edge, distance, offset)
+    lines: list[tuple[tuple[float, float], tuple[float, float]]]
+    depth: float | None
+    from_edge: int                 # how many of the lines (the first ones) start at an edge
+
+
+def cut_plan(part: "Part", lo, hi) -> CutPlan:
+    t = min(range(3), key=lambda i: part.size[i])
+    face = [i for i in range(3) if i != t]
+    v = 2 if 2 in face else face[1]
+    h = next(i for i in face if i != v)
+    lo = [max(a, b) for a, b in zip(lo, part.lo)]
+    hi = [min(a, b) for a, b in zip(hi, part.hi)]
+    on_lo = [lo[i] <= part.lo[i] + TOUCH for i in range(3)]
+    on_hi = [hi[i] >= part.hi[i] - TOUCH for i in range(3)]
+    measures = []
+    for a in (h, v):
+        if on_lo[a] and on_hi[a]:
+            continue                       # the cut spans the board this way
+        if on_hi[a]:
+            measures.append((a, EDGES[(a, 1)], part.hi[a] - lo[a], 0.0))
+        elif on_lo[a]:
+            measures.append((a, EDGES[(a, 0)], hi[a] - part.lo[a], 0.0))
+        else:
+            measures.append((a, EDGES[(a, 0)], hi[a] - lo[a], lo[a] - part.lo[a]))
+    lines, opened = [], []
+    for a, b in ((h, v), (v, h)):          # the cut's sides across a, at each end of a
+        for side, at in ((0, lo[a]), (1, hi[a])):
+            if (on_lo[a] if side == 0 else on_hi[a]):
+                continue                   # that side is the board's own edge
+            p0, p1 = [0.0, 0.0], [0.0, 0.0]
+            ia, ib = (0, 1) if a == h else (1, 0)
+            p0[ia] = p1[ia] = at
+            p0[ib], p1[ib] = lo[b], hi[b]
+            if on_hi[b] and not on_lo[b]:
+                p0, p1 = p1, p0            # start at the edge it reaches
+            (opened if on_lo[b] or on_hi[b] else lines).append((tuple(p0), tuple(p1)))
+    opened.sort(key=lambda ln: -abs(ln[1][0] - ln[0][0]) - abs(ln[1][1] - ln[0][1]))
+    through = on_lo[t] and on_hi[t]
+    return CutPlan(h, v, t, measures, opened + lines, None if through else hi[t] - lo[t],
+                   len(opened))
 
 
 @dataclass
@@ -152,6 +222,17 @@ class Scene:
         return sum(j.count for j in self.joints)
 
 
+def _tool(tree: Quern, path: str) -> Tool:
+    node = get_node(tree, path)
+    cites = []
+    for ref in (node.links or {}).get("per", []):
+        clause = get_node(tree, ref)
+        source = get_node(tree, ref.rsplit("/", 1)[0])
+        short = (source.payload or {}).get("identifier") or source.name or source.id
+        cites.append((short, (clause.payload or {}).get("locator", clause.id)))
+    return Tool(path, node.name or node.id, (node.payload or {}).get("say", {}), cites)
+
+
 def scene(tree: Quern, piece: str) -> Scene:
     from .drawings import cut_list
 
@@ -170,12 +251,13 @@ def scene(tree: Quern, piece: str) -> Scene:
             size = [number(tree, b.path, v, "cut's size") for v in c["size"]]
             lo = tuple(b.lo[i] + at[i] for i in range(3))
             cuts.append((lo, tuple(lo[i] + size[i] for i in range(3))))
+        tools = [_tool(tree, t) for t in (node.links or {}).get("made_with", [])]
         material = uses[0].rsplit("/", 1)[-1] if uses else ""
         label = names.get(material) or ((mat.name if mat else "") or "").split(",")[0]
         parts.append(Part(b.path, node.id, node.name or node.id, marks.get(b.path, ""),
                           tuple(b.lo), tuple(b.hi), material, label,
                           payload.get("span_along", ""),
-                          int(payload.get("sheets", 1)), cuts))
+                          int(payload.get("sheets", 1)), cuts, tools))
     by_path = {p.path: p for p in parts}
     joints = []
     prefix = piece.rstrip("/") + "/"

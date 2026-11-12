@@ -20,7 +20,7 @@ from quern.tree import KindDef, Node, Rule
 # Absolute imports: `quern publish` loads this file by path. Importing furniture_design
 # registers the furniture/* calculations.
 from furniture_design import natives
-from furniture_design.knowledge import REQUIREMENTS, WOOD_HANDBOOK, knowledge
+from furniture_design.knowledge import REQUIREMENTS, WOOD_HANDBOOK, knowledge, merge
 
 VOCABULARY = [
     KindDef(kind="source", description=(
@@ -88,7 +88,12 @@ VOCABULARY = [
         "param that is its width across the grain and in dimensional_change the material "
         "property that moves it (dimensional_change_tangential for a flat-sawn face, "
         "dimensional_change_radial for a quartersawn one), and states the clearance it "
-        "has."),
+        "has. payload cuts: what is taken out of the board, a list of boxes {at, size} in "
+        "the part's own frame (each entry a number or an expression over params, as for its "
+        "size), such as a notch for a skirting board; a part's cuts are not a joint's `cut`, "
+        "which names the kind of connector seat. A part with cuts links made_with the tools "
+        "that cut them, each saying how it is used and resting on clauses; the documents "
+        "draw each cut measured from the edges it touches and number its saw lines in order."),
         params={"mass": "kg, when it is not its volume times its material's density",
                 "span": "mm between supports", "depth": "mm, the beam's width b",
                 "thickness": "mm, the beam's depth h, and a joined panel's thickness",
@@ -97,7 +102,8 @@ VOCABULARY = [
         links={"uses": "its material", "bends_as": "the Table 9-1 clause for its loading "
                "and supports", "sag_limit": "the longtime-sag requirements it is held to",
                "moves_in": "the climates it lives in",
-               "moves_per": "the clause of the movement equation it is judged by"}),
+               "moves_per": "the clause of the movement equation it is judged by",
+               "made_with": "the tools that cut its cuts"}),
     KindDef(kind="tool", description=(
         "A machine or jig that cuts or drills what a joint needs: payload maker and what it "
         "does. A design names the tools it is made with; a connector names the tools that "
@@ -182,6 +188,12 @@ RULES = [
               "or payload(self, 'setting', '') == payload(c, 'setting', ''))",
          description="When a connector's seat is cut at a machine setting, the joint says it "
                      "is cut at that setting."),
+    Rule(name="a-part-with-cuts-is-cut-with-tools-that-rest-on-clauses", kind="part",
+         expr="len(payload(self, 'cuts', '')) == 0 or (len(linked(self, 'made_with')) > 0 and "
+              "every(t, linked(self, 'made_with'), len(linked(t, 'per')) > 0))",
+         description="A part with cuts names the tools that cut them, and each of those tools "
+                     "rests on clauses that say how it is used, so the instructions tell how "
+                     "to make the cut and not only where it is."),
     Rule(name="a-requirement-rests-on-clauses", kind="requirement",
          expr="len(linked(self, 'per')) > 0 and "
               "every(c, linked(self, 'per'), some(k, nodes('clause'), k == c))",
@@ -426,17 +438,31 @@ def _seat(back_count: float = 4) -> Node:
                           joint("back-right", "right", 2)])
 
 
+def _notched(cut_with: str) -> Node:
+    """A bench's side standing against a wall, notched at its bottom back corner for the
+    skirting board, sawn with `cut_with`."""
+    side = Node(id="side", kind="part", links={"uses": ["materials/birch-yellow"],
+                                               "made_with": [cut_with]},
+                params={"skirting_height": _target(115, "mm", "the skirting's height, and room"),
+                        "skirting_depth": _target(25, "mm", "the skirting's depth, and room")},
+                payload={"shape": {"op": "box", "size": [18, 300, 450]},
+                         "cuts": [{"at": [0, "300 - skirting_depth", 0],
+                                   "size": [18, "skirting_depth", "skirting_height"]}]})
+    return Node(id="bench-side", kind="piece", children=[side])
+
+
 def _world(*, chest: Node | None = None, sag_limit: float = 4.0, clearance: float = 8.0,
            rh_max: float = 0.65, books_kg: float = 30, span_along: str = "grain",
-           back_count: float = 4, **joinery) -> list[Node]:
+           back_count: float = 4, cut_with: str = "tools/crosscut-saw",
+           **joinery) -> list[Node]:
     kb = knowledge()
     sag, bookshelf = _shelf(sag_limit, books_kg, span_along)
     kb[2].children.append(sag)
     climates, cabinet = _cabinet(clearance, rh_max)
     catalogue, hardware, box = _joinery(**joinery)
     kb[0].children.append(catalogue)
-    return kb + hardware + [climates, Node(id="pieces", kind="", children=[
-        chest or _chest(), bookshelf, cabinet, box, _seat(back_count)])]
+    return merge(kb, hardware) + [climates, Node(id="pieces", kind="", children=[
+        chest or _chest(), bookshelf, cabinet, box, _seat(back_count), _notched(cut_with)])]
 
 
 EXAMPLES = _world()
@@ -448,6 +474,10 @@ _UNQUOTED = Node(id="sources", kind="", children=[
 COUNTER_EXAMPLES = [
     CounterExample(rule="a-clause-quotes-its-source", nodes=[_UNQUOTED],
                    because="a clause with no quote states nothing anyone can check"),
+    CounterExample(rule="a-part-with-cuts-is-cut-with-tools-that-rest-on-clauses",
+                   nodes=_world(cut_with="tools/drill"),
+                   because="a notch said to be cut with a drill no clause says how to use: the "
+                           "instructions could say where the notch is, not how to make it"),
     CounterExample(rule="a-requirement-rests-on-clauses",
                    nodes=[Node(id="requirements", kind="", children=[
                        Node(id="a-wish", kind="requirement", payload={"measure": "overturning"})])],
@@ -513,7 +543,7 @@ COUNTER_EXAMPLES = [
 
 PACKAGE = Package(
     name="furniture-design",
-    version="0.5.2",
+    version="0.6.0",
     description=(
         "Furniture designs and the published knowledge they are judged against. Kinds: "
         "source and clause (a publication and its verbatim, located statements, with the "
@@ -524,7 +554,7 @@ PACKAGE = Package(
         "stability cases (furniture/tipping_cases); a part bends within its longtime sag "
         "limit (Wood Handbook Eq. 9-2 to 9-4 and its creep guidance, furniture/deflection, with no shear term for a panel whose modulus was measured on the panel); a part is strong enough (Eq. 9-13 against the near-minimum modulus of rupture over the Handbook's factor for 10-year duration of load and safety); a part bends the way its material's values were measured; a seat carries the light-service sidethrust of GSA's FNAE-80-214A through a panel in the push's plane (furniture/sideways_margin); a part that swells and "
         "shrinks with the air has room to (Eq. 13-3, the moisture content of its climate from "
-        "Eq. 4-5, kind climate), and is judged only where that equation holds; a joint is cut with a tool its connector takes, at its setting, in parts thick and wide enough for it (kinds tool, connector, joint; a maker's products are data in a package of their own). The rules carry no "
+        "Eq. 4-5, kind climate), and is judged only where that equation holds; a joint is cut with a tool its connector takes, at its setting, in parts thick and wide enough for it (kinds tool, connector, joint; a maker's products are data in a package of their own); a part with cuts is cut with tools that rest on clauses saying how they are used. The rules carry no "
         "number a source states: limits and properties are read from the knowledge base."),
     publisher="xag/furniture-design",
     vocabulary=VOCABULARY,

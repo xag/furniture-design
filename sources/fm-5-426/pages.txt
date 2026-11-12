@@ -1,0 +1,44 @@
+Captured from https://archive.org/download/MManuals/UsArmyEngineerCarpentry1995.pdf (sha256 7fd30a1d3468c6debe06a69d4f7b63e773cc3265687161ed794aa396be1e63ee), text extracted with pdftotext -layout: the title page, and Chapter 6, Lap Joints.
+
+Field Manual                                                                                                          *FM 5-426
+No. 5-426
+                                                                                                                 Headquarters
+                                                                                                Department of the Army
+                                                                                    Washington, DC, 3 October 1995
+
+              CARPENTRY
+
+                                                        TABLE OF CONTENTS                                          Page
+Preface..................................,,,...,.,,...........,.................~i
+
+Chapter 1. Construction Drawings . . , . . . . *. . . . . . . . . . . . . . . . . . . . . , . . . . . . . . . . . . . . . . . l-l
+
+Bill of Materials Format .......................................................                                   3-4
+
+DISTRIBUTION RESTRICTION: Approved for public release; distribution is unlimited.
+*This publication supersedes FM 5-551, 23 February 1984.
+
+              i
+[...]
+used where strength is important.
+
+                                  Lap Joints
+
+The lap joint is the strongest joint. Lap joints (Figure 6-5)
+are formed in one of two ways: a plain lap joint or a half-lap
+splice joint.
+
+Plain Lap Joint. This joint is formed by laying one board
+over another and fastening the two with screws or nails.
+This is the simplest and most often used method of joining.
+This joint is as strong as the fasteners and material used.
+
+Half-Lap Splice Joint. This joint is formed by cutting
+away equal-length portions (usually half) from the thickness
+of two boards. The two are then joined so that they overlap
+and form a corner. Overlapping surfaces must fit snugly and
+smoothly. Overlaps should be sawed on the waste side of the
+gauge line, to avoid cutting laps oversize by the thickness of
+the cut. This joint is relatively strong and easy to make.
+
+NOTE: Some useful variations of the half-lap joint are
