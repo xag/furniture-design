@@ -110,6 +110,21 @@
     "digest": "cf39a362d53b"
   },
   {
+    "path": "a-european-species-is-read-from-tropix",
+    "kind": "decision",
+    "digest": "4d5cd7b7cda7"
+  },
+  {
+    "path": "a-european-species-is-read-from-tropix/north-american-relatives",
+    "kind": "alternative",
+    "digest": "ed46fa0fe37d"
+  },
+  {
+    "path": "a-european-species-is-read-from-tropix/shrinkage-from-totals",
+    "kind": "alternative",
+    "digest": "ceb7568b3447"
+  },
+  {
     "path": "a-makers-products-are-their-own-package",
     "kind": "decision",
     "digest": "e3edc58f97d7"
@@ -168,6 +183,31 @@
     "path": "a-sideways-push-goes-through-a-panel-across/credit-bearing",
     "kind": "alternative",
     "digest": "978c23dfe4e7"
+  },
+  {
+    "path": "a-species-mean-modulus-is-taken-as-apparent",
+    "kind": "decision",
+    "digest": "07a20cad6505"
+  },
+  {
+    "path": "a-species-mean-modulus-is-taken-as-apparent/as-true-with-handbook-ratios",
+    "kind": "alternative",
+    "digest": "decedb0d9390"
+  },
+  {
+    "path": "a-stated-strength-is-read-the-way-its-source-labels-it",
+    "kind": "decision",
+    "digest": "935e5f6d4cdc"
+  },
+  {
+    "path": "a-stated-strength-is-read-the-way-its-source-labels-it/every-value-a-mean",
+    "kind": "alternative",
+    "digest": "2ee83d3b61e3"
+  },
+  {
+    "path": "a-stated-strength-is-read-the-way-its-source-labels-it/unlabelled-as-near-minimum",
+    "kind": "alternative",
+    "digest": "e984e4619467"
   },
   {
     "path": "an-equation-is-applied-only-where-its-source-says-it-holds",

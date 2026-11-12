@@ -310,6 +310,80 @@ def entries() -> list[Node]:
             ],
         ),
         Node(
+            id="a-stated-strength-is-read-the-way-its-source-labels-it", kind="decision",
+            name="A panel maker's bending strength is read the way its document labels it: a characteristic "
+                 "value (a 5th percentile, as EN 12369-1 gives it) is the near-minimum and only takes the "
+                 "Handbook's 2.1; a mean, a value printed as a lower bound on a mean, and a value whose "
+                 "document says neither are read as a mean and brought down with Table 5-6's coefficient of "
+                 "variation first. A panel tested flat states which way it bent: face grain, flat; across "
+                 "face grain, flat; major axis, flat; minor axis, flat; or flat for a board with no grain in "
+                 "its plane",
+            payload={"decided_on": "2026-11-12",
+                     "the_owner": "we're going to choose the wood at leroy merlin. Make sure we have all the "
+                                  "knowledge in the quern tree about every type of wood panels that can be "
+                                  "found there",
+                     "why": "The makers of the panels on sale publish their values in Declarations of "
+                            "Performance and data sheets that label them differently: OSB/3 declarations give "
+                            "EN 12369-1's characteristic strengths, Finsa heads its tables 'average values' and "
+                            "prints '≥ 11', Valchromat and Betanzos print bare numbers. Reading a mean as a "
+                            "5th percentile would overstate the board by about a third (1 − 1.645 × 0.16); "
+                            "reading a 5th percentile as a mean only understates it. A board with no grain "
+                            "(particleboard, MDF, hardboard) bends the same either way in its plane, and EN 310 "
+                            "tests it flat, so `flat` is what its part spans as."},
+            links={"rests_on": ["a-design-stress-is-the-near-minimum-strength-over-the-handbooks-factor",
+                                "a-material-says-which-way-its-values-were-measured"]},
+            children=[
+                _alt("every-value-a-mean", "Read every stated value as a mean, characteristic ones included",
+                     "Takes a third off strengths that are already near-minimum, so OSB would be judged weaker "
+                     "than its maker declares for no reason a source gives."),
+                _alt("unlabelled-as-near-minimum", "Read an unlabelled value as a near-minimum, the way the EN "
+                     "product standards set their requirements",
+                     "The standards are not here to say so, and the side it errs on is the unsafe one."),
+            ],
+        ),
+        Node(
+            id="a-european-species-is-read-from-tropix", kind="decision",
+            name="The clear-wood values of a species sold in Europe (oak, beech, fir, spruce, Scots and maritime "
+                 "pine, ash, robinia, Acacia mangium, teak, okoumé, poplar) come from its CIRAD Tropix sheet, "
+                 "its means at 12% moisture content; black alder, which Tropix lacks, from LWF Wissen 42's "
+                 "ranges, the low end of each; shrinkage per percent of moisture from LWF Wissen 42's Tab. 3 "
+                 "where it gives the species, and from nowhere where it does not",
+            payload={"decided_on": "2026-11-12",
+                     "the_owner": "Make sure we have all the knowledge in the quern tree about every type of "
+                                  "wood panels that can be found there",
+                     "why": "The Wood Handbook gives the North American species (yellow birch, northern red "
+                            "oak) and, of the European woods sold as glued boards, only teak and okoumé, from "
+                            "world literature. Tropix gives every one but alder from one publisher, one table "
+                            "and one moisture content. Its sheets give shrinkage as totals and a volumetric "
+                            "coefficient, not the radial and tangential coefficients the movement rule reads, "
+                            "and turning a total into a coefficient would need a fibre saturation point no "
+                            "source here states."},
+            links={"rests_on": ["the-rules-read-the-knowledge", "a-copyrighted-source-is-cited-by-locator-and-values"]},
+            children=[
+                _alt("north-american-relatives", "Use the Handbook's American relatives (American beech, white "
+                     "oak) for the European species", "Another species, with other values."),
+                _alt("shrinkage-from-totals", "Derive a per-percent coefficient from Tropix's total shrinkage "
+                     "over an assumed fibre saturation point", "The 30% it would need is assumed, not stated."),
+            ],
+        ),
+        Node(
+            id="a-species-mean-modulus-is-taken-as-apparent", kind="decision",
+            name="A species' longitudinal modulus whose source names no test method is divided by 1.1 (Table "
+                 "5-3a footnote c's shear correction) and used as an apparent modulus, with no shear term",
+            payload={"decided_on": "2026-11-12",
+                     "why": "Tropix's sheets say the modulus is a mean at 12% and nothing of how it was "
+                            "measured. If it was measured on a center-loaded beam it is already apparent and "
+                            "dividing by 1.1 understates it; if it is a true modulus, over 1.1 it is the "
+                            "apparent one of footnote c's 14-to-1 beam. Either way the part is judged no "
+                            "stiffer than it is, and no shear modulus is needed, which Tropix does not give."},
+            links={"rests_on": ["a-panels-tested-modulus-takes-no-shear-term", "a-european-species-is-read-from-tropix"]},
+            children=[
+                _alt("as-true-with-handbook-ratios", "Read it as true and add a shear term with the Handbook's "
+                     "GLR/EL of a related species", "Borrows another species' ratio for a correction of a "
+                     "few percent."),
+            ],
+        ),
+        Node(
             id="drawings-are-generated-from-the-tree", kind="decision",
             name="A piece's plans, cut list, joint list, 3D views and build document are generated from its "
                  "quern nodes (furniture_design.drawings), the 3D views through geometry@'s renderer; nothing "

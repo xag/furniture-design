@@ -398,6 +398,27 @@ def _design_stress(mor: float, mor_ref: str, cov: float = 0.16,
                    "10-year duration of load and safety")
 
 
+def design_stress(strength: float, ref: str, *, characteristic: bool) -> Quantity:
+    """The bending stress a part may be designed to, from a bending strength a source states,
+    read the way the source labels it (ledger:
+    a-stated-strength-is-read-the-way-its-source-labels-it). A characteristic strength (a 5th
+    percentile, as EN 12369-1 gives it) is already the near-minimum the Handbook's 2.1 is
+    applied to; any other value, a mean or one whose source does not say, is read as a mean
+    and brought down to its near-minimum first, the safe side."""
+    if not characteristic:
+        return _design_stress(strength, ref)
+    wh = WOOD_HANDBOOK
+    return derived(strength / 2.1, "MPa",
+                   [ref, f"{wh}/near-minimum-7-6/exclusion", f"{wh}/design-factor-7-10/bending_factor"],
+                   "characteristic strength / 2.1: already the 5% exclusion limit, over the p. 7–10 "
+                   "factor for 10-year duration of load and safety")
+
+
+# The Handbook's clauses a material derived with design_stress() rests on, beside its own
+DESIGN_STRESS_CLAUSES = [f"{WOOD_HANDBOOK}/cov-table-5-6", f"{WOOD_HANDBOOK}/near-minimum-7-6",
+                         f"{WOOD_HANDBOOK}/design-factor-7-10"]
+
+
 def _panel(id_: str, name: str, *, form: str, sg: float, sg_ref: str, e: float, e_ref: str,
            mor: float, mor_ref: str, bent: str, per: list[str], note: str = "",
            connector_key: str = "plywood") -> Node:
@@ -545,7 +566,224 @@ def materials() -> Node:
             },
             links={"per": [row, row51, f"{wh}/table-13-5-{id_}", f"{wh}/cov-table-5-6",
                            f"{wh}/near-minimum-7-6", f"{wh}/design-factor-7-10"]}))
-    return Node(id="materials", kind="", children=out + panels())
+    return Node(id="materials", kind="", children=out + panels() + european_species())
+
+
+# --- CIRAD's Tropix: the clear-wood properties of the species sold in Europe ---------------
+
+# Tropix 7 (CIRAD - ITTO) species sheets, as fetched on 2026-11-12. Copyrighted: cited by
+# locator and values, never quoted (ledger: a-copyrighted-source-is-cited-by-locator-and-values);
+# the copies are kept private and tests/test_captures.py checks every value against them.
+# Each sheet's table "Propriétés physiques et mécaniques" has one column, "Valeur moyenne",
+# and its footnote ¹ puts the density, the bending strength and the modulus at 12% moisture.
+# (material id, name, sheet, botanical name, url path, sha256, last updated,
+#  relative density, bending strength MPa, longitudinal modulus MPa, connector_key)
+TROPIX_URL = "https://tropix.cirad.fr/FichiersComplementaires/FR/"
+TROPIX_SHEETS = [
+    ("oak-european", "Oak, European", "Chêne", "Quercus petraea, Quercus robur",
+     "Temperees/CHENE%202026_FR.PDF",
+     "32250d7cda920cdace293f818838691b6e04b5245fcc4cc34133daf55e957597", "2025-08-30",
+     0.74, 105, 13_300, "oak-european"),
+    ("beech-european", "Beech, European", "Hêtre", "Fagus sylvatica",
+     "Temperees/HETRE%202026_FR.PDF",
+     "645c52d52366b949e74dcbeb65d5926be69faa007e9007ebb39c2042872a6cfd", "2024-10-30",
+     0.71, 111, 15_300, "beech"),
+    ("fir-silver", "Fir, silver", "Sapin", "Abies alba",
+     "Temperees/SAPIN%202026_FR.PDF",
+     "ddaad250a55f37df05462f096b8fe14f88cd04a7db79b5705c23d85c53f3ca02", "2025-08-30",
+     0.49, 80, 14_300, "fir-silver"),
+    ("spruce-norway", "Spruce, Norway", "Épicéa", "Picea abies",
+     "Temperees/EPICEA%202026_FR.PDF",
+     "84e78a6938295c755b8b4a901545f836f13f99758ddc8e59a7155515e3e824bc", "2026-02-25",
+     0.45, 78, 11_900, "spruce-norway"),
+    ("pine-scots", "Pine, Scots", "Pin sylvestre", "Pinus sylvestris",
+     "Temperees/PIN_SYLVESTRE%202026_FR.PDF",
+     "3f0738b1aa5d28ed446132ca0207270caff5d2b5da15c2973ab846688b06c5f2", "2025-08-30",
+     0.55, 97, 12_900, "pine-scots"),
+    ("pine-maritime", "Pine, maritime", "Pin maritime", "Pinus pinaster",
+     "Temperees/PIN_MARITIME%202026_FR.PDF",
+     "a2649314280b89606f6471c7f62dcd24daeb82e65d4ee5c003ae6ef1c7e0748a", "2025-01-10",
+     0.55, 80, 8_800, "pine-maritime"),
+    ("ash-european", "Ash, European", "Frêne", "Fraxinus excelsior",
+     "Temperees/FRENE%202026_FR.PDF",
+     "6d4043876160dd4213308f1916a01725d0c9cbdfd59bcea0a4c07b2953bd338e", "2026-03-30",
+     0.68, 113, 12_900, "ash-european"),
+    ("robinia", "Robinia (black locust, often sold as acacia)", "Robinier", "Robinia pseudoacacia",
+     "Temperees/ROBINIER%202026_FR.PDF",
+     "84f64971642be6475c8ebb0775188b63976d7bf517a3f15dd8411576964cbc06", "2025-08-01",
+     0.74, 126, 16_900, "robinia"),
+    ("acacia-mangium", "Acacia mangium", "Acacia mangium", "Acacia mangium",
+     "Asie/ACACIA_MANGIUM%202026_FR.PDF",
+     "c32ec916b70fcc2bf651d258b077deae244433719c77fb3a2ad4995a50990208", "2024-10-14",
+     0.52, 105, 10_800, "acacia-mangium"),
+    ("teak", "Teak", "Teck", "Tectona grandis",
+     "Asie/TECK%202026_FR.PDF",
+     "15f53148476053b99efe8031435efeb8a0214f57db2632f8ab2d6d5cad384bfa", "2024-05-21",
+     0.67, 98, 13_740, "teak"),
+    ("okoume", "Okoumé", "Okoumé", "Aucoumea klaineana",
+     "Afrique/OKOUME%202026_FR.PDF",
+     "79fd53079a56b4f4ade1add5778de081f2f9a0657c185fa414f7f1b8b8ab66f4", "2024-05-22",
+     0.44, 62, 9_690, "okoume"),
+    ("poplar", "Poplar (cultivars)", "Peuplier", "Populus p.p.",
+     "Temperees/PEUPLIER%202026_FR.PDF",
+     "6e124c500af6e22c45721a55e1ad0c84f0d1bc5533c3df7bf281f8930ce8123b", "2024-09-11",
+     0.45, 62, 9_800, "poplar"),
+]
+# The rows each Tropix clause reads, as the sheet heads them, and the param each gives
+TROPIX_ROWS = [("relative_density", "Densité¹"),
+               ("modulus_of_rupture", "Contrainte de rupture en flexion statique¹"),
+               ("modulus_of_elasticity", "Module d'élasticité longitudinal¹")]
+
+# LWF Wissen 42 (Bayerische Landesanstalt für Wald und Forstwirtschaft, D. Grosser), p. 52:
+# Tab. 1 (density), Tab. 2 (strength, modulus) and Tab. 3 (shrinkage per 1% of moisture
+# between 5% and 20%), German names of the species. Copyrighted, cited by locator and values.
+LWF = f"{SOURCES}/lwf-wissen-42"
+# (material id, German row name, differential shrinkage radial and tangential, % per %, and
+#  for each the row heading it is printed after and the cell as printed). Alder's are ranges:
+#  the high end is taken, the more a board moves the larger the clearance it needs.
+LWF_SHRINKAGE = {
+    "oak-european": ("Stieleiche", 0.16, 0.36, ("radial", "0,16"), ("tangential", "0,36")),
+    "beech-european": ("Buche", 0.20, 0.41, ("radial", "0,20"), ("tangential", "0,41")),
+    "spruce-norway": ("Fichte", 0.19, 0.39, ("Nadelhölzer Fichte", "0,19 0,39"), ("Nadelhölzer Fichte", "0,19 0,39")),
+    "pine-scots": ("Kiefer", 0.19, 0.36, ("Kiefer 0,4", "0,19 0,36"), ("Kiefer 0,4", "0,19 0,36")),
+    "alder-black": ("Schwarzerle", 0.17, 0.30, ("radial", "0,15-0,17"), ("tangential", "0,24-0,30")),
+}
+# Black alder has no Tropix sheet; LWF gives ranges, and the low end of each is taken
+ALDER = {"density": 0.55, "modulus_of_rupture": 85, "modulus_of_elasticity": 7_700}
+
+
+def tropix() -> list[Node]:
+    out = []
+    for id_, _name, sheet, botanical, path, sha, updated, d, mor, moe, _key in TROPIX_SHEETS:
+        values = {"relative_density": (d, "", f"{d:.2f}".replace(".", ",")),
+                  "modulus_of_rupture": (mor, "MPa", f"{mor} MPa"),
+                  "modulus_of_elasticity": (moe, "MPa", f"{moe:,} MPa".replace(",", " "))}
+        out.append(Node(
+            id=f"tropix-{id_}", kind="source", name=f"CIRAD - ITTO, Tropix 7: {sheet} ({botanical})",
+            payload={"publisher": "CIRAD - ITTO", "year": int(updated[:4]), "url": TROPIX_URL + path,
+                     "updated": updated, "fetched": "2026-11-12", "sha256": sha,
+                     "licence": "copyrighted", "capture": "private copy, identified by its sha256"},
+            children=[Node(
+                id="properties", kind="clause",
+                payload={"locator": "Propriétés physiques et mécaniques, column 'Valeur moyenne', "
+                                    "rows " + ", ".join(f"'{label}'" for _, label in TROPIX_ROWS),
+                         "rows": [[param, label, values[param][2]] for param, label in TROPIX_ROWS],
+                         "in_our_words": "means of clear wood at 12% moisture content (footnote ¹)"},
+                params={param: published(v, unit, label, printed)
+                        for (param, label), (v, unit, printed) in
+                        zip(TROPIX_ROWS, (values[p] for p, _ in TROPIX_ROWS))})]))
+    rows = [["relative_density", "Leichtere Laubhölzer Schwarzerle", "0,55"],
+            ["modulus_of_elasticity", "Nadelhölzer Fichte Kiefer", "7.700-11.760"],
+            ["modulus_of_rupture", "Nadelhölzer Fichte Kiefer", "85-97"]]
+    out.append(Node(
+        id="lwf-wissen-42", kind="source",
+        name="LWF Wissen 42, Das Holz der Schwarzerle (Bayerische Landesanstalt für Wald und "
+             "Forstwirtschaft)",
+        payload={"publisher": "Bayerische Landesanstalt für Wald und Forstwirtschaft", "year": 2003,
+                 "url": "https://lwg.bayern.de/mam/cms04/forsttechnik-holz/dateien/"
+                        "w42_das_holz_der_schwarzerle-eigenschaften_verwendung.pdf",
+                 "fetched": "2026-11-12",
+                 "sha256": "145d3d6734be001e108c2cad5df507b805a2bda80c47895f8da4a7c7b97d81fc",
+                 "licence": "copyrighted", "capture": "private copy, identified by its sha256"},
+        children=[
+            Node(id="tab-1-2-schwarzerle", kind="clause",
+                 payload={"locator": "p. 52, Tab. 1 (Rohdichte r_N, mean) and Tab. 2 (E-Modul aus "
+                                     "Biegeversuch, Biegefestigkeit), row Schwarzerle",
+                          "rows": rows,
+                          "in_our_words": "black alder: density 0.55 g/cm3 at 12-15% moisture; "
+                                          "bending modulus and strength as ranges, of which the "
+                                          "low ends are taken"},
+                 params={"relative_density": published(0.55, "", "Tab. 1", "0,55 g/cm3"),
+                         "modulus_of_elasticity": published(7700.0, "MPa", "Tab. 2", "7.700-11.760 N/mm2"),
+                         "modulus_of_rupture": published(85.0, "MPa", "Tab. 2", "85-97 N/mm2")}),
+            *[Node(id=f"tab-3-{german.lower()}", kind="clause",
+                   payload={"locator": f"p. 52, Tab. 3 (differentielles Schwindmaß, % per 1% "
+                                       f"Holzfeuchte, u = 5% to 20%), row {german}",
+                            "rows": [["dimensional_change_radial", *rr], ["dimensional_change_tangential", *tt]]},
+                   params={"dimensional_change_radial": published(r / 100, "1/%", "Tab. 3", f"{r} % per %"),
+                           "dimensional_change_tangential": published(t / 100, "1/%", "Tab. 3",
+                                                                      f"{t} % per %")})
+              for _id, (german, r, t, rr, tt) in LWF_SHRINKAGE.items()],
+        ]))
+    return out
+
+
+def solid_wood(id_: str, name: str, *, clause: str, connector_key: str,
+               shrinkage: str | None = None, per: list[str] | None = None) -> Node:
+    """A species' clear wood at 12% moisture content, from a clause stating its relative
+    density, bending strength and longitudinal modulus as means. The modulus is read as a
+    true one and brought to an apparent one by Table 5-3a footnote c's 10%, since the source
+    names no test method: if it was measured on a center-loaded beam it is already apparent
+    and this understates it, the safe side (ledger: a-species-mean-modulus-is-taken-as-apparent)."""
+    wh = WOOD_HANDBOOK
+    params = {
+        "density": derived(0.0, "kg/m3", [f"{clause}/relative_density",
+                                          f"{wh}/density-4-14/water_density"],
+                           "relative density at 12% times the density of water"),
+        "modulus_of_rupture": derived(0.0, "MPa", [f"{clause}/modulus_of_rupture"], "mean, 12%"),
+        "modulus_of_elasticity": derived(0.0, "MPa", [f"{clause}/modulus_of_elasticity",
+                                                      f"{wh}/table-5-3a-note-c/shear_correction"],
+                                         "longitudinal modulus / 1.1: an apparent modulus, the "
+                                         "shear deflection of footnote c's beam in it"),
+        "initial_share_of_longtime": derived(2 / 3, "", [f"{wh}/creep-chapter-9/initial_share_dry"],
+                                             "initially dry timber: design for an initial "
+                                             "deflection of about two-thirds the permitted "
+                                             "longtime deflection"),
+    }
+    links = [clause, f"{wh}/table-5-3a-note-c", f"{wh}/density-4-14",
+             f"{wh}/creep-chapter-9", *DESIGN_STRESS_CLAUSES]
+    if shrinkage:
+        params["dimensional_change_radial"] = derived(0.0, "1/%", [f"{shrinkage}/dimensional_change_radial"],
+                                                      "LWF Tab. 3, radial")
+        params["dimensional_change_tangential"] = derived(
+            0.0, "1/%", [f"{shrinkage}/dimensional_change_tangential"], "LWF Tab. 3, tangential")
+        links.append(shrinkage)
+    return Node(id=id_, kind="material", name=name,
+                payload={"form": "solid wood", "moisture_content_percent": 12, "dried": True,
+                         "measured_along": "grain", "modulus": "apparent",
+                         "connector_key": connector_key},
+                params=params, links={"per": links + (per or [])})
+
+
+def _filled(node: Node, values: dict[str, float]) -> Node:
+    """Set each derived param from the clause values it names: density from the relative
+    density, the modulus over 1.1, the design stress from the mean strength."""
+    p = node.params
+    p["density"] = p["density"].model_copy(update={"value": 1000.0 * values["relative_density"]})
+    p["modulus_of_rupture"] = p["modulus_of_rupture"].model_copy(update={"value": float(values["modulus_of_rupture"])})
+    p["modulus_of_elasticity"] = p["modulus_of_elasticity"].model_copy(
+        update={"value": values["modulus_of_elasticity"] / 1.10})
+    p["design_bending_stress"] = _design_stress(float(values["modulus_of_rupture"]),
+                                                p["modulus_of_rupture"].derived_from[0])
+    for k in ("dimensional_change_radial", "dimensional_change_tangential"):
+        if k in p:
+            p[k] = p[k].model_copy(update={"value": values[k]})
+    return node
+
+
+def european_species() -> list[Node]:
+    """The species of the solid-wood boards and plywood faces sold in Europe, from Tropix,
+    and black alder from LWF Wissen 42, at 12% moisture content."""
+    out = []
+    for id_, name, sheet, botanical, *_r, d, mor, moe, key in TROPIX_SHEETS:
+        shrink = LWF_SHRINKAGE.get(id_)
+        values = {"relative_density": d, "modulus_of_rupture": mor, "modulus_of_elasticity": moe}
+        if shrink:
+            values.update(dimensional_change_radial=shrink[1] / 100,
+                          dimensional_change_tangential=shrink[2] / 100)
+        out.append(_filled(solid_wood(
+            id_, f"{name} ({botanical}), air-dried, 12% moisture content",
+            clause=f"{SOURCES}/tropix-{id_}/properties", connector_key=key,
+            shrinkage=f"{LWF}/tab-3-{shrink[0].lower()}" if shrink else None), values))
+    _g, r, t, *_rows = LWF_SHRINKAGE["alder-black"]
+    out.append(_filled(solid_wood(
+        "alder-black", "Alder, black (Alnus glutinosa), air-dried, 12-15% moisture content, the "
+        "low end of LWF's ranges", clause=f"{LWF}/tab-1-2-schwarzerle", connector_key="alder-black",
+        shrinkage=f"{LWF}/tab-3-schwarzerle"),
+        {"relative_density": ALDER["density"], "modulus_of_rupture": ALDER["modulus_of_rupture"],
+         "modulus_of_elasticity": ALDER["modulus_of_elasticity"],
+         "dimensional_change_radial": r / 100, "dimensional_change_tangential": t / 100}))
+    return out
 
 
 # --- the Federal Register: 16 CFR 1261, adopting ASTM F2057-23 ---------------------------
@@ -820,7 +1058,7 @@ def knowledge() -> list[Node]:
     """The top-level branches a design tree mounts: sources, materials, requirements, and
     the hand tools that cut a part's cuts."""
     return [Node(id="sources", kind="", children=[wood_handbook(), federal_register(), gsa_fnae(),
-                                                  tm_9_243(), fm_5_426()]),
+                                                  tm_9_243(), fm_5_426(), *tropix()]),
             materials(), requirements(), tools()]
 
 

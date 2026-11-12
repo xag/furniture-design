@@ -40,8 +40,11 @@ VOCABULARY = [
         "A material a part is made of. Its params are its properties, each derived_from the "
         "clauses it was computed from; a part links to it with `uses` and reads them as its "
         "own. payload form (solid wood, plywood, ...), measured_along (the direction its "
-        "bending values were measured in: grain, face grain, or unstated when the source does "
-        "not say) and modulus (true: corrected for shear deflection, so a shear term is added; "
+        "bending values were measured in: grain; face grain, flat; across face grain, flat "
+        "(plywood bent with its face grain across the span); major axis, flat and minor axis, "
+        "flat (OSB, along and across the panel's length); flat (a board with no grain in its "
+        "plane: particleboard, MDF, hardboard); or unstated when the source does not say) and "
+        "modulus (true: corrected for shear deflection, so a shear term is added; "
         "apparent: measured on the panel with its shear deflection in it)."),
         params={"density": "kg/m3", "modulus_of_elasticity": "EL, MPa (for a panel, its "
                 "bending modulus as tested on the panel)",
@@ -543,7 +546,7 @@ COUNTER_EXAMPLES = [
 
 PACKAGE = Package(
     name="furniture-design",
-    version="0.6.0",
+    version="0.6.1",
     description=(
         "Furniture designs and the published knowledge they are judged against. Kinds: "
         "source and clause (a publication and its verbatim, located statements, with the "
