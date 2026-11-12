@@ -959,7 +959,8 @@ def _cut_method(pen: Pen, p: Part, box, L: dict, lang: str):
         pen.text(x, yy, L["sources"], 2.6, THIN, bold=True)
         yy -= 3.4
         for source, locators in by_source.items():
-            for line in _wrap(f"{source}{colon}{' ; '.join(locators)}", int(w / 1.15)):
+            sep = " ; " if lang == "fr" else "; "
+            for line in _wrap(f"{source}{colon}{sep.join(locators)}", int(w / 1.15)):
                 pen.text(x, yy, line, 2.3, THIN)
                 yy -= 3.0
 

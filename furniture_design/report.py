@@ -48,20 +48,50 @@ TEXT = {
         "load_point": "{kg} kg au milieu",
         "other": "{rule}",
     },
+    "en": {
+        "strength": "Strength: {part} under {load}",
+        "strength_res": "stress {s} MPa against {a} MPa allowed (the strength 95 % of pieces "
+                        "exceed, divided by 2.1 for a ten-year load and safety)",
+        "sag": "Sag: {part} under {load}",
+        "sag_res": "{d} mm at the middle, simply supported on its two supports",
+        "sag_limit": "; limit set: {l} mm",
+        "sideways": "Sideways push: {f} N at seat height ({src})",
+        "sideways_ok": "the connectors of the panels that take it hold, with {m} N to spare",
+        "sideways_fail": "{m} N short: {why}",
+        "sideways_unbraced": "no panel in the plane of the push takes it",
+        "single": "neither the panels in the plane of the push nor the bending of every joint "
+                  "between the sides and the horizontal parts take it",
+        "weak": "the connectors or the sides do not hold what is asked of them",
+        "sideways_open": "not settled: {why}",
+        "no_rating": "the connector has no published {mode} in {material}",
+        "pull_out": "pull-out strength", "shear": "shear strength",
+        "moment_opening": "bending strength (open corner joint)",
+        "moment_closing": "bending strength (closed corner joint)",
+        "joints": "Joints: thickness and width of the parts, the connector's tool and setting",
+        "joints_ok": "{n} joints, all within the maker's minimums",
+        "joints_fail": "not within the maker's minimums: {which}",
+        "direction": "Grain direction: {part}",
+        "direction_ok": "the panel spans the way its values were measured",
+        "direction_fail": "the material's values do not hold in this direction",
+        "load_point": "{kg} kg at the middle",
+        "other": "{rule}",
+    },
 }
 
 JOINT_RULES = {"a-joined-part-is-thick-enough-for-the-cut", "a-joined-part-is-wide-enough",
                "a-joint-is-cut-with-a-tool-its-connector-takes",
                "a-joint-is-cut-at-its-connectors-setting"}
-MATERIAL_WORDS = {"plywood": "contreplaqué", "mdf": "MDF", "particleboard": "aggloméré"}
-
-
-def _fmt(v: float, nd: int = 1) -> str:
-    return f"{v:.{nd}f}".replace(".", ",")
+MATERIAL_WORDS = {"fr": {"plywood": "contreplaqué", "mdf": "MDF", "particleboard": "aggloméré"},
+                  "en": {"plywood": "plywood", "mdf": "MDF", "particleboard": "particleboard"}}
+DECIMAL = {"fr": ",", "en": "."}
 
 
 def checks(tree: Quern, piece: str, lang: str = "fr") -> list[dict]:
     T = TEXT[lang]
+
+    def _fmt(v: float, nd: int = 1) -> str:
+        return f"{v:.{nd}f}".replace(".", DECIMAL[lang])
+
     prefix = piece.rstrip("/")
     results = [r for r in run_rules(tree)
                if r.node == prefix or r.node.startswith(prefix + "/")]
@@ -117,7 +147,7 @@ def checks(tree: Quern, piece: str, lang: str = "fr") -> list[dict]:
         except Absent as e:
             got = re.search(r"states no (\w+) strength in (\S+)", str(e))
             why = T["no_rating"].format(mode=T.get(got.group(1), got.group(1)),
-                                        material=MATERIAL_WORDS.get(got.group(2), got.group(2))) \
+                                        material=MATERIAL_WORDS[lang].get(got.group(2), got.group(2))) \
                 if got else str(e)
             row.update(result=T["sideways_open"].format(why=why), verdict="open")
         rows.append(row)

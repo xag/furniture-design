@@ -298,6 +298,18 @@ wheels = [
 ]
 
 [[package]]
+name = "fluent-syntax"
+version = "0.19.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/51/52/de75f2faf499ed5a089acff2ab8bda5fc3b8db8a3f1615428ef9ccbf1917/fluent.syntax-0.19.0.tar.gz", hash = "sha256:920326d7f46864b9758f0044e9968e3112198bc826acee16ddd8f11d359004fd", size = 15039, upload-time = "2023-03-16T11:03:24.023Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/54/28/475734afb670bf7932caa1828183a4687cac51111950b9fb633c4f976afc/fluent.syntax-0.19.0-py2.py3-none-any.whl", hash = "sha256:b352b3475fac6c6ed5f06527921f432aac073d764445508ee5218aeccc7cc5c4", size = 16432, upload-time = "2023-03-16T11:03:21.934Z" },
+]
+
+[[package]]
 name = "furniture-design"
 version = "0.1.0"
 source = { editable = "." }
@@ -315,7 +327,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "quern", git = "https://github.com/xag/quern?rev=c839190abc5e70ce0e693f14e7895e655907263c" },
+    { name = "quern", git = "https://github.com/xag/quern?rev=07eff6efc0625ee0613a083095db4e6b75be7284" },
     { name = "reportlab", specifier = ">=5.1.0" },
     { name = "shapely", specifier = ">=2.2.0" },
 ]
@@ -793,8 +805,9 @@ wheels = [
 [[package]]
 name = "quern"
 version = "0.1.5"
-source = { git = "https://github.com/xag/quern?rev=c839190abc5e70ce0e693f14e7895e655907263c#c839190abc5e70ce0e693f14e7895e655907263c" }
+source = { git = "https://github.com/xag/quern?rev=07eff6efc0625ee0613a083095db4e6b75be7284#07eff6efc0625ee0613a083095db4e6b75be7284" }
 dependencies = [
+    { name = "fluent-syntax" },
     { name = "pydantic" },
     { name = "wasmtime" },
     { name = "xag-flight-recorder" },

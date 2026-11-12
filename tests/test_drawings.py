@@ -99,6 +99,28 @@ def test_the_checks_read_as_sentences_with_their_numbers():
     assert sideways and sideways[0]["verdict"] == "ok" and "N" in sideways[0]["result"]
 
 
+def test_every_language_says_the_same_checks_with_the_same_numbers():
+    """Each language the documents are written in has every sentence the checks use, and says
+    the same rows with the same verdicts: a language that lacks one is a KeyError here, not a
+    blank in somebody's plans."""
+    from furniture_design.report import DECIMAL, MATERIAL_WORDS, TEXT, checks
+    assert set(TEXT) == set(MATERIAL_WORDS) == set(DECIMAL) == {"fr", "en"}
+    for lang in TEXT:
+        assert set(TEXT[lang]) == set(TEXT["fr"]), lang
+        assert set(MATERIAL_WORDS[lang]) == set(MATERIAL_WORDS["fr"]), lang
+    fr, en = checks(_tree(), BENCH, "fr"), checks(_tree(), BENCH, "en")
+    assert [r["verdict"] for r in fr] == [r["verdict"] for r in en]
+    sideways = [r for r in en if r["requirement"].startswith("Sideways push")]
+    assert sideways and "N" in sideways[0]["result"]
+    assert not any(w in r["requirement"] + r["result"] for r in en for w in ("Poussée", "Flèche", " sous "))
+
+
+def test_the_documents_are_written_in_english(tmp_path):
+    out = drawings.documents(_tree(), BENCH, tmp_path, lang="en")
+    assert out["design"].name.endswith("-design.pdf") and out["assembly"].name.endswith("-assembly.pdf")
+    assert out["design"].read_bytes()[:4] == b"%PDF" and out["assembly"].read_bytes()[:4] == b"%PDF"
+
+
 def test_the_three_documents_are_written(tmp_path):
     out = drawings.documents(_tree(), BENCH, tmp_path)
     assert out["design"].read_bytes()[:4] == b"%PDF" and out["assembly"].read_bytes()[:4] == b"%PDF"
