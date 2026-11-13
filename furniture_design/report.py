@@ -27,6 +27,9 @@ TEXT = {
         "sag": "Flèche : {part} sous {load}",
         "sag_res": "{d} mm au milieu, en appui simple sur ses deux supports",
         "sag_limit": " ; limite fixée : {l} mm",
+        "no_strength": "non tranché : le matériau ne donne pas de résistance en flexion",
+        "no_stiffness": "non calculée : le matériau ne donne pas de module d'élasticité",
+        "no_shear": "non calculée : la pièce ne dit pas quel module de cisaillement de son matériau lire",
         "sideways": "Poussée de côté : {f} N à hauteur d'assise ({src})",
         "sideways_ok": "les connecteurs des panneaux qui la reprennent tiennent, {m} N de marge",
         "sideways_fail": "il manque {m} N : {why}",
@@ -55,6 +58,9 @@ TEXT = {
         "sag": "Sag: {part} under {load}",
         "sag_res": "{d} mm at the middle, simply supported on its two supports",
         "sag_limit": "; limit set: {l} mm",
+        "no_strength": "not settled: the material states no bending strength",
+        "no_stiffness": "not worked out: the material states no modulus of elasticity",
+        "no_shear": "not worked out: the part does not say which of its material's shear moduli to read",
         "sideways": "Sideways push: {f} N at seat height ({src})",
         "sideways_ok": "the connectors of the panels that take it hold, with {m} N to spare",
         "sideways_fail": "{m} N short: {why}",
@@ -110,16 +116,19 @@ def checks(tree: Quern, piece: str, lang: str = "fr") -> list[dict]:
         stress = _param(tree, case, "km") * w * span * 6 / (b * h * h)
         allowed = _param(tree, path, "design_bending_stress")
         rows.append({"requirement": T["strength"].format(part=name, load=load),
-                     "result": T["strength_res"].format(s=_fmt(stress), a=_fmt(allowed)),
-                     "verdict": "ok" if stress <= allowed else "fail"})
-        d = deflection(tree, path)
+                     "result": T["no_strength"] if allowed is None
+                     else T["strength_res"].format(s=_fmt(stress), a=_fmt(allowed)),
+                     "verdict": "open" if allowed is None else "ok" if stress <= allowed else "fail"})
         limits = [_param(tree, r, "limit") for r in node.links.get("sag_limit", [])]
-        res = T["sag_res"].format(d=_fmt(d))
-        verdict = "info"
-        if limits:
-            res += T["sag_limit"].format(l=_fmt(min(limits)))
-            verdict = "ok" if all(r.ok for r in results if r.rule == "a-beam-sags-within-its-limit"
-                                  and r.node == path) else "fail"
+        try:
+            res, verdict = T["sag_res"].format(d=_fmt(deflection(tree, path))), "info"
+            if limits:
+                res += T["sag_limit"].format(l=_fmt(min(limits)))
+                verdict = "ok" if all(r.ok for r in results if r.rule == "a-beam-sags-within-its-limit"
+                                      and r.node == path) else "fail"
+        except (ValueError, Absent) as e:  # a value the material or the part does not give
+            res = T["no_shear" if "shear modulus" in str(e) else "no_stiffness"]
+            verdict = "open" if limits else "info"
         rows.append({"requirement": T["sag"].format(part=name, load=load), "result": res,
                      "verdict": verdict})
         direction = [r for r in results if r.rule == "a-part-bends-the-way-its-material-was-tested"

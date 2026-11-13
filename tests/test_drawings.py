@@ -221,3 +221,28 @@ def test_a_pieces_checks_are_the_whole_trees_verdicts_under_it():
             assert sorted(drawings.checks(tree, path)) == sorted(under), path
             seen += 1
     assert seen > len(worlds)
+
+
+def test_a_value_the_material_lacks_leaves_its_check_open_and_the_others_said():
+    """A board on sale may print its stiffness and not its strength, or a solid wood a true
+    modulus with no shear modulus named by the part: the checks say which value is missing, as an
+    open point, and still say every other row, in each language."""
+    from furniture_design.report import TEXT, checks
+
+    SHELF = "pieces/bookshelf"
+
+    for lang in ("fr", "en"):
+        for drop, payload, expect in (("design_bending_stress", {}, "no_strength"),
+                                      ("modulus_of_elasticity", {}, "no_stiffness"),
+                                      ("", {"modulus": "true"}, "no_shear")):
+            tree = _tree()
+            beam = next(p for p, n in tree.walk(SHELF) if n.kind == "part" and (n.links or {}).get("bends_as"))
+            material = get_node(tree, get_node(tree, beam).links["uses"][0])
+            material.params.pop(drop, None)
+            material.payload = {**(material.payload or {}), **payload}
+            if expect == "no_shear":  # nor does the part name a shear modulus to read
+                get_node(tree, beam).payload.pop("shear_modulus", None)
+            whole = checks(_tree(), SHELF, lang)
+            rows = checks(tree, SHELF, lang)
+            assert any(r["result"] == TEXT[lang][expect] for r in rows), (lang, expect)
+            assert len(rows) == len(whole), (lang, expect)
