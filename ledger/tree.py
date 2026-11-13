@@ -183,6 +183,24 @@ def entries() -> list[Node]:
             ],
         ),
         Node(
+            id="makers-products-are-outside-furniture-design", kind="decision",
+            name="Knowledge of makers' products is not in furniture-design@: it is in unofficial packages that "
+                 "require furniture-design@ and add the products as data on its kinds, one per maker "
+                 "(lamello-unofficial) or one for the makers of one kind of product (wood-panels-unofficial, with "
+                 "the standard classes their boards declare). furniture-design names no maker",
+            payload={"decided_on": "2026-11-13",
+                     "the_owner": "We need to keep the makers too but not necessarily as specific packages.",
+                     "why": "furniture-design is the general method, and a maker's catalogue changes when the maker "
+                            "changes it. Panel makers declare the same classes, and one package per maker would be "
+                            "fourteen packages of a few declarations each, all needing those classes."},
+            links={"supersedes": ["a-makers-products-are-their-own-package"],
+                   "rests_on": ["the-rules-read-the-knowledge"]},
+            children=[
+                _alt("always-a-package-per-maker", "Keep one package per maker for panels too",
+                     "Fourteen packages for a few declarations each, all needing the same classes."),
+            ],
+        ),
+        Node(
             id="the-package-is-in-the-open-registry", kind="decision",
             name="furniture-design@ is published to the public registry (xag/quern-registry), not the "
                  "private fleet registry",

@@ -235,6 +235,16 @@
     "digest": "2e0ada388c38"
   },
   {
+    "path": "makers-products-are-outside-furniture-design",
+    "kind": "decision",
+    "digest": "defab104d826"
+  },
+  {
+    "path": "makers-products-are-outside-furniture-design/always-a-package-per-maker",
+    "kind": "alternative",
+    "digest": "3c96125b9bb5"
+  },
+  {
     "path": "only-the-owner-earns-from-the-knowledge",
     "kind": "decision",
     "digest": "ed2b6fa732e8"
