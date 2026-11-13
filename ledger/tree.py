@@ -747,8 +747,14 @@ def entries() -> list[Node]:
                             "span/500, under loads from 0.7 to 2.0 kg/dm2, measured at once, after ten "
                             "minutes, after a week or at the end of a structure's life. A requirement every "
                             "part were held to would pick one and apply it where it was not written; kept as "
-                            "knowledge, a designer sees them all and states which one the piece follows."},
+                            "knowledge, a designer sees them all and states which one the piece follows. The seating "
+                            "standards set none either: EN 12520's Table 1, an EN 16139 test report, "
+                            "ANSI/BIFMA X5.4's tests and an X5.1 report load a seat (1300 N, a bag dropped "
+                            "100,000 times) and pass it when it still serves or has not given way, and "
+                            "measure no sag (sources/en-12520-2015-preview and the three beside it)."},
             links={"rests_on": ["the-rules-read-the-knowledge", "a-check-reads-its-requirement-over-its-own-link"]},
+            meta={"amended": "400c53a9d5a5 the seating standards added to the sources searched; they set no "
+                             "sag limit, so the decision is the same"},
             children=[
                 _alt("one-limit-for-every-shelf", "Hold every shelf and seat to EN 16121's 0.5% of the span, "
                      "the limit most often cited", "It is written for non-domestic storage shelves under "

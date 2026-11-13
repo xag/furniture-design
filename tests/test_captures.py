@@ -16,7 +16,7 @@ from pathlib import Path
 from quern import Quern, run_rules
 
 from furniture_design.knowledge import (OPEN_LICENCES, TROPIX_ROWS, TROPIX_SHEETS, boruvka, design_stress,
-                                        european_species, knowledge, sag_limits, schmidtova, thermo_beech,
+                                        european_species, knowledge, sag_limits, schmidtova, seating_tests, thermo_beech,
                                         tropix)
 from furniture_design.package import PACKAGE
 
@@ -90,9 +90,10 @@ def _printed_numbers(printed: str) -> set[float]:
     """Every number a cell prints, read with a decimal point ('10,056' is 10056, '0.0625' is
     0.0625), with a decimal comma ('0,5' is 0.5), or spelt ('seven' is 7)."""
     point = {float(n.replace(",", "")) for n in re.findall(r"\d+(?:,\d{3})*(?:\.\d+)?|\.\d+", printed)}
+    spaced = {float(n.replace(" ", "")) for n in re.findall(r"\d{1,3}(?: \d{3})+", printed)}  # '1 300' is 1300
     comma = {float(n.replace(" ", "").replace(",", ".")) for n in re.findall(r"\d+(?:,\d+)?", printed)}
     words = {float(v) for w, v in WORDS.items() if re.search(rf"\b{w}\b", printed, re.I)}
-    return point | comma | words
+    return point | spaced | comma | words
 
 
 def _si(number: float, how: dict) -> float:
@@ -100,12 +101,12 @@ def _si(number: float, how: dict) -> float:
 
 
 def test_every_sag_limit_and_thermo_beech_value_is_printed_after_its_label_in_the_copy_fetched():
-    """Each value of the sag limits and the thermally modified beech studies, whatever the
+    """Each value of the sag limits, the seating tests and the thermally modified beech studies, whatever the
     source's licence, is the number printed after its label in the copy whose sha256 the
     source records, brought to SI the way its row says; a clause with values has a row for
     each of them, and a clause of a copyrighted source or one of unstated licence quotes nothing."""
-    sources = [schmidtova(), boruvka(), *sag_limits()]
-    assert len(sources) == 17
+    sources = [schmidtova(), boruvka(), *sag_limits(), *seating_tests()]
+    assert len(sources) == 21
     for source in sources:
         text = _text(source.payload["sha256"])
         for clause in source.children:

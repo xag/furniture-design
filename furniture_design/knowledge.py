@@ -1460,6 +1460,112 @@ def sag_limits() -> list[Node]:
     ]
 
 
+# --- the seating standards: the loads a seat is tested under, and no sag limit -------------
+
+INCHES = {"times": INCH_MM}
+
+
+def seating_tests() -> list[Node]:
+    """What the seating standards hold a seat to, as far as their public texts show: loads,
+    drops and cycles, a seat passing when it still serves or has not given way. None of them
+    measures how far a seat sags (ledger: a-published-sag-limit-is-a-source-a-piece-chooses-from)."""
+    copyrighted = {"licence": "copyrighted"}
+    return [
+        _publication(
+            "en-12520-2015-preview",
+            "EN 12520:2015 Furniture — Strength, durability and safety — Requirements for domestic "
+            "seating (the preview of SIST EN 12520:2016, its first pages)",
+            publisher="CEN, preview served by iTeh Standards", year=2015, identifier="EN 12520:2015",
+            url="https://cdn.standards.iteh.ai/samples/40540/19ab4cf5ec5d49b481f1bc4781ea1ebc/SIST-EN-12520-2016.pdf",
+            sha256="113b084396e75997b1af2bfaa9aa49477dcdfcb740b2ec5ca33924c4e9a563b0", **copyrighted,
+            children=[
+                _stated("1-scope-user-mass", "1 Scope",
+                        [("user_mass", "kg", "The tests are based on use by persons weighing up to",
+                          "110 kg", 110, SAME)],
+                        applies_to="all domestic seating for adults"),
+                _stated("table-1-tests", "5.4.1 and Table 1, Tests and test sequence",
+                        [("seat_static_force", "N", "Seat force F1, N", "1 300", 1300, SAME),
+                         ("seat_impact_drop_height", "mm", "Drop height, mm", "180", 180, SAME)],
+                        applies_to="domestic seating, tested in the order of Table 1 under the conditions "
+                                   "of EN 1728:2012",
+                        load="test 1 loads the seat with F1, ten times (EN 1728:2012, 6.4); test 11 drops "
+                             "the seat impactor from the drop height, ten times (EN 1728:2012, 6.24)",
+                        deflection="not a test parameter: no test of Table 1 measures how far the seat "
+                                   "sags. What a seat must show after the tests is stated in 5.4.2, past the "
+                                   "end of the preview, and was not read"),
+            ]),
+        _publication(
+            "dti-report-190534-9-en-16139",
+            "Danish Technological Institute, test report 190534-9: Seto stool (model 6402), tested to "
+            "EN 16139:2013",
+            publisher="Danish Technological Institute, published by the maker", year=2023,
+            identifier="190534-9",
+            url="https://res.cloudinary.com/ff-cloudinary/raw/upload/fl_attachment/products/seto-stool-6402/"
+                "files/190534-9-seto-en-16139.pdf",
+            sha256="a227fe0f53d5c266513d7837e506dbc8f430a36a1c75e31f334d5ba4924e61bc", **copyrighted,
+            children=[
+                _stated("enclosure-a-results", "Enclosure A, Test of Model: 6402 Seto Stool", [],
+                        standard="EN 16139:2013, test severity L1 (general use); the tests are EN 1728's",
+                        applies_to="non-domestic seating",
+                        deflection="not measured: each test is reported Passed or N/A, with no "
+                                   "deflection among the results",
+                        note="the report's load column is not aligned with its test rows in the copy, "
+                             "so no load is read from it"),
+            ]),
+        _publication(
+            "kimball-ansi-bifma-tests",
+            "Kimball International, ANSI/BIFMA: the tests of each standard its seating meets, as "
+            "described in its price list's general information",
+            publisher="Kimball International", year=None,
+            url="https://downloads.kimballinternational.com/documents/price-lists/commercial/"
+                "general-information/ansi-bifma.pdf",
+            sha256="6155ecc01aa80b2f5dc05ffdeb00eb575eca0d42e680b90ea914771a3ed4c574", **copyrighted,
+            fetched="2026-11-14",
+            children=[
+                _stated("x5-4-2020-rating", "standards list",
+                        [("user_mass", "kg", "X5.4-2020 Public and Lounge Seating,", "275 lbs.", 275, POUNDS)],
+                        standard="ANSI/BIFMA X5.4-2020 Public and Lounge Seating",
+                        applies_to="public and lounge seating, rated for the user weight printed beside it"),
+                _stated("x5-4-14-seating-durability", "X5.4.14. Seating Durability Test",
+                        [("load_on_other_seats", "kg", "Seating Durability Test", "240 lbs.", 240, POUNDS),
+                         ("impact_bag_mass", "kg", "Seating Durability Test", "125 lbs.", 125, POUNDS),
+                         ("drop_height", "mm", "permitted to freefall", "1.4", 1.4, INCHES),
+                         ("cycles", "", "Each seating position was subject to", "100,000 cycles", 100000,
+                          SAME)],
+                        standard="ANSI/BIFMA X5.4-2020",
+                        applies_to="each seating position of public and lounge seating",
+                        load="a 16-inch impact bag dropped onto the seat, the other seats loaded",
+                        deflection="not measured: Kimball's descriptions of the X5.4 tests give loads, "
+                                   "durations and cycles, and no deflection"),
+            ]),
+        _publication(
+            "tuv-report-68-190-18-0976-01",
+            "TÜV SÜD, Technical Report No. 68.190.18.0976.01: office chair D00239, tested to "
+            "ANSI/BIFMA X5.1-2017",
+            publisher="TÜV SÜD, published by the seller", year=2018, identifier="68.190.18.0976.01",
+            url="https://cdn.shopify.com/s/files/1/0827/5574/8120/files/cert_files_orca_with_fabric_seat_bifma_pdf.pdf",
+            sha256="fffa06451beda30697805ce57ed76eea776e6de5a204964a5c141e1cc1dd7918", **copyrighted,
+            licence_note="the report may only be quoted in full",
+            fetched="2026-11-14",
+            children=[
+                _stated("7-4-1-drop-functional", "7.4.1 Drop Test - Dynamic, Functional Load Test",
+                        [("bag_mass", "kg", "no loss of serviceability when a test bag", "weighing 102 kg",
+                          102, SAME),
+                         ("drop_height", "mm", "no loss of serviceability when a test bag", "152 mm", 152,
+                          SAME)],
+                        standard="ANSI/BIFMA X5.1-2017, as the report restates it",
+                        applies_to="the seat of an office chair",
+                        deflection="not measured: the seat passes when it has lost no serviceability"),
+                _stated("7-4-2-drop-proof", "7.4.2 Proof Load Test",
+                        [("bag_mass", "kg", "Loss of serviceability is accepta", "weighing 136 kg", 136, SAME)],
+                        standard="ANSI/BIFMA X5.1-2017, as the report restates it",
+                        applies_to="the seat of an office chair",
+                        deflection="not measured: the seat passes when its structure has had no sudden "
+                                   "and major change; it may lose serviceability"),
+            ]),
+    ]
+
+
 # --- the Federal Register: 16 CFR 1261, adopting ASTM F2057-23 ---------------------------
 
 def federal_register() -> Node:
@@ -1733,7 +1839,7 @@ def knowledge() -> list[Node]:
     the hand tools that cut a part's cuts."""
     return [Node(id="sources", kind="", children=[wood_handbook(), federal_register(), gsa_fnae(),
                                                   tm_9_243(), fm_5_426(), *tropix(), schmidtova(),
-                                                  boruvka(), *sag_limits()]),
+                                                  boruvka(), *sag_limits(), *seating_tests()]),
             materials(), requirements(), tools()]
 
 

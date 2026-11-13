@@ -26,12 +26,13 @@ Copyrighted standards (EN 14749, EN 16121 and EN 16122, ASTM F2057, ANSI/BIFMA X
 - NIH Office of Research Facilities, *Design Requirements Manual News to Use*, Vol. 01 No. 71, Wall Shelving (2016), a work of the U.S. Government: quoted, its page kept under `sources/`.
 - CIRAD - ITTO, *Tropix 7*, one species sheet each (2024 to 2026), and Bayerische Landesanstalt für Wald und Forstwirtschaft, *LWF Wissen 42* (D. Grosser), p. 52. Copyrighted: cited by locator and values, never quoted; each source records the sha256 of the copy read, and the copies are kept private.
 - The documents the sag limits are read from: a Danish Technological Institute test report to EN 16121, the preview of ISO 7170:2021, three CATAS documents, ANSI/KCMA A161.1-2022, the Architectural Woodwork Standards (2009) Section 10, SEFA 8-PL-2026, the ICC 300-2017 public comment draft, Swedish Wood's *Design of timber structures* Volume 2 (2022), CPA's shelving bulletin, EWPAA's shelving design manual, the European Panel Federation's MDF shelves page, and GSA's 3FNE 00-589A (a GSA document with no notice, cited as FNAE-80-214A is). Cited by locator and values, each value found after the words it follows in the private copy.
+- The seating standards' tests, which set no sag limit: the preview of EN 12520:2015 (domestic seating), a Danish Technological Institute report to EN 16139:2013, Kimball's descriptions of the ANSI/BIFMA X5.4-2020 tests, and a TÜV SÜD report to ANSI/BIFMA X5.1-2017. Cited by locator and values, each value found after the words it follows in the private copy.
 
 ## What the checks do not do yet
 
 - The tipping check predicts the physical tests. Passing it is not compliance: compliance is the test itself, run as ASTM F2057-23 says.
 - Doors are not modelled, nor the 10-pound pull of test 9.2.2: the public text does not say where the hand-hold is or whether the drawers are open.
-- No published sag limit found is written for the seats and shelves of a home, so none is a requirement here. A design states its own limit, as a requirement with provenance `design-target` resting on the clause it follows (`sources/`, above), and the check holds the initial deflection to the share of that limit the Wood Handbook's creep guidance leaves (two-thirds for dry wood).
+- No published sag limit found is written for the seats and shelves of a home, and the seating standards measure no sag, so none is a requirement here. A design states its own limit, as a requirement with provenance `design-target` resting on the clause it follows (`sources/`, above), and the check holds the initial deflection to the share of that limit the Wood Handbook's creep guidance leaves (two-thirds for dry wood).
 
 ## Using it
 
