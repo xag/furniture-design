@@ -1,0 +1,385 @@
+Article
+
+Elastic and Strength Properties of Heat-Treated Beech
+and Birch Wood
+
+Vlastimil Boru˚ vka 1 ID , Aleš Zeidler 1,*, Tomáš Holecˇek 1 and Roman Dudík 2
+
+  1 Department of Wood Processing, Faculty of Forestry and Wood Sciences, Czech University of Life Sciences
+       Prague, 16500 Prague, Czech Republic; boruvkav@ﬂd.czu.cz (V.B.); holecekt@ﬂd.czu.cz (T.H.)
+
+  2 Department of Forestry and Wood Economics, Faculty of Forestry and Wood Sciences, Czech University of
+       Life Sciences Prague, 16500 Prague, Czech Republic; dudik@ﬂd.czu.cz
+
+ * Correspondence: zeidler@ﬂd.czu.cz; Tel.: +420-224-383-742
+
+  Received: 20 February 2018; Accepted: 8 April 2018; Published: 10 April 2018
+
+ Abstract: This paper deals with the impact of heat treatment on the elastic and strength properties of
+ two diffuse porous hardwoods, namely Fagus sylvatica and Betula pendula. Two degrees of the heat
+ treatment were used at temperatures of 165 ◦C and 210 ◦C. The dynamic and static elasticity modulus,
+ bending strength, impact toughness, hardness, and density were tested. It is already known that
+ an increase in treatment temperature decreases the mechanical properties and, on the other hand,
+ leads to a better shape and dimensional stability. Higher temperatures of the heat treatment correlated
+ with lower elastic and strength properties. In the case of higher temperature treatments, the decline
+ of tested properties was noticeable as a result of serious changes in the chemical composition of
+ wood. It was conﬁrmed that at higher temperature stages of treatment, there was a more pronounced
+ decrease in beech properties compared to those of the birch, which was the most evident in their
+ bending strength and hardness. Our research conﬁrmed that there is no reason to consider birch
+ wood to be of a lesser quality, although it is regarded by foresters as an inferior tree species. After the
+ heat treatment, the wood properties are almost the same as in the case of beech wood.
+
+ Keywords: heat treatment; beech; birch; thermowood; density; moisture content; mechanical
+ properties; speciﬁc strength
+
+1. Introduction
+
+      Beech (Fagus sylvatica L.) ranks among the most important European hardwoods and the most
+important deciduous species for Czech forestry, occupying 8.3% of total forest area [1]. It plays an
+important role in industry. In contrast, birch (Betula pendula Roth) is regarded as an inferior species in
+this region and its wood is mostly used as fuel. One of the reasons for this is its low durability and low
+resistance against biological agents. One of the ways to improve wood properties is thermal treatment,
+a natural and an environmentally friendly method of wood modiﬁcation.
+
+      In many kinds of processing, wood is exposed to a treatment at elevated temperatures, e.g., drying,
+pulping, size stabilization, and production of particle- and ﬁberboard. Due to the fact that temperature
+inﬂuences the physical, structural, and chemical properties of wood, a number of publications are
+devoted to this topic [2–24], etc. The above mentioned processes are carried out at temperatures that
+usually do not exceed 200 ◦C because thermal degradation is undesirable.
+
+      Wood heating will lead to different processes that always depend on the heating mode used. It is
+recognized that hemicelluloses are degraded to a greater extent than other macromolecular components,
+but the relative stability of cellulose and lignin is much more difﬁcult to determine. As is not the case
+above, when the wood is heated, heat-labile wood polymeric components (hemicelluloses) begin to
+decompose, resulting in the production of methanol, acid, and various volatile heterocyclic compounds
+
+Forests 2018, 9, 197; doi:10.3390/f9040197  www.mdpi.com/journal/forests
+Forests 2018, 9, 197  2 of 18
+
+(furans, etc.). In general, the loss of polysaccharide material becomes particularly important at
+temperatures above 180 ◦C, which largely depends on the processing conditions. However, changes in
+the degree of polymerization may appear at lower temperatures (above approx. 150 ◦C), depending on
+the heat treatment conditions. The total polyoses (hemicelluloses) containing a large proportion of
+xylan are oxidized more slowly and consume less oxygen than pure xylan. According to some studies,
+the decomposition of hardwood xylan begins at a temperature close to 200 ◦C in a normal atmosphere.
+Even though lignin is considered to be the thermally most stable component of wood, various changes
+have been observed even at temperatures below 200 ◦C. Assessment of lignin content in thermally
+treated woods indicated the increase of non-hydrolyzable residue with increasing temperature up to
+200 ◦C [9,11].
+
+      There are a number of thermal modiﬁcation methods that can be applied to wood, and the exact
+method of treatment can have a signiﬁcant effect on the properties of the thermally modiﬁed wood.
+Major process variables are the following: time and temperature of treatment, treatment atmosphere,
+pressure, closed vs. open systems, wood species, wet and dry systems, sample dimensions, and use of
+catalysts. Also, under certain conditions, changes in wood can be observed even at 100 ◦C [11].
+
+      Thermally modiﬁed wood has been produced for more than 20 years, mostly in Finland and other
+countries of Western Europe. It is made of non-durable and less-durable wood species, such as beech,
+birch, pine, and spruce, etc. ThermoWood® is produced by a heat treatment process in the presence
+of steam and is therefore typical hygrothermal treatment. The steam acts as a blanket to reduce the
+oxidative degradation of wood and there are also further reactions that occur due to the presence of
+moisture. Because of the presence of steam, the air content in the kiln is limited from 3 to 5% during
+the heat treatment process [25].
+
+      ThermoWood has a lower density and has a reduced bending strength compared to unmodiﬁed
+wood [26–28]. The modulus of elasticity does not change signiﬁcantly by the thermal treatment [29,30].
+ThermoWood is not desirable to use for load-bearing applications. Toughness and abrasion resistance
+are reduced and wood tends to split more [31]. The equilibrium moisture content is about 40–50%
+lower at a given relative humidity compared to unmodiﬁed wood [11]. This wood also exhibits
+reduced permeability to moisture and greater dimensional stability [32]. There are more positive
+results due to heat treatment of wood, i.e., reduced thermal conductivity, increased sound absorption
+coefﬁcient [33], improved ﬁre resistance [34], reduced susceptibility to insect attack [35], and increased
+durability [36], etc.
+
+      Thermally modiﬁed wood is an ideal material for interior products such as parquet, tile, panels,
+kitchen furniture, sauna walls or ﬂoors, and some musical instruments. Also, it can be used for
+entrance doors, windows, exterior cladding, garden furniture, children’s playgrounds, fencing, and so
+on. This wood has the potential to replace tropical wood species and also to gradually replace wood
+chemically protected with biocides. However, it should be emphasized that the types of thermally
+modiﬁed wood that have been produced so far have not always been the most suitable material for
+permanently wet exposures in contact with terrain or water [15,16].
+
+      The aim of this study is to compare properties of beech and birch wood and to better explain the
+effect of thermal treatment on their wood. The results should broaden the information about stiffness
+and strength characteristics for the thermally modiﬁed wood of European beech and European birch,
+and their mutual comparison, as well as present a comparison with research of Douglas ﬁr and alder
+woods (see research Boru˚ vka [37]). The aim of this paper is therefore also to verify the negativity of
+the higher level of heat treatment of deciduous woods against conifers. From the perspective of wood
+utilization, these characteristics are important to ﬁnd limiting conditions for the proper application and
+protection of individual timbers, including the appropriate degree of thermal treatment to guarantee
+required properties.
+Forests 2018, 9, 197  3 of 18
+
+2. Materials and Methods
+
+2.1. Materials
+
+      The testing material comes from tree stems from the Školní Lesní Podnik (Forest Establishment) of
+the Czech University of Life Sciences in Kostelec nad Cˇ ernými Lesy, Czech Republic. For each species,
+we used wood from the basal part of three trees with diameters of about 40 cm. European beech
+(Fagus sylvatica L.) and European birch (Betula pendula Roth.) wood were cut into prisms with
+dimensions of 25 mm × 50 mm × 1000 mm (R × T × L). Six test pieces with dimensions of
+20 mm × 20 mm × 300 mm were prepared from each prism to ensure the longitudinal parallelism of
+the testing samples with the samples prepared for two degrees of the thermal treatment.
+
+      Transversal parallelism should make the mutual comparison of two sets of tests possible (always
+a sample designed for the determination of density, toughness, and hardness, beneath a sample on
+dynamic elasticity modulus, static elasticity modulus, and bending strength). For more details, see the
+sampling scheme in Figure 1.
+
+       Figure 1. Cutting diagram for testing samples preparation. Green coloring = reference, with no
+       treatment; yellow coloring = heat treatment at 165 ◦C; red coloring = heat treatment at 210 ◦C; upper set
+       of samples = for the determination toughness; slanted hatching = for determination density, hardness,
+       and moisture content; bottom set of samples = for the determination dynamic elasticity modulus,
+       static elasticity modulus, and bending strength.
+
+      In total, 360 testing samples were used (180 for beech and 180 for birch). The set of samples for
+each species was divided into thirds (reference, ﬁrst degree of the treatment, second degree of the
+treatment). The following defects and irregularities were not allowed for the testing samples: knots,
+cracks, or reaction wood, as well as an angle of ﬁber declination in the bending plane larger than 5◦.
+
+      The testing samples were conditioned to reach the equilibrium moisture content (approx. 12%).
+We used the Climacell 707 conditioning chamber (BMT Medical Technology Ltd., Brno, Czech Republic)
+at 20 ± 2 ◦C and a relative humidity of 65 ± 5%.
+
+      One third of the testing samples were subsequently exposed to the ﬁrst degree of thermal treatment
+(an air atmosphere at 165 ◦C), and the second third of the testing samples were heat-treated at
+210 ◦C, following the Finnish technology for the wood heat treatment (Pat. EP-0759137 [25]). The lab
+high-temperature chamber A type KHT (Katres Ltd., Jihlava, Czech Republic) (Figure 2, Table 1) was
+employed to modify both sets of the testing samples.
+Forests 2018, 9, 197                                                     4 of 18
+
+Figure 2. The photograph of the thermal chamber used for the treatment including the arrangement of
+the samples inside (a) and the photograph of the conditioning chamber used for the conditioning after
+heat treatment including the arrangement of the samples inside (b).
+
+                                     Table 1. Parameters of the Thermal Chamber.
+
+                                          Technical Parameters  0.38 m3
+
+                          Filling capacity of furnace           150 kg
+                            Maximum load capacity               300 ◦C
+                      Maximum reachable temperature             250 ◦C
+                      Maximum working temperature
+                                                                3 kWh
+                              Power consumption
+
+      Figure 3 describes the process of the heat treatment. During the treatment, we used sprinkling,
+
+in contrast to the steam used in Finnish technology. We exposed the testing samples to a temperature of
+20 ± 2 ◦C and a relative humidity of 65 ± 5% to stabilize the equilibrium moisture content (Figure 2).
+
+                     Figure 3. Diagram of the heat treatment procedure at 165 ◦C (a) and 210 ◦C (b).
+
+      For the purpose of this study, beech and birch woods were chosen deliberately. Both species
+represent diffuse porous hardwoods with similar densities (Table 2).
+Forests 2018, 9, 197                                                                                           5 of 18
+
+                                Table 2. Properties of Beech and Birch Woods.
+
+                                                                      Wood Species 1
+
+                                                       Beech                          Birch
+
+                                 Min. Mean Max. Min. Mean                                              Max.
+
+               Density (kg/m3)               540             720      910   510                  650    830
+                                                                                                       16,500
+Static modulus of elasticity (MPa) 10,000 16,000 18,000 14,500
+                                                                                                        155
+Bending strength (MPa)                       74              123      210      76                147    13.0
+                                                                                                         27
+Impact bending strength (J/cm2)              3.0          10.0        19.0  4.5                  10.0
+
+Hardness LR/LT (MPa)                                         34                22
+
+                      1 Moisture content 12–15% [38]. LR = radial plane, LT = tangential plane.
+
+2.2. Methods
+
+      The impact toughness (breaking power) is deﬁned as the ability of wood to absorb the power of
+impact bending. The aim of this test was to determine the power consumed for the wood rupture
+(breaking point) under controlled conditions. Charpy’s hammer (CULS, Prague, Czech Republic) was
+used for this determination. The hammer impact direction was tangential.
+
+      The Equation (1) was used to calculate the impact toughness:
+
+                                                  Aw   =     W                                                 (1)
+                                                             b·h
+
+where Aw is the impact toughness at the moisture content during the test time in J·cm−2, W is the
+power consumed for the wood rupture in J, and b and h are the wood transversal dimensions in cm.
+
+The wood bending strength is the stress corresponding to the test sample rupture caused by
+
+the combined forces with momentum at the plane perpendicular to the cross section. For the action
+
+of a single force in the center of the supports, the bending strength was calculated according to the
+
+Equation (2):
+
+                                 σpohw            =    3· Fmax ·l0                                             (2)
+                                                        2·b·h2
+
+where σpohw is the bending strength at the moisture content during the test time in MPa; Fmax is the
+force corresponding to the breaking strength in N; l0 is the distance between supports in mm; and b and
+h are the width and height dimensions, respectively, in mm. The static bending tests were carried out
+
+on a Tira 50 kN testing machine (Tira GmbH, Schalkau, Germany) (Figure 4) with support distances of
+
+240 mm, i.e., 12-fold greater than the sample height.
+
+A theoretical basis for the determination of the bend elasticity modulus is the differential equation
+
+of the bending curve, as Equation (3) [39]:
+
+                                                  d2y  =     M                                                 (3)
+                                                  dx2        E·I
+
+where M is the bending momentum, E is the elasticity modulus, and I is the inertia moment.
+      For the action of a single force in the center of the supports, the static elasticity modulus was
+
+calculated according to the Equation (4):
+
+                                 Eohw             =    1  ·   ∆F·l03                                           (4)
+                                                       4     b·h3·∆y
+
+where Eohw is the elasticity modulus at the moisture content during the test time in MPa; ∆F is the
+difference between the forces at maximum and minimum load limits in N; l0 is the distance between
+the supports in mm; b and h are the width and height dimensions, respectively, in mm; and ∆y is the
+test sample deﬂection in the area of pure bending, equal to the difference between the bending values
+corresponding to maximum and minimum load limits, in mm.
+Forests 2018, 9, 197                                                                              8 of 18
+
+Table 3. Basic Statistical Analyses of the Properties for Untreated and Heat-Treated Beech Wood.
+
+Properties             Heat Treatment Degree Minimum    Mean    Maximum Std.Dev. Coef.Var. (%)
+
+Density                REF                    622       676     729       27        4.0
+
+(kg/m3)                165                    615       676     742       33        4.8
+
+                       210                    579       643     802       53        8.3
+
+Annual                 REF                    1.1       2.1     3.4       0.4       19.3
+
+ring width             165                    1.3       1.9     3.0       0.4       22.2
+
+(mm)                   210                    1.0       2.0     4.3       0.7       34.1
+
+Dynamic                REF                    10,107    12,986  16,583    1639      12.6
+
+modulus of elasticity  165                    10,077    13,439  16,959    1878      14.0
+
+(MPa)                  210                    8779      12,297  18,925    2281      18.5
+
+Static                 REF                    8735      10,056  11,142    740       7.4
+
+modulus of elasticity  165                    8909      10,715  12,703    1070      10.0
+
+(MPa)                  210                    7007      8830    11,072    1053      11.9
+
+Modulus of rupture-    REF                    86.7      102.7   117.3     8.1       7.9
+
+bending strength       165                    75.4      108.8   130.2     14.6      13.5
+
+(MPa)                  210                    27.9      42.0    62.5      9.0       21.5
+
+Toughness-impact       REF                    4.1       8.4     16.4      2.7       32.6
+
+bending strength       165                    2.5       6.1     10.0      1.9       30.6
+
+(J/cm2)                210                    0.3       1.6     3.9       0.9       59.3
+
+Hardness LR            REF                    14.5      41.5    60.8      11.0      26.4
+
+(MPa)                  165                    14.8      40.7    57.3      9.9       24.4
+
+                       210                    13.3      26.1    53.8      11.4      43.9
+
+Hardness LT            REF                    35.8      53.8    61.8      7.3       13.6
+
+(MPa)                  165                    32.0      55.2    65.5      7.5       13.6
+
+                       210                    20.3      40.9    64.3      12.2      29.8
+
+Speciﬁc strength-      REF                    127.8     152.0   168.5     11.5      7.6
+
+MOR/Density            165                    110.2     160.7   181.0     18.0      11.2
+
+(kN·m/kg)              210                    39.3      65.5    90.6      13.5      20.6
+
+Speciﬁc strength-      REF                    54.4      79.5    93.8      10.2      12.8
+
+Hardness LT/Density    165                    51.4      81.4    92.6      9.5       11.7
+
+(kN·m/kg)              210                    32.5      63.3    94.3      16.6      26.2
+
+Moisture content       REF                    11.6      12.0    12.4      0.2       1.5
+
+(%)                    165                    8.3       9.2     11.0      0.5       5.9
+
+                       210                    4.5       5.9     7.4       0.8       13.0
+
+Valid N = 30 (for all properties), Std.Dev. = Standard Deviation, Coef.Var. = Coefﬁcient of variation, MOR = Modulus
+
+of rupture, LR = radial plane, LT = tangential plane, REF = reference, with no treatment, 165 = heat treatment at
+165 ◦C, 210 = heat treatment at 210 ◦C.
+
+Table 4. Basic Statistical Analyses of the Properties for Untreated and Heat-Treated Birch Wood.
+
+      Properties       Heat Treatment Degree  Minimum   Mean    Maximum   Std.Dev.  Coef.Var. (%)
+
+        Density                     REF           493    639        696       42           6.5
+        (kg/m3)                     165           501    634        721       43           6.7
+                                    210           467    588        691       42           7.2
+        Annual                      REF            3.3    7.5       13.6     2.5          33.5
+      ring width                    165            2.1    7.6       14.7     2.8          36.5
+                                    210            2.7    6.6       10.9     1.9          29.5
+          (mm)                      REF           4824   9485     17,585    2998          31.6
+       Dynamic                      165           6482  10,676    15,749    2385          22.3
+modulus of elasticity               210           3307  10,449    15,997    2764          26.5
+                                    REF           1464   6829     10,407    2138          31.3
+         (MPa)                      165           1264   8458     10,965    1956          23.1
+          Static                    210           3178   7487     10,231    1628          21.8
+modulus of elasticity               REF            8.1   67.7      101.2     24.1         35.6
+         (MPa)                      165            8.5   85.1      127.0     25.1         29.5
+Modulus of rupture-                 210            8.9   35.9       62.1     10.0         27.8
+  bending strength                  REF            1.6    7.9       13.4     3.6          46.0
+         (MPa)                      165            0.3    3.4        7.1     1.8          52.2
+ Toughness-impact                   210            0.5    1.1        2.6     0.5          46.2
+  bending strength
+        (J/cm2)
+Forests 2018, 9, 197  18 of 18
+
+46. Cˇ SN 64 0128. Zkoušky Tuhých Nekovových Materiálu˚ . Tvrdost Podle Brinella (Testing of Rigid Non-Metallic
+       Materials. Hardness According to Brinell); Czech Ofﬁce for Standardization: Prague, Czech Republic,
+       1 May 1953.
+
+47. Cˇ SN EN 1534 (492124). Drˇeveˇné podlahoviny—Stanovení Odolnosti Proti Vtisku—Metoda zkoušení (Wood
+       Flooring—Determination of Resistence to Indentation—Test Method); Czech Ofﬁce for Standards, Metrology and
+       Testing: Prague, Czech Republic, 1 May 2011.
+
+48. FAKOPP Ultrasonic Timer User’s Guide. Available online: http://fakopp.com/docs/products/ultrasonic/
+       UltrasonicGuide.pdf (accessed on 19 February 2018).
+
+49. Dinwoodie, J.M. Timber: Its Nature and Behavior, 2nd ed.; CRC Press: New York, NY, USA, 2000; p. 272,
+       ISBN 978-0419235804.
+
+50. ITA (International Thermowood Association). Thermowood Handbook; International Thermowood Association:
+       Helsinki, Finland, 2003. Available online: http://vanhoorebeke.com/docs/Thermowoodhandboek.pdf
+       (accessed on 19 February 2018).
+
+51. Johansson, D. Heat Treatment of Solid Wood (Effects on Absorption, Strength and Colour). Ph.D. Thesis,
+       Luleå University of Technology, Luleå, Sweden, 2008.
+
+52. Zobel, B.J.; Buijtenen, J.P. Wood Variation: Its Causes and Control, 1st ed.; Springer: Berlin/Heidelberg,
+       Germany, 1989; p. 363, ISBN 978-3-642-74071-8.
+
+53. Zobel, B.J.; Sprague, J.R. Juvenile Wood in Forest Trees, 1st ed.; Springer: Berlin/Heidelberg, Germany, 1998;
+       p. 304, ISBN 978-3-642-72128-1.
+
+                              © 2018 by the authors. Licensee MDPI, Basel, Switzerland. This article is an open access
+                               article distributed under the terms and conditions of the Creative Commons Attribution
+                               (CC BY) license (http://creativecommons.org/licenses/by/4.0/).
+

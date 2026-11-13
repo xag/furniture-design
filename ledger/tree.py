@@ -400,7 +400,8 @@ def entries() -> list[Node]:
         Node(
             id="a-european-species-is-read-from-tropix", kind="decision",
             name="The clear-wood values of a species sold in Europe (oak, beech, fir, spruce, Scots and maritime "
-                 "pine, ash, robinia, Acacia mangium, teak, okoumé, poplar) come from its CIRAD Tropix sheet, "
+                 "pine, ash, robinia, Acacia mangium, teak, okoumé, poplar, Eucalyptus grandis) come from its "
+                 "CIRAD Tropix sheet, "
                  "its means at 12% moisture content; black alder, which Tropix lacks, from LWF Wissen 42's "
                  "ranges, the low end of each; shrinkage per percent of moisture from LWF Wissen 42's Tab. 3 "
                  "where it gives the species, and from nowhere where it does not",
@@ -415,6 +416,8 @@ def entries() -> list[Node]:
                             "and turning a total into a coefficient would need a fibre saturation point no "
                             "source here states."},
             links={"rests_on": ["the-rules-read-the-knowledge", "a-copyrighted-source-is-cited-by-locator-and-values"]},
+            meta={"amended": "441e2122ff04 Eucalyptus grandis added to the species named; the rule is the "
+                             "same and covers it"},
             children=[
                 _alt("north-american-relatives", "Use the Handbook's American relatives (American beech, white "
                      "oak) for the European species", "Another species, with other values."),
@@ -705,6 +708,114 @@ def entries() -> list[Node]:
                 _alt("no-redistribution", "A licence that forbids sharing even unchanged copies",
                      "No standard licence does, GitHub lets anyone fork a public repo, and an unchanged copy "
                      "cannot grow."),
+            ],
+        ),
+        Node(
+            id="a-published-sag-limit-is-a-source-a-piece-chooses-from", kind="decision",
+            name="A published limit on how far a shelf, a beam or a seat may sag is a clause under its "
+                 "source, never a requirement every part is held to: a piece that wants one authors its own "
+                 "requirement (measure longtime_sag, param limit in mm) per the clause it chooses. Every "
+                 "limit found is kept, one clause each, saying what it applies to, under which load, for "
+                 "how long, and whether the deflection is initial, measured after that time or final",
+            payload={"decided_on": "2026-11-13",
+                     "why": "None of the limits found is written for the seats and shelves of a home: EN "
+                            "16121 is for non-domestic storage furniture, UNI 11663 for domestic storage "
+                            "units in Italy, KCMA A161.1 for kitchen cabinets, the AWS for architectural "
+                            "casework, SEFA 8-PL for laboratory casework, NIH for laboratory wall shelving, "
+                            "GSA for metal library shelves, ICC 300 for bleachers, Eurocode 5 for timber "
+                            "structures, CPA and EWPAA for panel shelving. They run from span/144 to "
+                            "span/500, under loads from 0.7 to 2.0 kg/dm2, measured at once, after ten "
+                            "minutes, after a week or at the end of a structure's life. A requirement every "
+                            "part were held to would pick one and apply it where it was not written; kept as "
+                            "knowledge, a designer sees them all and states which one the piece follows."},
+            links={"rests_on": ["the-rules-read-the-knowledge", "a-check-reads-its-requirement-over-its-own-link"]},
+            children=[
+                _alt("one-limit-for-every-shelf", "Hold every shelf and seat to EN 16121's 0.5% of the span, "
+                     "the limit most often cited", "It is written for non-domestic storage shelves under "
+                     "1.5 kg/dm2 for a week; no source says a home bench seat should meet it."),
+                _alt("a-requirement-per-standard", "A requirement per standard, in scope of a category of "
+                     "piece as the clothing-storage-unit tests are", "No category of home furniture is in "
+                     "any of their scopes; the categories would be made up to fit."),
+                _alt("design-targets-only", "Keep sag limits as targets a design sets with no source",
+                     "A designer asking how much a seat or a shelf may sag finds nothing to choose from."),
+            ],
+        ),
+        Node(
+            id="a-deflection-limit-is-stated-as-a-share-of-the-span", kind="decision",
+            name="A deflection limit is stated in SI as share_of_span (the deflection over the span: span/180 "
+                 "is 1/180, 0.5% is 0.005), max_deflection (mm), surface_load (kg/m2), load_duration (h) and "
+                 "creep_factor (final over initial deflection); each value carries a row naming the words "
+                 "it follows in the copy, the value as printed, the number and how it becomes SI, and a "
+                 "test finds it there in the copy kept by sha256",
+            payload={"decided_on": "2026-11-13",
+                     "why": "The sources write a limit as span/180, L/144, 1/16 inch per foot or 0.5% of the "
+                            "span; one share reads them all, and times a part's span it gives millimetres. A "
+                            "load is a mass in this package, so a load per area is kg/m2, not a pressure "
+                            "that needs gravity to compare. A conversion done once in code and checked "
+                            "against the printed number leaves no value typed by hand."},
+            links={"rests_on": ["a-published-sag-limit-is-a-source-a-piece-chooses-from"]},
+            children=[
+                _alt("span-divisor", "Store the divisor (180 for span/180)",
+                     "0.5% of the span and 1/16 inch per foot are not divisors, and a divisor is "
+                     "inverted before every use."),
+                _alt("millimetres-for-a-span", "Store the limit in mm for a typical span",
+                     "The limit depends on the part's span; any one span is an assumption."),
+                _alt("pascals", "State surface loads in Pa, as KCMA prints them",
+                     "The package's loads are masses; Pa would be divided by gravity to be used."),
+            ],
+        ),
+        Node(
+            id="an-open-licensed-source-is-quoted-like-a-public-domain-one", kind="decision",
+            name="A source under CC BY 4.0 (an open-access paper) is quoted, and the pages quoted kept under "
+                 "sources/, as a public-domain one is; its source says licence cc-by-4.0, names the authors "
+                 "and the DOI, and says the quoted words keep their CC BY licence. Its values are also found "
+                 "after their labels in the whole copy kept privately, by sha256",
+            payload={"decided_on": "2026-11-13",
+                     "why": "CC BY lets anyone copy the words with credit, and a quote lets anyone check a "
+                            "value without the private copy. CC BY 4.0 forbids putting further terms on the "
+                            "licensed material (2(a)(5)(B)), so the quoted words stay CC BY inside a CC "
+                            "BY-NC-ND knowledge base, and the source says so. Only the pages quoted are kept, "
+                            "as for the Wood Handbook: a paper's PDF can be tens of MB."},
+            links={"rests_on": ["a-copyrighted-standard-is-cited-never-copied-here",
+                                "the-knowledge-is-shared-unchanged-and-improved-only-here"]},
+            children=[
+                _alt("cite-cc-by-like-copyrighted", "Cite a CC BY source by locator and values only",
+                     "Gives up what the licence allows, and a value can then be checked only by whoever "
+                     "holds the private copy."),
+                _alt("keep-the-whole-pdf", "Keep the whole PDF in the repo", "Tens of MB for a few pages "
+                     "quoted."),
+            ],
+        ),
+        Node(
+            id="a-thermally-modified-wood-is-read-from-a-study-of-its-treatment", kind="decision",
+            name="A thermally modified wood is a material of its own, read from a study of wood treated the "
+                 "stated way, never from the untreated species. Beech thermally modified is Schmidtová et "
+                 "al.'s (2026) structural boards treated at 190 °C for 3.5 h: its design stress their "
+                 "characteristic bending strength (EN 384) over the Handbook's 2.1, its modulus their mean "
+                 "Em,0,mean (EN 384) taken as apparent, its density their treated mean (Table 2). The "
+                 "material says the temperature its values hold for and that a board on sale's is unknown",
+            payload={"decided_on": "2026-11-13",
+                     "why": "The treatment changes the wood, and how much depends on its temperature: "
+                            "Schmidtová's treated boards lost 17% of their mean bending strength and "
+                            "scattered three times as much (coefficient of variation 45% against 14%); "
+                            "Borůvka et al.'s (2018) clear beech kept its strength at 165 °C (108.8 MPa "
+                            "against 102.7) and lost 59% of it at 210 °C (42.0). The study gives a "
+                            "characteristic value, which takes only the 2.1. Em,0,mean, 13.62 GPa, is below "
+                            "the boards' global modulus measured with the shear deflection in it, 14.92 GPa, "
+                            "so taken as apparent it judges no part stiffer than the boards were."},
+            links={"rests_on": ["a-stated-strength-is-read-the-way-its-source-labels-it",
+                                "a-panels-tested-modulus-takes-no-shear-term",
+                                "an-open-licensed-source-is-quoted-like-a-public-domain-one"]},
+            children=[
+                _alt("untreated-beech", "Use Tropix's beech for thermally modified beech",
+                     "Untreated wood; the treatment lowers the strength and widens its scatter."),
+                _alt("clear-wood-at-165", "Use Borůvka et al.'s clear-wood means at 165 °C",
+                     "Small clear specimens at the mildest treatment: a board of unknown treatment may "
+                     "be far weaker, and a mean takes no account of a 45% scatter."),
+                _alt("global-modulus", "Use Table 2's global modulus, 14.92 GPa", "The higher of the two "
+                     "moduli the study gives."),
+                _alt("table-3-density", "Use Table 3's mean density, 632.3 kg/m3", "The lighter of the two "
+                     "means: a part's own weight, and so its sag, would be understated."),
             ],
         ),
     ]

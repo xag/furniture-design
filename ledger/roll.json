@@ -70,6 +70,26 @@
     "digest": "a410ea9cdb0a"
   },
   {
+    "path": "a-deflection-limit-is-stated-as-a-share-of-the-span",
+    "kind": "decision",
+    "digest": "ba330347d248"
+  },
+  {
+    "path": "a-deflection-limit-is-stated-as-a-share-of-the-span/millimetres-for-a-span",
+    "kind": "alternative",
+    "digest": "c40c429bd074"
+  },
+  {
+    "path": "a-deflection-limit-is-stated-as-a-share-of-the-span/pascals",
+    "kind": "alternative",
+    "digest": "f07bf68db873"
+  },
+  {
+    "path": "a-deflection-limit-is-stated-as-a-share-of-the-span/span-divisor",
+    "kind": "alternative",
+    "digest": "b52633de00b5"
+  },
+  {
     "path": "a-design-stress-is-the-near-minimum-strength-over-the-handbooks-factor",
     "kind": "decision",
     "digest": "275cfc5702ee"
@@ -112,7 +132,7 @@
   {
     "path": "a-european-species-is-read-from-tropix",
     "kind": "decision",
-    "digest": "4d5cd7b7cda7"
+    "digest": "441e2122ff04"
   },
   {
     "path": "a-european-species-is-read-from-tropix/north-american-relatives",
@@ -185,6 +205,26 @@
     "digest": "57319dbe036f"
   },
   {
+    "path": "a-published-sag-limit-is-a-source-a-piece-chooses-from",
+    "kind": "decision",
+    "digest": "5024fbaa9e4e"
+  },
+  {
+    "path": "a-published-sag-limit-is-a-source-a-piece-chooses-from/a-requirement-per-standard",
+    "kind": "alternative",
+    "digest": "f83e049d2fc1"
+  },
+  {
+    "path": "a-published-sag-limit-is-a-source-a-piece-chooses-from/design-targets-only",
+    "kind": "alternative",
+    "digest": "6af3d15d138f"
+  },
+  {
+    "path": "a-published-sag-limit-is-a-source-a-piece-chooses-from/one-limit-for-every-shelf",
+    "kind": "alternative",
+    "digest": "b3354d1c4b6b"
+  },
+  {
     "path": "a-sideways-push-goes-through-a-panel-across",
     "kind": "decision",
     "digest": "667dbc709e59"
@@ -225,6 +265,31 @@
     "digest": "e984e4619467"
   },
   {
+    "path": "a-thermally-modified-wood-is-read-from-a-study-of-its-treatment",
+    "kind": "decision",
+    "digest": "101bc5926d47"
+  },
+  {
+    "path": "a-thermally-modified-wood-is-read-from-a-study-of-its-treatment/clear-wood-at-165",
+    "kind": "alternative",
+    "digest": "ed085359f79c"
+  },
+  {
+    "path": "a-thermally-modified-wood-is-read-from-a-study-of-its-treatment/global-modulus",
+    "kind": "alternative",
+    "digest": "d87c38b2d066"
+  },
+  {
+    "path": "a-thermally-modified-wood-is-read-from-a-study-of-its-treatment/table-3-density",
+    "kind": "alternative",
+    "digest": "d30a885df7e5"
+  },
+  {
+    "path": "a-thermally-modified-wood-is-read-from-a-study-of-its-treatment/untreated-beech",
+    "kind": "alternative",
+    "digest": "35a20818bdf9"
+  },
+  {
     "path": "an-equation-is-applied-only-where-its-source-says-it-holds",
     "kind": "decision",
     "digest": "479319611df5"
@@ -233,6 +298,21 @@
     "path": "an-equation-is-applied-only-where-its-source-says-it-holds/apply-everywhere",
     "kind": "alternative",
     "digest": "d70551e7a886"
+  },
+  {
+    "path": "an-open-licensed-source-is-quoted-like-a-public-domain-one",
+    "kind": "decision",
+    "digest": "1eaf1f28de70"
+  },
+  {
+    "path": "an-open-licensed-source-is-quoted-like-a-public-domain-one/cite-cc-by-like-copyrighted",
+    "kind": "alternative",
+    "digest": "c8db64bab88c"
+  },
+  {
+    "path": "an-open-licensed-source-is-quoted-like-a-public-domain-one/keep-the-whole-pdf",
+    "kind": "alternative",
+    "digest": "ce34264d3fae"
   },
   {
     "path": "drawings-are-generated-from-the-tree",

@@ -21,8 +21,9 @@ clauses that say so):
 Nothing here is shaped by one check. A new check reads what is here, and a new source adds
 a source, its clauses and what they let us derive; neither changes the kinds.
 
-Only public-domain sources are captured and quoted in this repo (ledger:
-a-copyrighted-standard-is-cited-never-copied-here).
+Only public-domain and CC BY sources are captured and quoted in this repo (ledger:
+a-copyrighted-standard-is-cited-never-copied-here,
+an-open-licensed-source-is-quoted-like-a-public-domain-one).
 """
 
 from __future__ import annotations
@@ -30,9 +31,14 @@ from __future__ import annotations
 from quern.provenance import Quantity
 from quern.tree import Node
 
-from .units import CUBIC_FOOT_MM3, INCH_MM, POUND_FORCE_N, POUND_KG, POUND_PER_CUBIC_FOOT_KG_M3
+from .units import (CUBIC_FOOT_MM3, INCH_MM, POUND_FORCE_N, POUND_KG, POUND_PER_CUBIC_FOOT_KG_M3,
+                    POUND_PER_FOOT_KG_M, POUND_PER_SQUARE_FOOT_KG_M2)
 
 SOURCES = "sources"
+# The licences under which a source's words may be quoted here and its quoted pages kept under
+# sources/ (ledger: an-open-licensed-source-is-quoted-like-a-public-domain-one); any other
+# source is cited by locator and values
+OPEN_LICENCES = ("public-domain", "cc-by-4.0")
 MATERIALS = "materials"
 REQUIREMENTS = "requirements"
 
@@ -566,7 +572,7 @@ def materials() -> Node:
             },
             links={"per": [row, row51, f"{wh}/table-13-5-{id_}", f"{wh}/cov-table-5-6",
                            f"{wh}/near-minimum-7-6", f"{wh}/design-factor-7-10"]}))
-    return Node(id="materials", kind="", children=out + panels() + european_species())
+    return Node(id="materials", kind="", children=out + panels() + european_species() + [thermo_beech()])
 
 
 # --- CIRAD's Tropix: the clear-wood properties of the species sold in Europe ---------------
@@ -628,7 +634,13 @@ TROPIX_SHEETS = [
      "Temperees/PEUPLIER%202026_FR.PDF",
      "6e124c500af6e22c45721a55e1ad0c84f0d1bc5533c3df7bf281f8930ce8123b", "2024-09-11",
      0.45, 62, 9_800, "poplar"),
+    ("eucalyptus-grandis", "Eucalyptus grandis (sold as red grandis)", "Red grandis",
+     "Eucalyptus grandis", "Amerique/RED_GRANDIS%202026_FR.PDF",
+     "cd570770bdf06638d0fd8cf3763a1447cddc3d8dd7bd3522692387e8b2e6ee5b", "2024-10-30",
+     0.60, 103, 15_200, "eucalyptus-grandis"),
 ]
+# The day each sheet was fetched, when it is not the day the first twelve were
+TROPIX_FETCHED = {"eucalyptus-grandis": "2026-11-13"}
 # The rows each Tropix clause reads, as the sheet heads them, and the param each gives
 TROPIX_ROWS = [("relative_density", "Densité¹"),
                ("modulus_of_rupture", "Contrainte de rupture en flexion statique¹"),
@@ -661,7 +673,7 @@ def tropix() -> list[Node]:
         out.append(Node(
             id=f"tropix-{id_}", kind="source", name=f"CIRAD - ITTO, Tropix 7: {sheet} ({botanical})",
             payload={"publisher": "CIRAD - ITTO", "year": int(updated[:4]), "url": TROPIX_URL + path,
-                     "updated": updated, "fetched": "2026-11-12", "sha256": sha,
+                     "updated": updated, "fetched": TROPIX_FETCHED.get(id_, "2026-11-12"), "sha256": sha,
                      "licence": "copyrighted", "capture": "private copy, identified by its sha256"},
             children=[Node(
                 id="properties", kind="clause",
@@ -784,6 +796,618 @@ def european_species() -> list[Node]:
          "modulus_of_elasticity": ALDER["modulus_of_elasticity"],
          "dimensional_change_radial": r / 100, "dimensional_change_tangential": t / 100}))
     return out
+
+
+# --- values read off a copy, each beside the words it follows ----------------------------
+
+def _si(number: float, how: dict) -> float:
+    """A number as printed, in the SI unit a param holds: times a factor (0.01 for a percent,
+    24 for days in hours), or a factor over it (span/180 is a share of 1/180 of the span)."""
+    return how["over"] / number if "over" in how else number * how.get("times", 1.0)
+
+
+def _stated(id_: str, locator: str, rows: list[tuple], *, quote: str | None = None,
+            **payload) -> Node:
+    """A clause whose every value is checked against the copy kept of its source. Each row is
+    (param, unit, label, printed, number, how): the value is `number`, as `printed` after
+    `label` in the copy, brought to SI by `how` (see _si); tests/test_captures.py finds each
+    printed value after its label in the copy whose sha256 the source records. A clause of a
+    public-domain or CC BY source also quotes it, checked against the capture under sources/."""
+    params = {p: published(_si(n, how), unit, locator, printed) for p, unit, _l, printed, n, how in rows}
+    body = {"locator": locator, **({"quote": quote} if quote else {}), **payload,
+            "rows": [[p, label, printed, n, how] for p, _u, label, printed, n, how in rows]}
+    return Node(id=id_, kind="clause", payload=body, params=params)
+
+
+def _publication(id_: str, name: str, *, publisher: str, year: int | None, url: str, sha256: str,
+                 licence: str, children: list[Node], fetched: str = "2026-11-13",
+                 capture: str | None = None, **payload) -> Node:
+    return Node(id=id_, kind="source", name=name,
+                payload={"publisher": publisher, **({"year": year} if year else {}), "url": url,
+                         "fetched": fetched, "sha256": sha256, "licence": licence,
+                         "capture": capture or "private copy, identified by its sha256", **payload},
+                children=children)
+
+
+PERCENT = {"times": 0.01}
+OVER = {"over": 1.0}
+SAME = {"times": 1.0}
+KG_PER_DM2 = {"times": 100.0}  # kg/dm2 as kg/m2
+LB_PER_FT2 = {"times": POUND_PER_SQUARE_FOOT_KG_M2}
+POUNDS = {"times": POUND_KG}
+GPA = {"times": 1000.0}
+
+
+# --- thermally modified beech: two studies under CC BY 4.0 --------------------------------
+
+SCHMIDTOVA = f"{SOURCES}/schmidtova-2026"
+BORUVKA = f"{SOURCES}/boruvka-2018"
+CC_BY_NOTE = ("© the authors, licensee MDPI; open access under CC BY 4.0, so its words are quoted here "
+              "and its quoted pages kept under sources/, and they keep that licence")
+
+
+def schmidtova() -> Node:
+    """Beech boards of structural size, thermally modified by a company at 190 °C: what a
+    thermally modified beech board may be designed to, its characteristic strength among it."""
+    return _publication(
+        "schmidtova-2026",
+        "Schmidtová, Andor, Valko, Herdová, Laganà: Stiffness-Based Grading of Thermally Modified "
+        "Beech Timber for Structural Applications, Forests 17(2), 174 (2026)",
+        publisher="MDPI", year=2026, identifier="doi:10.3390/f17020174",
+        url="https://mdpi-res.com/d_attachment/forests/forests-17-00174/article_deploy/forests-17-00174.pdf",
+        sha256="cd66762b57e5326219c7327872d49ee97012235cf07ee5bcf5006ffe6a6aacf4",
+        licence="cc-by-4.0", licence_note=CC_BY_NOTE, capture="sources/schmidtova-2026/pages.txt",
+        children=[
+            _stated("method", "Abstract, p. 1", [],
+                    quote="All specimens were visually graded according to DIN 4074-5 and assessed "
+                          "using acoustic non-destructive methods before testing in four-point bending "
+                          "following EN 408. Modulus of elasticity (MOE), modulus of rupture (MOR), and "
+                          "density were determined, and characteristic values were calculated according "
+                          "to EN 384."),
+            _stated("treatment", "2. Materials and Methods, p. 3",
+                    [("treatment_temperature", "degC", "industrially treated by", "190 ◦C", 190, SAME),
+                     ("treatment_duration", "h", "industrially treated by", "3.5 h", 3.5, SAME)],
+                    quote="The boards were industrially treated by the company Designwood at 190 ◦C for "
+                          "3.5 h in an oxidative air atmosphere."),
+            _stated("boards", "2. Materials and Methods, p. 3",
+                    [("board_width", "mm", "final dimensions of", "50 × 150 × 3100 mm", 50, SAME),
+                     ("board_depth", "mm", "final dimensions of", "50 × 150 × 3100 mm", 150, SAME),
+                     ("board_length", "mm", "final dimensions of", "50 × 150 × 3100 mm", 3100, SAME)],
+                    quote="For testing, the boards were re-sized and squared to the final dimensions of "
+                          "50 × 150 × 3100 mm (b × h × l)."),
+            _stated("table-2-bending-strength", "Table 2, row fm,h150, p. 6",
+                    [("modulus_of_rupture", "MPa", "fm,h150 (MPa)", "63.33", 63.33, SAME),
+                     ("cov_modulus_of_rupture", "", "fm,h150 (MPa)", "45%", 45, PERCENT),
+                     ("modulus_of_rupture_untreated", "MPa", "fm,h150 (MPa)", "76.31", 76.31, SAME),
+                     ("cov_modulus_of_rupture_untreated", "", "fm,h150 (MPa)", "14%", 14, PERCENT)],
+                    quote="fm,h150 (MPa) 63.33 45% 76.31 14% −17%",
+                    transcribed="bending strength brought to a depth of 150 mm, N = 53: thermally "
+                                "modified mean 63.33 MPa (coefficient of variation 45%), untreated mean "
+                                "76.31 MPa (14%)"),
+            _stated("table-2-global-modulus", "Table 2, row MOEg,ref w, p. 6",
+                    [("global_modulus", "MPa", "MOEg,ref w (GPa)", "14.92", 14.92, GPA),
+                     ("global_modulus_untreated", "MPa", "MOEg,ref w (GPa)", "14.61", 14.61, GPA)],
+                    quote="MOEg,ref w (GPa) 14.92 10% 14.61 8% 2%",
+                    transcribed="global modulus of elasticity in four-point bending (EN 408), at the "
+                                "reference moisture content: thermally modified mean 14.92 GPa, untreated "
+                                "14.61 GPa"),
+            _stated("table-2-density", "Table 2, row ρ408,ref w, p. 6",
+                    [("density", "kg/m3", "ρ408,ref w (kg m−3)", "663.1", 663.1, SAME),
+                     ("density_untreated", "kg/m3", "ρ408,ref w (kg m−3)", "694.5", 694.5, SAME)],
+                    quote="ρ408,ref w (kg m−3) 663.1 5% 694.5 5% −5%",
+                    transcribed="density (EN 408) at the reference moisture content: thermally modified "
+                                "mean 663.1 kg/m³, untreated 694.5 kg/m³"),
+            _stated("table-2-moisture", "Table 2, row MC, p. 6",
+                    [("moisture_content", "%", "MC (%)", "6.09", 6.09, SAME),
+                     ("moisture_content_untreated", "%", "MC (%)", "14.93", 14.93, SAME)],
+                    quote="MC (%) 6.09 11% 14.93 7% −59%",
+                    transcribed="moisture content at the test: thermally modified mean 6.09%, untreated "
+                                "14.93%"),
+            _stated("characteristic-strength", "3.2, p. 7",
+                    [("bending_strength_characteristic", "MPa", "characteristic strength value",
+                      "17.27 MPa", 17.27, SAME)],
+                    quote="The characteristic strength value of the structural wood made of TMW was "
+                          "17.27 MPa (Table 3)."),
+            _stated("table-3", "Table 3, p. 7",
+                    [("bending_strength_5th_percentile", "MPa", "Characteristic values of TMW timber",
+                      "24.68", 24.68, SAME),
+                     ("bending_strength_characteristic", "MPa", "Characteristic values of TMW timber",
+                      "17.27", 17.27, SAME),
+                     ("modulus_of_elasticity_mean", "MPa", "Characteristic values of TMW timber",
+                      "13.62", 13.62, GPA),
+                     ("modulus_of_elasticity_characteristic", "MPa",
+                      "Characteristic values of TMW timber", "11.44", 11.44, GPA),
+                     ("density_characteristic", "kg/m3", "Characteristic values of TMW timber",
+                      "526.9", 526.9, SAME),
+                     ("density_mean", "kg/m3", "Characteristic values of TMW timber", "632.3", 632.3,
+                      SAME),
+                     ("density_5th_percentile", "kg/m3", "Characteristic values of TMW timber",
+                      "598.8", 598.8, SAME)],
+                    quote="24.68 17.27 13.62 11.44 526.9 632.3 598.8",
+                    transcribed="Characteristic values of TMW timber, columns fm,05 (EN 14358), fm,k "
+                                "(EN 384), Em,0,mean (EN 384), Em,0,k (EN 384), ρk, ρmean, ρ05. The table "
+                                "prints no units: the strengths are MPa (3.2 gives fm,k as 17.27 MPa), "
+                                "the moduli GPa as in Table 2, the densities kg/m³"),
+        ])
+
+
+def boruvka() -> Node:
+    """Small clear beech specimens treated at a mild and a severe temperature: how much the
+    treatment temperature changes the strength."""
+    return _publication(
+        "boruvka-2018",
+        "Borůvka, Zeidler, Holeček, Dudík: Elastic and Strength Properties of Heat-Treated Beech and "
+        "Birch Wood, Forests 9(4), 197 (2018)",
+        publisher="MDPI", year=2018, identifier="doi:10.3390/f9040197",
+        url="https://mdpi-res.com/d_attachment/forests/forests-09-00197/article_deploy/forests-09-00197.pdf",
+        sha256="68d115c85d65d79b9c4d1938c81ed38e25063597a4bde17b5f975e8e810ced31",
+        licence="cc-by-4.0", licence_note=CC_BY_NOTE, capture="sources/boruvka-2018/pages.txt",
+        children=[
+            _stated("specimens", "2.1 Material, p. 3",
+                    [("specimen_depth", "mm", "Six test pieces with dimensions of", "20 mm × 20 mm × 300 mm",
+                      20, SAME),
+                     ("specimen_length", "mm", "Six test pieces with dimensions of",
+                      "20 mm × 20 mm × 300 mm", 300, SAME)],
+                    quote="Six test pieces with dimensions of 20 mm × 20 mm × 300 mm were prepared from "
+                          "each prism"),
+            _stated("treatment", "2.1 Material, p. 3",
+                    [("treatment_temperature_mild", "degC", "the ﬁrst degree of thermal treatment",
+                      "165 ◦C", 165, SAME),
+                     ("treatment_temperature_severe", "degC", "the ﬁrst degree of thermal treatment",
+                      "210 ◦C", 210, SAME)],
+                    quote="One third of the testing samples were subsequently exposed to the ﬁrst degree "
+                          "of thermal treatment (an air atmosphere at 165 ◦C), and the second third of the "
+                          "testing samples were heat-treated at 210 ◦C, following the Finnish technology "
+                          "for the wood heat treatment (Pat. EP-0759137 [25])."),
+            _stated("bending-span", "2.2 Methods, p. 5",
+                    [("span", "mm", "with support distances of", "240 mm", 240, SAME)],
+                    quote="with support distances of 240 mm, i.e., 12-fold greater than the sample height."),
+            _stated("table-3-density", "Table 3, Density, p. 8",
+                    [("density_untreated", "kg/m3", "Density REF", "622 676 729", 676, SAME),
+                     ("density_165", "kg/m3", "Density REF", "615 676 742", 676, SAME),
+                     ("density_210", "kg/m3", "Density REF", "579 643 802", 643, SAME)],
+                    quote="Density REF 622 676 729 27 4.0 (kg/m3) 165 615 676 742 33 4.8 210 579 643 802 "
+                          "53 8.3",
+                    transcribed="beech, density, minimum, mean, maximum: untreated mean 676 kg/m³, "
+                                "165 °C 676, 210 °C 643"),
+            _stated("table-3-static-modulus", "Table 3, Static modulus of elasticity, p. 8",
+                    [("modulus_of_elasticity_untreated", "MPa", "Static REF", "8735 10,056 11,142", 10_056,
+                      SAME),
+                     ("modulus_of_elasticity_165", "MPa", "Static REF", "8909 10,715 12,703", 10_715, SAME),
+                     ("modulus_of_elasticity_210", "MPa", "Static REF", "7007 8830 11,072", 8830, SAME)],
+                    quote="Static REF 8735 10,056 11,142 740 7.4 modulus of elasticity 165 8909 10,715 "
+                          "12,703 1070 10.0 (MPa) 210 7007 8830 11,072 1053 11.9",
+                    transcribed="beech, static modulus of elasticity in three-point bending, mean: "
+                                "untreated 10,056 MPa, 165 °C 10,715 MPa, 210 °C 8830 MPa"),
+            _stated("table-3-modulus-of-rupture", "Table 3, Modulus of rupture, p. 8",
+                    [("modulus_of_rupture_untreated", "MPa", "Modulus of rupture- REF", "86.7 102.7 117.3",
+                      102.7, SAME),
+                     ("modulus_of_rupture_165", "MPa", "Modulus of rupture- REF", "75.4 108.8 130.2",
+                      108.8, SAME),
+                     ("modulus_of_rupture_210", "MPa", "Modulus of rupture- REF", "27.9 42.0 62.5",
+                      42.0, SAME),
+                     ("modulus_of_rupture_210_minimum", "MPa", "Modulus of rupture- REF",
+                      "27.9 42.0 62.5", 27.9, SAME)],
+                    quote="Modulus of rupture- REF 86.7 102.7 117.3 8.1 7.9 bending strength 165 75.4 "
+                          "108.8 130.2 14.6 13.5 (MPa) 210 27.9 42.0 62.5 9.0 21.5",
+                    transcribed="beech, bending strength, mean: untreated 102.7 MPa, 165 °C 108.8 MPa, "
+                                "210 °C 42.0 MPa (minimum 27.9)"),
+            _stated("table-3-moisture", "Table 3, Moisture content, p. 8",
+                    [("moisture_content_untreated", "%", "Moisture content REF", "11.6 12.0 12.4", 12.0,
+                      SAME),
+                     ("moisture_content_165", "%", "Moisture content REF", "8.3 9.2 11.0", 9.2, SAME),
+                     ("moisture_content_210", "%", "Moisture content REF", "4.5 5.9 7.4", 5.9, SAME)],
+                    quote="Moisture content REF 11.6 12.0 12.4 0.2 1.5 (%) 165 8.3 9.2 11.0 0.5 5.9 210 "
+                          "4.5 5.9 7.4 0.8 13.0",
+                    transcribed="beech, moisture content at the test, mean: untreated 12.0%, 165 °C 9.2%, "
+                                "210 °C 5.9%"),
+        ])
+
+
+def thermo_beech() -> Node:
+    """Beech thermally modified at 190 °C, from Schmidtová et al.'s structural boards: the
+    design stress from their characteristic bending strength, which already is a 5th
+    percentile (ledger: a-thermally-modified-wood-is-read-from-a-study-of-its-treatment)."""
+    s, wh = SCHMIDTOVA, WOOD_HANDBOOK
+    return Node(
+        id="beech-thermally-modified",
+        name="Beech (Fagus sylvatica), thermally modified at 190 °C for 3.5 h, structural boards",
+        kind="material",
+        payload={"form": "solid wood", "dried": True, "moisture_content_percent": 6.09,
+                 "measured_along": "grain", "modulus": "apparent",
+                 "connector_key": "beech-thermally-modified",
+                 "treatment": "190 °C for 3.5 h in air, by a company (Designwood), on boards 50 × 150 × "
+                              "3100 mm visually graded LS7 or better (DIN 4074-5): these values are those "
+                              "boards'. The temperature and time a board on sale was treated at are its "
+                              "maker's and are unknown here. Borůvka et al. (2018) measured clear beech at "
+                              "102.7 MPa mean bending strength untreated, 108.8 after 165 °C and 42.0 after "
+                              "210 °C: a board treated hotter than 190 °C may be much weaker than this.",
+                 "note": "Graded boards with knots, not clear wood: a shelf of selected lamellas may be "
+                         "stronger. Treated boards scatter far more than untreated ones (coefficient of "
+                         "variation 45% against 14%), which the characteristic strength takes in."},
+        params={
+            "density": derived(663.1, "kg/m3", [f"{s}/table-2-density/density"],
+                               "mean of the treated boards (Table 2), at their moisture content when "
+                               "tested, 6.09% on average"),
+            "modulus_of_rupture": derived(63.33, "MPa", [f"{s}/table-2-bending-strength/modulus_of_rupture"],
+                                          "mean of the treated boards, brought to a depth of 150 mm "
+                                          "(Table 2)"),
+            "design_bending_stress": design_stress(
+                17.27, f"{s}/table-3/bending_strength_characteristic", characteristic=True),
+            "modulus_of_elasticity": derived(
+                13_620.0, "MPa", [f"{s}/table-3/modulus_of_elasticity_mean",
+                                  f"{s}/table-2-global-modulus/global_modulus"],
+                "Em,0,mean (EN 384) of the treated boards, 13.62 GPa (Table 3): lower than their global "
+                "modulus in four-point bending, 14.92 GPa (Table 2), which has the shear deflection in "
+                "it, so it is used as an apparent modulus"),
+            "initial_share_of_longtime": derived(2 / 3, "", [f"{wh}/creep-chapter-9/initial_share_dry"],
+                                                 "initially dry timber: design for an initial deflection "
+                                                 "of about two-thirds the permitted longtime deflection"),
+        },
+        links={"per": [f"{s}/method", f"{s}/treatment", f"{s}/boards", f"{s}/table-2-bending-strength",
+                       f"{s}/table-2-global-modulus", f"{s}/table-2-density", f"{s}/table-2-moisture",
+                       f"{s}/characteristic-strength", f"{s}/table-3",
+                       f"{BORUVKA}/treatment", f"{BORUVKA}/table-3-modulus-of-rupture",
+                       f"{wh}/creep-chapter-9", *DESIGN_STRESS_CLAUSES]})
+
+
+# --- how far a shelf or a beam may sag: every published limit found ----------------------
+#
+# Knowledge only: no rule reads these. A piece that wants a limit authors its own requirement
+# (measure longtime_sag, param limit in mm) per the clause it chooses, since none of them is
+# written for the seats and shelves of a home (ledger:
+# a-published-sag-limit-is-a-source-a-piece-chooses-from). Each clause states what the limit
+# applies to, under which load, and when the deflection is measured: as soon as the load is
+# on (initial), after a stated time under it, or at the end of the structure's life (final).
+
+def sag_limits() -> list[Node]:
+    copyrighted = {"licence": "copyrighted"}
+    return [
+        _publication(
+            "dti-report-804821-1",
+            "Danish Technological Institute, Test Report No. 804821-1 rev. 1: Lammhults "
+            "Biblioteksdesign 60/30 Classic Steel Shelving, tested to EN 16121 and EN 16122",
+            publisher="Danish Technological Institute, published by SBNL", year=2018,
+            identifier="804821-1 rev. 1",
+            url="https://sbnl.be/media/24800/804821-1-rev-1-60_30-classic-steel-shelving-en-16121-uk.pdf",
+            sha256="464da6228814d51935805ffe496e373d5b9403bf84933a59b6fdd51f1f0dca4d", **copyrighted,
+            children=[_stated(
+                "en-16121-6-2-e",
+                "test 6.1.15 Deflection of shelves (EN 16122 6.1.4, mass per unit area) and requirement "
+                "6.2 e), as the report reproduces EN 16121",
+                [("share_of_span", "", "There shall be no deflection of", "0.5%", 0.5, PERCENT),
+                 ("surface_load_level_1", "kg/m2", "Deflection of shelves", "1.5", 1.5, KG_PER_DM2),
+                 ("surface_load_level_2", "kg/m2", "Deflection of shelves", "2.0", 2.0, KG_PER_DM2)],
+                standard="EN 16121:2013+A1:2017 (the report prints EN 16121:2017+A1:2017), 6.2 e)",
+                applies_to="shelves of non-domestic storage furniture",
+                deflection="measured under load at the end of the load period: one week for a shelf "
+                           "not of metal, glass or stone (iso-7170-2021-preview/6-1-4-load-duration), "
+                           "so a week's creep is in it and not the years' after",
+                load="uniform over the shelf, 1.5 kg/dm² at level 1 (general use) or 2.0 kg/dm² at "
+                     "level 2 (severe); the 2023 edition lowers them to 1.0 and 1.5 "
+                     "(catas-en-16121-2023/deflection-test-loads), and the limit is not restated "
+                     "there")]),
+        _publication(
+            "iso-7170-2021-preview",
+            "ISO 7170:2021 Furniture — Storage units — Test methods for the determination of "
+            "strength, durability and stability (the preview of its first pages)",
+            publisher="ISO, preview served by iTeh Standards", year=2021, identifier="ISO 7170:2021",
+            url="https://cdn.standards.iteh.ai/samples/76864/6dd74627d5b54503b585035f49c812ef/ISO-7170-2021.pdf",
+            sha256="ac03532af18cfd3f49dee9d05ef579002c9a3d493ee90cb96445771f5276ce54", **copyrighted,
+            children=[_stated(
+                "6-1-4-load-duration", "6.1.4, shelf deflection",
+                [("load_duration", "h", "apply for", "one week for all other shelves", 1, {"times": 168.0}),
+                 ("load_duration_metal_glass_stone", "h", "apply for", "one hour for shelves made of metal",
+                  1, SAME)],
+                applies_to="the shelf deflection test of storage units",
+                deflection="measured under load at the end of that time, in mm and as a percentage of "
+                           "the distance between the supports; ISO 7170 sets no acceptance level",
+                note="EN 16122 6.1.4, the method EN 16121's limit names, was not read; that it loads "
+                     "a shelf for the same week rests on this test and on CATAS's tables, which set "
+                     "the two side by side")]),
+        _publication(
+            "catas-warped-shelves-2023",
+            "CATAS (P. Tirelli, M. Indovina), Warped furniture and shelves: some considerations "
+            "(May 2023)",
+            publisher="CATAS", year=2023,
+            url="https://catas.com/uploads/media/mobili-e-ripiani-imbarcati-alcune-considerazioni-eng.pdf",
+            sha256="4b0a68354c60dc129fe3072c2896e1c76992d2f4e73f9650fc94c68bdbb7b79a", **copyrighted,
+            licence_note="all rights reserved; reproduction authorized with the source cited",
+            children=[_stated(
+                "shelf-deflection-requirement", "p. 1",
+                [("share_of_span", "", "If the shelf deflection requirement were", "0.5 per cent", 0.5,
+                  PERCENT)],
+                applies_to="shelves of storage furniture tested to EN 16122 6.1.4",
+                deflection="under the test load at the end of the test; CATAS says EN 16122 sets no "
+                           "acceptance level and that most technical specifications require 0.5% of "
+                           "the span, and that the measurement includes the panel's warp before loading")]),
+        _publication(
+            "catas-comparison-table-storage",
+            "CATAS, Comparison table of tests on furniture: storage units (undated; it gives EN "
+            "16121's loads before the 2023 edition)",
+            publisher="CATAS", year=None,
+            url="https://catas.com/uploads/media/catas-tabellanormemobilieng.pdf",
+            sha256="d3eb25a5bbf873bce3b65595388629ebd529fee0afbeb9268fdbe450524fab2b", **copyrighted,
+            children=[
+                _stated("deflection-of-shelves-domestic",
+                        "row Deflection of shelves, EN 16122 6.1.4, columns UNI 11663 (domestic use)",
+                        [("share_of_span", "", "Deflection of shelves EN 16122 6.1.4", "0,5 %", 0.5,
+                          PERCENT),
+                         ("surface_load_kitchen_bathroom", "kg/m2", "Deflection of shelves EN 16122 6.1.4",
+                          "Load: 1,5 kg/dm2", 1.5, KG_PER_DM2),
+                         ("surface_load_other_use", "kg/m2", "Deflection of shelves EN 16122 6.1.4",
+                          "Load: 1,0 kg/dm2", 1.0, KG_PER_DM2)],
+                        standard="UNI 11663 (Italy), strength and durability of domestic storage units",
+                        applies_to="shelves of domestic storage units: kitchen and bathroom, other use, "
+                                   "small components (1.0 kg/dm²)",
+                        deflection="as EN 16122 6.1.4 measures it, under load at the end of the test",
+                        load="uniform, 1.5 kg/dm² in a kitchen or bathroom, 1.0 elsewhere",
+                        note="the column each value belongs to is read from the table's layout"),
+                _stated("deflection-of-shelves-non-domestic",
+                        "row Deflection of shelves, EN 16122 6.1.4, columns EN 16121 levels 1 and 2 "
+                        "(non-domestic use)",
+                        [("share_of_span", "", "Deflection of shelves EN 16122 6.1.4 / Load: 1,5 kg/dm2 "
+                          "Max deflection: 0,5 % Load: 2,0", "0,5 %", 0.5, PERCENT),
+                         ("surface_load_level_1", "kg/m2", "Deflection of shelves EN 16122 6.1.4 / Load: "
+                          "1,5 kg/dm2 Max deflection: 0,5 % Load: 2,0", "Load: 1,5 kg/dm2", 1.5, KG_PER_DM2),
+                         ("surface_load_level_2", "kg/m2", "Deflection of shelves EN 16122 6.1.4 / Load: "
+                          "1,5 kg/dm2 Max deflection: 0,5 % Load: 2,0", "Load: 2,0 kg/dm2", 2.0, KG_PER_DM2)],
+                        standard="EN 16121, before its 2023 edition",
+                        applies_to="shelves of non-domestic storage units",
+                        deflection="as EN 16122 6.1.4 measures it, under load at the end of the test",
+                        load="uniform, 1.5 kg/dm² at level 1, 2.0 at level 2",
+                        note="the column each value belongs to is read from the table's layout"),
+            ]),
+        _publication(
+            "catas-en-16121-2023",
+            "CATAS (M. Marussi), Storage furniture for non-domestic use: new version of EN 16121 "
+            "published (January 2024)",
+            publisher="CATAS", year=2024, url="https://catas.com/uploads/media/mobili-non-domestici-eng.pdf",
+            sha256="1d3a807af880a5779a1007bcbd1e24abb9e7c9a3ee5e81f0898a57c7bfe0c9f0", **copyrighted,
+            licence_note="all rights reserved; reproduction authorized with the source cited",
+            children=[_stated(
+                "deflection-test-loads", "p. 2, Resistance and Durability Tests",
+                [("surface_load_level_1", "kg/m2", "Deflection test of shelves", "from 1.5 to 1.0", 1.0,
+                  KG_PER_DM2),
+                 ("surface_load_level_2", "kg/m2", "Deflection test of shelves", "from 2.0 to 1.5", 1.5,
+                  KG_PER_DM2)],
+                standard="EN 16121:2023",
+                applies_to="the shelf deflection test of non-domestic storage furniture",
+                load="uniform, 1.0 kg/dm² at level 1 (was 1.5) and 1.5 kg/dm² at level 2 (was 2.0)",
+                note="CATAS does not restate the acceptance level; whether the 2023 edition keeps "
+                     "0.5% of the span was not read")]),
+        _publication(
+            "kcma-a161-1-2022",
+            "ANSI/KCMA A161.1-2022 Performance and Construction Standard for Kitchen and Vanity "
+            "Cabinets",
+            publisher="Kitchen Cabinet Manufacturers Association", year=2022, identifier="ANSI/KCMA A161.1-2022",
+            url="https://kcma.org/sites/default/files/2024-08/KCMA%20A161.1%202022%20High%20Res.pdf",
+            sha256="e08477ac528c20ef1c7db5d9c96fc04658577e924078c88246dd9809b65effdf", **copyrighted,
+            children=[_stated(
+                "5-1-3-shelf-deflection", "5.1.2 D and E (the load test) and 5.1.3, item 2",
+                [("share_of_span", "", "shall not deflect more than", "(0.0625 inch) per 305 mm (lineal foot)",
+                  0.0625, {"times": 1 / 12}),
+                 ("max_deflection", "mm", "shall not deflect more than", "6.4 mm", 6.4, SAME),
+                 ("surface_load", "kg/m2", "uniformly at", "(15 lb./ft2)", 15, LB_PER_FT2),
+                 ("load_duration", "h", "Maintain loading for", "seven days", 7, {"times": 24.0})],
+                applies_to="shelves and bottoms of kitchen and vanity cabinets",
+                deflection="measured at the end of seven days under load: a week's creep is in it, not "
+                           "the years' after; 1/16 inch per foot of span (span/192) and never more than "
+                           "6.4 mm between two supports",
+                load="uniform, 718 Pa (15 lb/ft²), arranged so the loads do not bridge")]),
+        _publication(
+            "aws-2009-section-10",
+            "Architectural Woodwork Standards, 1st edition (2009), Section 10: Casework",
+            publisher="AWI, AWMAC and WI", year=2009, identifier="AWS 1st edition, Section 10",
+            url="https://woodworkinstitute.com/wp-content/uploads/2014/09/WI_AWS_sec10NM.pdf",
+            sha256="d18196833cc8d1bd28f5f2441a502803791382816c4617eb78dd1cc98fe347b2", **copyrighted,
+            children=[_stated(
+                "1-2-21-shelf-deflection", "1.2.21.2 and 1.2.21.3.1.1, p. 253",
+                [("share_of_span", "", "1.2.21.3.1.1", "L/144", 144, OVER),
+                 ("surface_load", "kg/m2", "1.2.21.2.2", "40 lbs", 40, LB_PER_FT2),
+                 ("surface_load_books", "kg/m2", "1.2.21.2.1", "50 lbs", 50, LB_PER_FT2),
+                 ("max_load", "kg", "1.2.21.2 LOAD", "200 lbs", 200, POUNDS)],
+                applies_to="adjustable shelves of architectural casework",
+                deflection="under load; the standard counts creep, the deflection that grows over "
+                           "time, as no defect (1.2.21.3.2), so the limit holds without it",
+                load="uniform, 40 lb/ft² (50 for school, hospital, library and book shelving), at "
+                     "most 200 lb on one shelf")]),
+        _publication(
+            "sefa-8-pl-2026",
+            "SEFA 8-PL-2026 Laboratory Grade Plastic Laminate Casework Standard",
+            publisher="Scientific Equipment & Furniture Association", year=2026, identifier="SEFA 8-PL-2026",
+            url="https://www.sefalabs.com/assets/docs/Standards/SEFA%208-PL-2026.pdf",
+            sha256="3d0eb1932f1b918b8822a1f442a66f4f8a1f9f2bda51f82c9628907588edc604", **copyrighted,
+            children=[
+                _stated("7-2-3-shelf", "7.2.2 Test Procedure and 7.2.3 Acceptance Level, pp. 11-12",
+                        [("share_of_span", "", "allowable maximum deflection of a shelf is", "1/180", 180, OVER),
+                         ("max_deflection", "mm", "allowable maximum deflection of a shelf is", "(6.35mm)",
+                          6.35, SAME),
+                         ("surface_load", "kg/m2", "load the shelf uniformly to", "40 pounds", 40,
+                          LB_PER_FT2),
+                         ("max_load", "kg", "to a maximum of", "200 pounds", 200, POUNDS)],
+                        applies_to="shelves of laboratory casework",
+                        deflection="initial: measured once the load is on, then the load is removed",
+                        load="uniform, 40 lb/ft² of shelf, at most 200 lb"),
+                _stated("10-2-3-apron-rails", "10.2.3 Acceptance Level, p. 17",
+                        [("share_of_span", "", "apron rails shall not deflect more than", "1/360", 360, OVER),
+                         ("max_deflection", "mm", "apron rails shall not deflect more than", "(3.175mm)",
+                          3.175, SAME)],
+                        applies_to="the apron rails of laboratory tables",
+                        deflection="under the table's full load, as soon as it is on",
+                        load="the table's full test load (10.2)"),
+            ]),
+        _publication(
+            "icc-300-2017-public-comment-draft",
+            "ICC 300-2017 Standard on Bleachers, Folding and Telescopic Seating, and Grandstands, "
+            "public comment draft (October 2017)",
+            publisher="International Code Council", year=2017, identifier="ICC 300-2017, public ballot draft",
+            url="https://www.iccsafe.org/wp-content/uploads/ICC-300-ANSI-Public-Comment-Draft-pdf.pdf",
+            sha256="005b5b43dda428d2db6bec5de00d3b9836ede06365a70bbeddb66eb3c42eb3dd", **copyrighted,
+            children=[_stated(
+                "303-6-deflections", "303.6 Deflections, p. 4",
+                [("share_of_span_2012", "", "303.6 Deflections.", "1/200", 200, OVER),
+                 ("share_of_span_proposed", "", "303.6 Deflections.", "1/180", 180, OVER)],
+                applies_to="structural members of bleachers and grandstands under live load; members of "
+                           "folding and telescopic seating are not limited",
+                deflection="under the live load",
+                text_status="The draft is in legislative format, struck text deleted and underlined "
+                            "text added; on page 4, rendered, 1/200 is struck and 1/180 underlined (the "
+                            "text layer prints both). The draft amends ICC 300-2012, so 1/200 of the "
+                            "span is the 2012 text and 1/180 the limit proposed in the 2017 draft; "
+                            "whether the published ICC 300-2017 kept 1/180 was not checked.")]),
+        _publication(
+            "swedish-wood-design-vol-2-2022",
+            "Design of timber structures, Volume 2: Rules and formulas according to Eurocode 5, UK "
+            "edition 1:2022",
+            publisher="Swedish Forest Industries Federation (Swedish Wood), with Timber Development UK",
+            year=2022,
+            url="https://www.universityofgalway.ie/media/timberengineeringresearchgroup/Design-of-timber-"
+                "structures_Volume2_Rules-and-formulas-according-to-Eurocode-5.pdf",
+            sha256="c8eedc19699307a9f842bd92e86254e7411175cde708c596a0920a823d4da160", **copyrighted,
+            licence_note="copying of the content is prohibited; distributed free of charge",
+            children=[
+                _stated(f"table-9-3-{beam}-{w}", f"Table 9.3, row {row}, column {col}, p. 34",
+                        [("share_of_span_lenient", "", "Cantilever beam", printed, lenient, OVER),
+                         ("share_of_span_strict", "", "Cantilever beam", printed, strict, OVER)],
+                        standard="EN 1995-1-1:2004, 7.2, Table 7.2: recommended ranges, a Nationally "
+                                 "Determined Parameter each country's annex may set",
+                        applies_to=f"timber beams, {row.lower()}",
+                        deflection=what, load="the load combinations of EN 1995-1-1 2.2.3")
+                for beam, row, w, col, printed, lenient, strict, what in [
+                    ("two-supports", "Beam on two supports", "instantaneous", "winst",
+                     "l ⁄300 – l ⁄500", 300, 500,
+                     "instantaneous: as soon as the load is on"),
+                    ("two-supports", "Beam on two supports", "net-final", "wnet,fin",
+                     "l ⁄250 – l ⁄350", 250, 350,
+                     "final, creep included, less any precamber"),
+                    ("two-supports", "Beam on two supports", "final", "wfin",
+                     "l ⁄150 – l ⁄300", 150, 300, "final, creep included"),
+                    ("cantilever", "Cantilever beam", "instantaneous", "winst",
+                     "l ⁄150 – l ⁄250", 150, 250,
+                     "instantaneous: as soon as the load is on"),
+                    ("cantilever", "Cantilever beam", "net-final", "wnet,fin",
+                     "l ⁄125 – l ⁄175", 125, 175,
+                     "final, creep included, less any precamber"),
+                    ("cantilever", "Cantilever beam", "final", "wfin",
+                     "l ⁄75 – l ⁄150", 75, 150, "final, creep included"),
+                ]]),
+        _publication(
+            "cpa-shelving-bulletin",
+            "Composite Panel Association, Technical Bulletin: Particleboard and MDF for Shelving "
+            "(ANSI A208.1-2016 and A208.2-2016), as hosted by Lowe's",
+            publisher="Composite Panel Association", year=None,
+            url="https://pdf.lowes.com/productdocuments/f8975c59-6745-4684-bcfd-0b8f0d02c2e5/63115881.pdf",
+            sha256="1781c8d5b84e91e14c0abed3448597ad208d990e5211cf07e7ec17ff2119584a", **copyrighted,
+            children=[_stated(
+                "methodology", "Methodology, p. 8",
+                [("share_of_span", "", "allowable shelf deflection of", "span/240", 240, OVER)],
+                applies_to="raw particleboard and MDF shelves of the grades ANSI A208.1 and A208.2 "
+                           "specify, uniformly loaded, the shelf's own weight not counted",
+                deflection="elastic, computed with the standards' minimum modulus; CPA chose the limit "
+                           "to keep the long-term deflection small",
+                load="uniform")]),
+        _publication(
+            "ewpaa-shelving-design-manual",
+            "Particleboard and MDF Structural Shelving Design Manual, revision 3 (EWPAA), as hosted "
+            "by Borg",
+            publisher="Engineered Wood Products Association of Australasia", year=2012,
+            identifier="revision 3, 06-02-2012",
+            url="https://borg.bynder.com/asset/a7644caa-89dc-46ec-83cb-6abd310ef21a/CUSTOMpine-Shelving-load-tables.pdf",
+            sha256="57f37feb1f3a186cbd085a1acb8263cef663eb90543cc615e6d3021bf3b0fa8d", **copyrighted,
+            children=[
+                _stated("design-criteria", "Design Methodology, Design Criteria, p. 4",
+                        [("share_of_span", "", "Most industrial shelving designers nominate", "Span/180",
+                          180, OVER)],
+                        applies_to="industrial shelving of particleboard and MDF (AS/NZS 1859)",
+                        deflection="initial: the manual's load tables give initial deflections, creep "
+                                   "not included",
+                        load="uniformly distributed"),
+                _stated("long-term-effects", "Long Term Effects, p. 5",
+                        [("creep_factor_temperate", "", "Creep in Particleboard and MDF would be expected to",
+                          "double", 2, SAME),
+                         ("creep_factor_tropical_interior", "", "the creep factor is", "three times", 3, SAME),
+                         ("creep_factor_tropical_exterior", "", "a creep factor of", "four", 4, SAME)],
+                        applies_to="particleboard and MDF shelving: temperate climates and "
+                                   "air-conditioned interiors; tropical interiors that follow the "
+                                   "weather; severe tropical weather under cover outside",
+                        deflection="final: the initial deflection times the factor"),
+            ]),
+        _publication(
+            "epf-mdf-shelves",
+            "European Panel Federation, mdf-info.eu: Furniture, 11. MDF shelves and storage units "
+            "(web page, undated)",
+            publisher="European Panel Federation", year=None,
+            url="https://mdf-info.eu/applications/mobel/regale-und-stauelemente-aus-mdf",
+            sha256="5f2a989c594055763c7066d7487a70116562fa54b73209b9c81d39663fddd19e", **copyrighted,
+            children=[_stated(
+                "11-creep", "11, the paragraph after the deflection formula",
+                [("creep_increase", "", "Creep effects occurring during long term loading", "up to 50%", 50,
+                  PERCENT)],
+                applies_to="MDF shelves surfaced by direct painting or a thin decorative foil; MDF "
+                           "faced on both sides with veneer or laminate deflects and creeps less",
+                deflection="long-term: the initial deflection may grow by up to half")]),
+        _publication(
+            "gsa-3fne-00-589a",
+            "Purchase Description 3FNE 00-589A, Test Requirements for Library Bookstacks (2013)",
+            publisher="U.S. General Services Administration", year=2013, identifier="3FNE 00-589A",
+            url="https://origin-www.gsa.gov/system/files/Test_Requirements_for_Library_Bookstacks_508.pdf",
+            sha256="434f2b04c22effbf2e197e1825124fc94ad8e488c3a66ee8abc82a747196513a", licence="unstated",
+            licence_note="a GSA document carrying no notice either way, cited as if copyrighted, as "
+                         "FNAE-80-214A is",
+            children=[
+                _stated("4-shelf-deflection", "4. Shelf deflection test",
+                        [("max_deflection", "mm", "Deflection in excess of", "4.7 mm", 4.7, SAME),
+                         ("load_duration", "h", "the load has been applied for", "ten (10) minutes", 10,
+                          {"times": 1 / 60}),
+                         ("load_305_mm_shelf", "kg", "A total load of", "54.5 kg placed on the 305 mm",
+                          54.5, SAME),
+                         ("load_200_mm_shelf", "kg", "A total load of", "43 kg", 43, SAME)],
+                        applies_to="adjustable flat shelves of metal cantilever library bookstacks",
+                        deflection="under load, ten minutes after it is on",
+                        load="43 kg on a 200 mm deep shelf, 54.5 kg on a 305 mm one, 61 and 80 kg on "
+                             "280 and 355 mm divider shelves, spread evenly"),
+                _stated("4-permanent-deflection", "4. Shelf deflection test",
+                        [("max_permanent_deflection", "mm", "Permanent deflection in excess of", "0.78 mm",
+                          0.78, SAME)],
+                        applies_to="the same shelves",
+                        deflection="permanent: five minutes after the load is taken off"),
+            ]),
+        _publication(
+            "nih-drm-news-to-use-2016-02",
+            "Design Requirements Manual News to Use, Vol. 01 No. 71: Wall Shelving (February 2016)",
+            publisher="National Institutes of Health, Office of Research Facilities", year=2016,
+            identifier="Vol. 01, No. 71",
+            url="https://orf.od.nih.gov/TechnicalResources/Documents/News%20to%20Use%20PDF%20Files/2016%20NTU/"
+                "Wall%20Shelving%20February%20-%202016%20News%20to%20Use_508.pdf",
+            sha256="b2baf8b0eb6edef4be48c50dcb51c68c4f91e09a0ce9ab6324b72f3b94d9cd2b",
+            licence="public-domain",
+            licence_note="a publication of NIH's Office of Research Facilities, a work of the U.S. "
+                         "Government",
+            capture="sources/nih-drm-news-to-use-2016-02/pages.txt",
+            children=[
+                _stated("wall-shelving-deflection", "Wall Shelving, sidebar",
+                        [("max_deflection", "mm", "there is no more than", "(6mm)", 6, SAME),
+                         ("max_support_spacing", "mm", "In no case shall support spacing exceed",
+                          "(1200mm)", 1200, SAME)],
+                        quote="Shelving material, gauge/thickness and shelf support spacing shall be "
+                              "selected so that there is no more than ¼” (6mm) deflection under maximum "
+                              "design load. In no case shall support spacing exceed 4’- 0” (1200mm).",
+                        applies_to="wall shelving in laboratories, where NIH prohibits wood shelving "
+                                   "(wall-shelving-materials)",
+                        deflection="under the maximum design load"),
+                _stated("wall-shelving-loading", "Wall Shelving, Loading",
+                        [("line_load", "kg/m", "Shelving in laboratories shall be designed for a minimum of",
+                          "50 pounds", 50, {"times": POUND_PER_FOOT_KG_M}),
+                         ("shelf_depth", "mm", "Shelving in laboratories shall be designed for a minimum of",
+                          "(300mm)", 300, SAME)],
+                        quote="Shelving in laboratories shall be designed for a minimum of 50 pounds "
+                              "(23kg) per linear foot for a 12” (300mm) deep shelf, and proportionally "
+                              "more for deeper shelves."),
+                _stated("wall-shelving-materials", "Wall Shelving, Materials", [],
+                        quote="Wood shelving is prohibited."),
+            ]),
+    ]
 
 
 # --- the Federal Register: 16 CFR 1261, adopting ASTM F2057-23 ---------------------------
@@ -1058,7 +1682,8 @@ def knowledge() -> list[Node]:
     """The top-level branches a design tree mounts: sources, materials, requirements, and
     the hand tools that cut a part's cuts."""
     return [Node(id="sources", kind="", children=[wood_handbook(), federal_register(), gsa_fnae(),
-                                                  tm_9_243(), fm_5_426(), *tropix()]),
+                                                  tm_9_243(), fm_5_426(), *tropix(), schmidtova(),
+                                                  boruvka(), *sag_limits()]),
             materials(), requirements(), tools()]
 
 

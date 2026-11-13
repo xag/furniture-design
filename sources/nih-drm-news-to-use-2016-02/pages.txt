@@ -1,0 +1,52 @@
+Vol. 01, No. 71
+February 2016
+
+‘Design Requirements Manual (DRM) News to Use’ is a monthly ORF publication featuring salient technical information that should be applied to the design of NIH biomedical research laboratories and animal facilities. NIH Project Officers, A/E’s and other consultants to the NIH, who develop intramural, extramural and American Recovery and Reinvestment Act (ARRA) projects will benefit from ‘News to Use’. Please address questions or comments to: shawm@mail.nih.gov
+Wall Shelving
+
+W all shelving is a common feature in most biomedical laboratories. Shelving can support chemicals, liquids, scientific equipment and other sensitive items, so it must be selected and detailed appropriately.
+Materials: Shelving, like other laboratory materials, must be durable, chemical and moisture resistant. Wood shelving is prohibited. Acceptable material options include:
+• Epoxy Resin is durable and chemical resistant, but is heavy and expensive, and exceeds the requirements for shelving in most labs.
+• Phenolic Resin is durable and chemical resistant, and lighter and less expensive than epoxy resin. The thickness must be selected to not deflect under loading.
+• Chemical Resistant Plastic Laminate may be appropriate for labs that are not subject to high-moisture and harsh chemicals. Shelf core shall be a minimum of 1” (25mm) thick particle board or MDF or ¾” (19mm) thick solid plywood. Shelving shall be faced on all sides and edge banded, including concealed edges.
+• Metal shelving is available in chemical resistant painted steel, stainless steel and wire in a number of materials and finishes.
+• Plastic, fiberglass, antimicrobial and other specialized materials as required by research needs.
+Loading: Shelving in laboratories shall be designed for a minimum of 50 pounds (23kg) per linear foot for a 12” (300mm) deep shelf, and proportionally more for deeper shelves. Wall shelving depth can vary by specific requirements, but shall not exceed 14” (355mm) without the system being specifically engineered. For a typical laboratory wall with 4 rows of 12” (300mm) deep shelving on each side, this equates to a potential design load of 400 pounds per linear foot of wall. All laboratory walls shall be a minimum of 18 gauge, but shall be specifically designed for shelving direct and lateral loading. A specific concern is walls which do not extend to structure, which must be adequately stiffened and braced.
+All walls to receive shelving shall have wall strapping reinforcement, which is multiple 4” (100mm) wide, 1.33 mm metal gauge sheet metal strips, placed horizontally on both sides of the studs for the full
+Further details on this month’s topic are available on the DRM website: Design Requirements Manual DRM Chapter 4 Section 4 Interior Finishes
+
+length of the partition. It is highly recommended that strapping be installed in all walls where shelving or other wall-mounted items can reasonably be expected to be installed in the future to minimize the cost and disruption of future installation.
+
+Shelving material, gauge/thickness and shelf support spacing shall be
+
+selected so that
+
+there is no more
+
+than ¼” (6mm)
+
+deflection under
+
+maximum design
+
+load. In no case
+
+shall
+
+support
+
+spacing exceed 4’-
+
+0” (1200mm).
+
+Figure 1: Metal Wall Shelf
+
+Installation: Wall shelving height shall not exceed 7’-6” (2300mm) for safe reaching height or height limitations as determined by the Division of the Fire Marshal (DFM), whichever is lower. See Chapter 9 Fire Protection Exhibit X9-2-A “Wall Mounted And Peninsula Shelving Height Policy.”
+
+Wall shelves must be installed with a maximum open space of ¼” (6mm) between the back of the shelf and the wall to limit the passage of smoke and heat in the event of a fire. Metal shelves shall be configured to fit around the shelf standards (figure 1), and solid material shelves shall be notched around shelf standards. Shelving and standards in BSL-3 and ABSL-3 facilities shall be sealed to wall and standards, and holes in standards must be sealed.
+
+An edge guard shall be provided for the open ends and backs of all shelves not adjoining a wall. The cantilevered distance between the last support and the end of the shelf shall be no greater than 1’-0” (305mm).
+
+Other Considerations: Laboratory lighting should be designed to minimize the shadows cast on the benchtop by shelves. One strategy is to locate lighting over and parallel to the bench edge to minimize shadows. Undershelf task lighting can be installed to eliminate shadows and provide task lighting on the benchtop. If undershelf lights are installed, it is recommended that they have a cord and plug into the electrical raceway so that they can be moved with the shelf.
+
+

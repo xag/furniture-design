@@ -25,8 +25,9 @@ from furniture_design.knowledge import REQUIREMENTS, WOOD_HANDBOOK, knowledge, m
 VOCABULARY = [
     KindDef(kind="source", description=(
         "A publication the knowledge base quotes: payload title-like name, publisher, year, "
-        "identifier, url, sha256 of what was fetched, licence (public-domain or copyrighted) "
-        "and, when the licence allows, capture (the path of the text kept in the repo). Its "
+        "identifier, url, sha256 of what was fetched, licence (public-domain, cc-by-4.0, "
+        "copyrighted, or unstated when it could not be established) and, when the licence "
+        "allows (public-domain, cc-by-4.0), capture (the path of the text kept in the repo). Its "
         "children are the clauses quoted from it.")),
     KindDef(kind="clause", description=(
         "A located statement of its parent source: payload locator (chapter, table, page) "
@@ -34,7 +35,12 @@ VOCABULARY = [
         "text extraction cannot read, read from the page and marked as transcription. A "
         "clause of a copyrighted source carries its locator and no quote: the words are the "
         "publisher's, and the copy they can be checked against is kept where it may be. Its "
-        "params are the quantities it states, converted to SI, provenance published."),
+        "params are the quantities it states, converted to SI, provenance published; rows, when "
+        "present, say for each where it is printed: [param, the words it follows, the value as "
+        "printed, the number, how it becomes SI]. A deflection limit states share_of_span (the "
+        "deflection over the span), max_deflection (mm), surface_load (kg/m2), load_duration (h) "
+        "or creep_factor (final over initial deflection), and in payload what it applies_to, when "
+        "the deflection is measured and under which load."),
         params={"(any)": "a quantity the clause states, in SI, its original wording in note"}),
     KindDef(kind="material", description=(
         "A material a part is made of. Its params are its properties, each derived_from the "
@@ -52,7 +58,15 @@ VOCABULARY = [
                 "design_bending_stress": "MPa, the bending stress a part may be designed to",
                 "shear_modulus_lr": "GLR, MPa", "shear_modulus_lt": "GLT, MPa",
                 "initial_share_of_longtime": "the share of a permitted longtime deflection "
-                                             "the initial deflection may reach (creep)"},
+                                             "the initial deflection may reach (creep)",
+                "screw_withdrawal_face": "N, the force that pulls a screw out of the panel's face; "
+                                         "its note names the test and the screw",
+                "screw_withdrawal_edge": "N, the same from the panel's edge; its note names the "
+                                         "test and the screw",
+                "thickness_swelling_24h": "%, how much the panel thickens after 24 h in water "
+                                          "(EN 317)",
+                "dimensional_change_in_plane": "1/%, the change in length in the panel's plane per "
+                                               "1% change in moisture content"},
         links={"per": "the clauses its properties come from"}),
     KindDef(kind="requirement", description=(
         "A demand a design can be checked against: payload measure (what it limits, e.g. "
@@ -546,7 +560,7 @@ COUNTER_EXAMPLES = [
 
 PACKAGE = Package(
     name="furniture-design",
-    version="0.6.1",
+    version="0.7.0",
     description=(
         "Furniture designs and the published knowledge they are judged against. Kinds: "
         "source and clause (a publication and its verbatim, located statements, with the "
@@ -558,7 +572,9 @@ PACKAGE = Package(
         "limit (Wood Handbook Eq. 9-2 to 9-4 and its creep guidance, furniture/deflection, with no shear term for a panel whose modulus was measured on the panel); a part is strong enough (Eq. 9-13 against the near-minimum modulus of rupture over the Handbook's factor for 10-year duration of load and safety); a part bends the way its material's values were measured; a seat carries the light-service sidethrust of GSA's FNAE-80-214A through a panel in the push's plane (furniture/sideways_margin); a part that swells and "
         "shrinks with the air has room to (Eq. 13-3, the moisture content of its climate from "
         "Eq. 4-5, kind climate), and is judged only where that equation holds; a joint is cut with a tool its connector takes, at its setting, in parts thick and wide enough for it (kinds tool, connector, joint; a maker's products are data in a package of their own); a part with cuts is cut with tools that rest on clauses saying how they are used. The rules carry no "
-        "number a source states: limits and properties are read from the knowledge base."),
+        "number a source states: limits and properties are read from the knowledge base. "
+        "Every published shelf and beam deflection limit found is a clause a design chooses its own "
+        "sag limit from; none is a requirement every part is held to."),
     publisher="xag/furniture-design",
     vocabulary=VOCABULARY,
     rules=RULES,

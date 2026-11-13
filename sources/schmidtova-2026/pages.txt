@@ -1,0 +1,194 @@
+Academic Editors: Miklós Bak,
+Tamás Hofmann, Fanni Fodor and
+Angela Lo Monaco
+Received: 4 December 2025
+Revised: 15 January 2026
+Accepted: 23 January 2026
+Published: 28 January 2026
+Copyright: © 2026 by the authors.
+Licensee MDPI, Basel, Switzerland.
+This article is an open access article
+distributed under the terms and
+conditions of the Creative Commons
+Attribution (CC BY) license.
+Article
+Stiffness-Based Grading of Thermally Modified Beech Timber
+for Structural Applications
+Jarmila Schmidtová 1 , Tomáš Andor 2, Filip Valko 2 , Barbora Herdová 2 and Rastislav Lagaˇ
+na 2,*
+1 Department of Mathematics and Descriptive Geometry, Faculty of Wood Sciences and Technology,
+Technical University in Zvolen, T.G. Masaryka 24, 96001 Zvolen, Slovakia; schmidtova@tuzvo.sk
+2 Department of Wood Science, Faculty of Wood Sciences and Technology, Technical University in Zvolen,
+T.G. Masaryka 24, 96001 Zvolen, Slovakia; andor@mjbusiness.sk (T.A.); xvalko@tuzvo.sk (F.V.);
+xherdova@tuzvo.sk (B.H.)
+* Correspondence: lagana@tuzvo.sk
+Abstract
+Thermally modified wood is primarily used in exterior applications due to its enhanced
+resistance to biotic degradation. However, reduced mechanical performance limits its
+structural use. This study investigates the structural potential of high-temperature-treated
+European beech timber (Fagus sylvatica, L.) and evaluates its mechanical properties and
+grading models for structural design. Timber from 32 beech logs was air-dried and divided
+into untreated (NoTMW) and thermally modified (TMW) groups. Thermal modification
+was carried out commercially in an oxidizing atmosphere at 190 ◦C. All specimens were
+visually graded according to DIN 4074-5 and assessed using acoustic non-destructive
+methods before testing in four-point bending following EN 408. Modulus of elasticity
+(MOE), modulus of rupture (MOR), and density were determined, and characteristic values
+were calculated according to EN 384. On average, TMW exhibited a 17% reduction in
+bending strength compared to untreated wood, while both static and dynamic MOE were
+not significantly affected. The multiple regression model only slightly improved bending
+strength prediction compared with single linear regression based on global modulus, as
+the R2-value increased from 17% to 19%. The prediction of stiffness of thermally treated
+beech timber was greatly improved by combining local and acoustic moduli, explaining
+76% of the total variation.
+Keywords: thermally modified wood; beech; structural timber; bending strength;
+non-destructive testing; strength grading
+1. Introduction
+In Europe, interest in hardwood construction materials is increasing due to limited
+softwood availability, substantial hardwood resources, and policies promoting the refor-
+estation of mixed forests to improve resilience to changing soil and climatic conditions [1].
+In addition, projections suggest that increasing pressure from biotic and abiotic stressors on
+softwoods may further raise the share of beech in European forests. These trends provide a
+strong rationale for exploring the use of beech wood in structural applications.
+Thermally modified wood (TMW) is produced by heating wood at 160–230 ◦C for
+several hours in a controlled atmosphere, which degrades hemicelluloses, reduces free –OH
+groups and induces lignin cross-linking, thereby lowering equilibrium moisture content,
+improving dimensional stability, and increasing resistance to fungal decay while imparting
+a darker color [2].
+Forests 2026, 17, 174 https://doi.org/10.3390/f17020174
+Forests 2026, 17, 174 3 of 13
+strongly on wood species [18]. To date, only three principal studies have addressed ther-
+mally treated beech timber [6,9,12]. Of these, only one proposed a simple, indicative, linear
+relationship between mechanical properties [12]. Prior work has typically (i) focused on
+heat-treated beech small clear-wood specimens [5], (ii) investigated timber of other ther-
+mally modified wood species [3,4], (iii) relied on a single predictive variable in the case of
+treated beech timber [12], or (iv) examined untreated beech timber [16,17].
+This study aims to address a modeling gap for structural-size, heat-treated beech
+timber, define characteristic values for structural-size beech TMW, and propose an approach
+for strength grading of thermally modified beech wood for load-bearing structures based
+on multivariable regression models.
+2. Materials and Methods
+2.1. Material Selection and Preparation
+Stems from 16 beech trees were harvested in the Zvolen district, Slovakia. Mid-length
+diameter ranged from 430 mm to 600 mm and length from 6.2 m to 7.2 m. From each stem,
+two logs were obtained by cross-cutting. Boards with dimensions of 60 × 160 × 3200 mm
+were sawn from the logs using a segmental sawing pattern. The dimensions were based on
+the final reference height of 150 mm. To enable comparison between treated and untreated
+boards, special board selection was carried out; two neighboring boards were taken for
+paired comparison (Figure 1). Untreated timber specimens were described by [19]. The
+boards were stacked in cages and air-dried for 1 year. Subsequently, visual strength grading
+of the timber was carried out according to DIN 4074-5, and only boards meeting at least
+strength grade LS7 were included in the test set [20].
+Figure 1. Segmental sawing pattern and adjacent-board pairing for thermally modified wood (TMW)
+and untreated wood (NoTMW).
+The graded timber was thermally modified. The boards were industrially treated by
+the company Designwood at 190 ◦C for 3.5 h in an oxidative air atmosphere. The selected
+temperature lies in the high end of the temperature range where the apparent strength
+of beech treated wood remained unchanged [5,21]. The thermal modification process
+included drying to a moisture content (MC) of approximately 4%, the thermal treatment
+itself, and cooling combined with conditioning. The test specimens were then stored in
+a roofed warehouse, where they reached equilibrium moisture content, and they were
+visually regraded again according to DIN 4074-5 [20].
+For testing, the boards were re-sized and squared to the final dimensions of
+50 × 150 × 3100 mm (b × h × l). The number of tested thermally modified and ref-
+erence boards was 53 and 53, respectively, resulting in 34 paired samples. Due to erroneous
+readings, five ultrasound speed measurements were excluded, resulting in three missing
+paired observations. In addition, two natural-frequency measurements were excluded,
+https://doi.org/10.3390/f17020174
+Forests 2026, 17, 174 6 of 13
+Figure 2. Box plot—95% confidence intervals for significantly different means between treated (TMW)
+and untreated (NoTMW) paired boards: (a) moisture content; (b) density at reference MC; (c) height
+corrected bending strength at reference MC. SE stands for standard error.
+3.2. Basic Statistics and Comparison of the Entire Sample Dataset
+Mean values of properties for the entire set of samples showed similar trends as tests
+of paired samples (Table 2) [26]. TMW specimens show a noticeably lower mean bending
+strength (17% reduction) and, importantly, a much higher coefficient of variation (CV 45%
+vs. 14%).
+Table 2. Descriptive statistics of the entire set of samples (N = 53).
+Property (Unit) TMW Mean TMW CV * (%) NoTMW Mean NoTMW CV * (%) Difference (%)
+fm,h150 (MPa) 63.33 45% 76.31 14% −17%
+MOEsylv,w (GPa) 20.05 8% 20.01 7% 0%
+MOEMTG,w (GPa) 17.91 7% 17.38 9% 3%
+MOEl,ref w (GPa) 16.00 12% 15.67 10% 2%
+MOEg,ref w (GPa) 14.92 10% 14.61 8% 2%
+ρ408,ref w (kg m−3) 663.1 5% 694.5 5% −5%
+MC (%) 6.09 11% 14.93 7% −59%
+* Coefficient of variation.
+As confirmed by paired tests, all types of measured moduli were equal or slightly
+higher in treated wood but nonsignificant when compared to untreated timber. This
+suggests that the NDT parameters did not affect the treatment. Despite the clear difference
+in strength, thermally untreated structural timbers are almost as stiff as treated ones.
+Density is about 5% lower in the TMW group, with the same value of the coefficient of
+variation in both groups. Assuming a similar swelling coefficient [27], the oven-dry density
+of treated beech wood changed by about 2.4%, which is in a reasonable range for the given
+treatment temperature and time of treatment (190 ◦C, 3.5 h) [21,28]. A modest but consistent
+reduction in material density is associated with treatment intensity.
+Interestingly, the bending strength distribution of TMW boards showed two peaks
+compared to NoTMW strength (Figure 3a). The results of cumulative distribution suggest that
+thermal treatment reduced the strength of lower-quality wood, while it may maintain—or,
+in some cases, slightly improve—the strength of higher-quality wood. This contributed to
+the increased scatter in strength values compared to the untreated cumulative distribution
+(Figure 3b).
+https://doi.org/10.3390/f17020174
+Forests 2026, 17, 174 7 of 13
+Figure 3. Histogram (a) and cumulative relative frequency diagram (b) of bending strength for treated
+(TMW) and untreated beech timber (NoTMW). The dashed lines show estimated normal distributions.
+The characteristic strength value of the structural wood made of TMW was 17.27 MPa
+(Table 3). This strength is lower than the lowest strength class for deciduous species
+D18 defined by [10]. Mean modulus and mean density are in the range of D40 and
+D35, respectively.
+Table 3. Characteristic values of TMW timber.
+fm,05
+(EN 14358) [25]
+fm,k
+(EN 384) [11]
+Em,0,mean
+(EN 384) [11]
+Em,0,k
+(EN 384) [11]
+ρk
+ρmean ρ05
+24.68 17.27 13.62 11.44 526.9 632.3 598.8
+3.3. Correlations Between Properties of TMW
+For the prediction of structural properties of interest, bending strength, and MOE, or
+for grading purposes, we selected NDT explanatory variables that gave us significant mod-
+els (p < 0.05) (Tables 4 and 5). Each explanatory variable was analyzed in a separate simple
+linear regression and in selected combinations. As was expected, the higher explanatory
+variable (any modulus or density) is associated with higher bending strength or modulus.
+Table 4. Results of simple and multiple linear regression (1) and correlation analysis of the response
+variable, bending strength. Nonsignificant slope parameters and their p-levels are bold.
+Explanatory Variable N R t-Test p-Level Constant, β0 Slope, βi R2
+MOEsylv,ref w 48 0.30 2.11 0.040 −48.91 0.0056 9%
+MOEMTG,ref w 51 0.26 1.92 0.061 −49.83 0.0063 7%
+MOEg,ref w 53 0.41 3.22 0.002 −57.57 0.0081 17%
+ρ408,ref w 53 0.23 1.92 0.061 −73.59 0.2065 7%
+ρboard,ref w 53 0.30 2.27 0.027 −102.68 0.2493 9%
+MOEl,ref w 53 0.20 1.44 0.155 15.18 0.0030 4%
+MOEg,ref w and MOEMTG,ref w 53 0.42
+2.44
+−0.03
+0.018
+0.974
+−58.21
+0.0083
+−0.0001
+17%
+MOEg,ref w and MOEsylv,ref w 48 0.43
+2.25
+−0.13
+0.029
+0.898
+−65.03
+0.0092
+−0.0005
+18%
+MOEg,ref w, and ρ408,ref w 53 0.42
+2.54
+0.55
+0.014
+0.586
+−88.68
+0.0073
+0.0641
+17%
+https://doi.org/10.3390/f17020174
+

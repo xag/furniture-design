@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from furniture_design.knowledge import knowledge
+from furniture_design.knowledge import OPEN_LICENCES, knowledge
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -21,14 +21,14 @@ def _flat(text: str) -> str:
 def _clauses():
     sources = knowledge()[0]
     for source in sources.children:
-        if source.payload["licence"] != "public-domain":
+        if source.payload["licence"] not in OPEN_LICENCES:
             continue  # cited by locator and values: test_cited_sources_carry_no_quote
         for clause in source.children:
             yield source, clause
 
 
 def test_cited_sources_carry_no_quote_and_no_capture_here():
-    cited = [s for s in knowledge()[0].children if s.payload["licence"] != "public-domain"]
+    cited = [s for s in knowledge()[0].children if s.payload["licence"] not in OPEN_LICENCES]
     assert cited, "the GSA test method is cited"
     for s in cited:
         assert s.payload["licence"] in ("copyrighted", "unstated")
@@ -40,7 +40,7 @@ def test_cited_sources_carry_no_quote_and_no_capture_here():
                          ids=lambda v: getattr(v, "id", ""))
 def test_every_quote_is_in_the_capture_of_its_source(source, clause):
     capture = ROOT / source.payload["capture"]
-    assert source.payload["licence"] == "public-domain", "only public-domain sources are captured"
+    assert source.payload["licence"] in OPEN_LICENCES, "only public-domain and CC BY sources are captured"
     assert _flat(clause.payload["quote"]) in _flat(capture.read_text(encoding="utf-8")), \
         f"{clause.id}: the quote is not in {capture.name}"
 

@@ -13,3 +13,6 @@ CUBIC_FOOT_MM3 = FOOT_MM ** 3
 POUND_PER_CUBIC_FOOT_KG_M3 = POUND_KG / (FOOT_MM / 1000) ** 3
 STANDARD_GRAVITY = 9.80665  # m/s2; a mass in kg times this is a force in N
 POUND_FORCE_N = POUND_KG * STANDARD_GRAVITY  # the pound-force: a pound's weight under standard gravity
+SQUARE_FOOT_M2 = (FOOT_MM / 1000) ** 2
+POUND_PER_SQUARE_FOOT_KG_M2 = POUND_KG / SQUARE_FOOT_M2  # a surface load, lb/ft2, as kg/m2
+POUND_PER_FOOT_KG_M = POUND_KG / (FOOT_MM / 1000)  # a load along a length, lb/ft, as kg/m
