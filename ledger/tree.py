@@ -201,6 +201,44 @@ def entries() -> list[Node]:
             ],
         ),
         Node(
+            id="makers-products-are-in-packages-outside-furniture-design", kind="decision",
+            name="Knowledge of makers' products is not in furniture-design@: it is in packages that require "
+                 "furniture-design@ and add the products as data on its kinds, one per maker (lamello-unofficial) "
+                 "or one for the makers of one kind of product (wood-panels, with the standard classes their "
+                 "boards declare). furniture-design names no maker",
+            payload={"decided_on": "2026-11-13",
+                     "the_owner": "Why unofficial on wood panels?",
+                     "why": "The same claim as before without 'unofficial packages': whether a package's name says "
+                            "unofficial is a-name-says-unofficial-only-when-it-names-a-maker-or-shop's to settle."},
+            links={"supersedes": ["makers-products-are-outside-furniture-design"],
+                   "rests_on": ["the-rules-read-the-knowledge"]},
+            children=[
+                _alt("always-a-package-per-maker", "Keep one package per maker for panels too",
+                     "Fourteen packages for a few declarations each, all needing the same classes."),
+            ],
+        ),
+        Node(
+            id="a-name-says-unofficial-only-when-it-names-a-maker-or-shop", kind="decision",
+            name="A package of makers' or shops' data is named <name>-unofficial when its name is a maker's or a "
+                 "shop's (lamello-unofficial, leroy-merlin-unofficial), and without the suffix when its name is "
+                 "a kind of product (wood-panels); its README says in either case that the makers did not write "
+                 "or endorse it",
+            payload={"decided_on": "2026-11-13",
+                     "the_owner": "Why unofficial on wood panels?",
+                     "why": "The suffix stops a package named after a maker or a shop being taken for that maker's "
+                            "or shop's own (a-makers-products-are-their-own-package). A name like wood-panels "
+                            "names no one, so the suffix says nothing; the README's disclaimer covers the makers' "
+                            "data inside."},
+            links={"rests_on": ["makers-products-are-in-packages-outside-furniture-design"]},
+            children=[
+                _alt("unofficial-on-every-package", "Name every package of makers' data <name>-unofficial",
+                     "On a name that names no maker or shop it says nothing a reader could have got wrong."),
+                _alt("never-unofficial", "Drop the suffix everywhere and rely on the README",
+                     "lamello would read as Lamello's own package wherever only its name is seen: a pin, a "
+                     "dependency list, a search result."),
+            ],
+        ),
+        Node(
             id="the-package-is-in-the-open-registry", kind="decision",
             name="furniture-design@ is published to the public registry (xag/quern-registry), not the "
                  "private fleet registry",

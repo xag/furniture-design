@@ -145,6 +145,21 @@
     "digest": "8c71d095242a"
   },
   {
+    "path": "a-name-says-unofficial-only-when-it-names-a-maker-or-shop",
+    "kind": "decision",
+    "digest": "fbb976b8e55e"
+  },
+  {
+    "path": "a-name-says-unofficial-only-when-it-names-a-maker-or-shop/never-unofficial",
+    "kind": "alternative",
+    "digest": "a10db092b30e"
+  },
+  {
+    "path": "a-name-says-unofficial-only-when-it-names-a-maker-or-shop/unofficial-on-every-package",
+    "kind": "alternative",
+    "digest": "563e4f03a2e3"
+  },
+  {
     "path": "a-panel-bent-two-ways-is-two-materials",
     "kind": "decision",
     "digest": "911d07e4e9f4"
@@ -233,6 +248,16 @@
     "path": "drawings-are-generated-from-the-tree/our-own-3d-renderer",
     "kind": "alternative",
     "digest": "2e0ada388c38"
+  },
+  {
+    "path": "makers-products-are-in-packages-outside-furniture-design",
+    "kind": "decision",
+    "digest": "ca83521e11af"
+  },
+  {
+    "path": "makers-products-are-in-packages-outside-furniture-design/always-a-package-per-maker",
+    "kind": "alternative",
+    "digest": "3c96125b9bb5"
   },
   {
     "path": "makers-products-are-outside-furniture-design",
