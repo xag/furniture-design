@@ -26,7 +26,9 @@ TEXT = {
                         "sécurité)",
         "sag": "Flèche : {part} sous {load}",
         "sag_res": "{d} mm au milieu, en appui simple sur ses deux supports",
-        "sag_limit": " ; limite fixée : {l} mm",
+        "sag_limit": " ; avec le fluage, {f} mm pour une limite fixée à {l} mm",
+        "sag_limit_no_creep": " ; limite fixée à {l} mm avec le fluage, que le matériau ne permet pas de vérifier : "
+                              "il ne donne pas son fluage",
         "no_strength": "non tranché : le matériau ne donne pas de résistance en flexion",
         "no_stiffness": "non calculée : le matériau ne donne pas de module d'élasticité",
         "no_shear": "non calculée : la pièce ne dit pas quel module de cisaillement de son matériau lire",
@@ -57,7 +59,9 @@ TEXT = {
                         "exceed, divided by 2.1 for a ten-year load and safety)",
         "sag": "Sag: {part} under {load}",
         "sag_res": "{d} mm at the middle, simply supported on its two supports",
-        "sag_limit": "; limit set: {l} mm",
+        "sag_limit": "; with creep, {f} mm against a limit set at {l} mm",
+        "sag_limit_no_creep": "; limit set at {l} mm with creep, which the material does not let us check: it "
+                              "states no creep",
         "no_strength": "not settled: the material states no bending strength",
         "no_stiffness": "not worked out: the material states no modulus of elasticity",
         "no_shear": "not worked out: the part does not say which of its material's shear moduli to read",
@@ -121,9 +125,12 @@ def checks(tree: Quern, piece: str, lang: str = "fr") -> list[dict]:
                      "verdict": "open" if allowed is None else "ok" if stress <= allowed else "fail"})
         limits = [_param(tree, r, "limit") for r in node.links.get("sag_limit", [])]
         try:
-            res, verdict = T["sag_res"].format(d=_fmt(deflection(tree, path))), "info"
+            d = deflection(tree, path)
+            res, verdict = T["sag_res"].format(d=_fmt(d)), "info"
             if limits:
-                res += T["sag_limit"].format(l=_fmt(min(limits)))
+                share = _param(tree, path, "initial_share_of_longtime")
+                res += (T["sag_limit"].format(f=_fmt(d / share, 2), l=_fmt(min(limits), 2)) if share
+                        else T["sag_limit_no_creep"].format(l=_fmt(min(limits), 2)))
                 verdict = "ok" if all(r.ok for r in results if r.rule == "a-beam-sags-within-its-limit"
                                       and r.node == path) else "fail"
         except (ValueError, Absent) as e:  # a value the material or the part does not give

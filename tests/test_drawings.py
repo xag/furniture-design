@@ -246,3 +246,23 @@ def test_a_value_the_material_lacks_leaves_its_check_open_and_the_others_said():
             rows = checks(tree, SHELF, lang)
             assert any(r["result"] == TEXT[lang][expect] for r in rows), (lang, expect)
             assert len(rows) == len(whole), (lang, expect)
+
+
+def test_a_sag_limit_is_read_beside_the_sag_with_creep_it_is_compared_with():
+    """The limit a part is held to is a longtime one, so the row beside it gives the sag with creep
+    (the initial sag over the material's initial_share_of_longtime), the number the rule compares
+    with it: a row that set the initial sag beside the limit would read as passing when it fails."""
+    from furniture_design.natives import deflection
+    from furniture_design.report import checks
+
+    for limit in (4.0, 1.0):
+        tree = _tree()
+        get_node(tree, "requirements/bookshelf-sag").params["limit"].value = limit
+        shelf = "pieces/bookshelf/shelf"
+        initial = deflection(tree, shelf)
+        share = tree.get(get_node(tree, shelf).links["uses"][0]).params["initial_share_of_longtime"].value
+        longtime = initial / share
+        for lang, sep in (("fr", ","), ("en", ".")):
+            [row] = [r for r in checks(tree, "pieces/bookshelf", lang) if r["requirement"].startswith(("Flèche", "Sag"))]
+            assert f"{longtime:.2f}".replace(".", sep) in row["result"], (lang, row)
+            assert row["verdict"] == ("ok" if longtime <= limit else "fail"), (lang, limit, row)
