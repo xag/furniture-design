@@ -627,47 +627,67 @@ def _paragraphs(texts: list) -> list[tuple[int, str]]:
         out += [(1, u) for u in under]
     return out
 NOTES_FLOOR = 52  # mm: the lowest a line of notes goes, above the title block
+NOTES_TOP = 297 - 22  # mm: where the notes start on a sheet of their own
 
 
 def _check_height(row: dict) -> float:
     return 5 + 4.2 * max(len(_wrap(row["requirement"], 70)), len(_wrap(row["result"], 80)))
 
 
-def _notes_height(notes: Notes) -> float:
-    return sum(7 + sum(4.4 * len(_wrap(t, 150 - 6 * d)) + 1.5 for d, t in _paragraphs(texts)) + 3
-               for _, texts in notes) + 7
-
-
-def _draw_notes(pen: Pen, notes: Notes, y: float, L: dict) -> None:
-    pen.text(18, y, L["notes"], 4.2, INK, bold=True)
-    y -= 8
+def _note_lines(notes: Notes, L: dict) -> list[tuple]:
+    """The notes as lines to set one under the other: (x, text, size, colour, bold, step, keep),
+    step being the space the line takes, keep that it goes on the sheet of the line after it (a
+    title or a heading is never left at the foot of a sheet)."""
+    out = [(18, L["notes"], 4.2, INK, True, 8, True)]
     for heading, texts in notes:
         if heading:
-            pen.text(18, y, heading, 3.4, INK, bold=True)
-            y -= 5.5
+            out.append((18, heading, 3.4, INK, True, 5.5, True))
         for depth, text in _paragraphs(texts):
             x = 18 + 8 * depth
-            for i, line in enumerate(_wrap(text, 150 - 6 * depth)):
-                pen.text(x + 4 if i else x, y, (("- ", "· ")[depth] if i == 0 else "") + line, 3.0,
-                         INK if depth == 0 else THIN)
-                y -= 4.4
-            y -= 1.5 if depth == 0 else 0.5
-        y -= 3
+            lines = _wrap(text, 150 - 6 * depth)
+            for i, line in enumerate(lines):
+                last = i == len(lines) - 1
+                out.append((x + 4 if i else x, (("- ", "· ")[depth] if i == 0 else "") + line, 3.0,
+                            INK if depth == 0 else THIN, False,
+                            4.4 + ((1.5 if depth == 0 else 0.5) if last else 0), False))
+        x, text, size, colour, bold, step, keep = out[-1]
+        out[-1] = (x, text, size, colour, bold, step + 3, keep)
+    return out
 
 
-def _notes_fit(checks: list[dict], notes: Notes) -> bool:
-    """Whether the notes fit on the checks sheet, under the checks and above the title block."""
-    return not notes or 297 - 30 - sum(_check_height(r) for r in checks) - 10 - _notes_height(notes) >= NOTES_FLOOR
+def _flow(lines: list[tuple], first_top: float) -> list[tuple[float, list[tuple]]]:
+    """The notes' lines cut into sheets: the first starts at `first_top` under the checks, each
+    next at the top of a sheet of its own, the notes' title said again at its head."""
+    pages, y, page = [], first_top, []
+    for i, line in enumerate(lines):
+        need = line[5] + (lines[i + 1][5] if line[6] and i + 1 < len(lines) else 0)
+        if page and y - need < NOTES_FLOOR:
+            pages.append((first_top if not pages else NOTES_TOP, page))
+            y, page = NOTES_TOP - 8, [lines[0]]
+        page.append(line)
+        y -= line[5]
+    if page:
+        pages.append((first_top if not pages else NOTES_TOP, page))
+    if pages and len(pages[0][1]) == 1:  # only the title fitted under the checks
+        pages[0] = (pages[0][0], [])
+    return pages
 
 
-def _sheet_notes(c: Canvas, sc: Scene, notes: Notes, L: dict, sheet: int, sheets: int):
+def _set_lines(pen: Pen, lines: list[tuple], y: float) -> None:
+    for x, text, size, colour, bold, step, _ in lines:
+        pen.text(x, y, text, size, colour, bold=bold)
+        y -= step
+
+
+def _sheet_notes(c: Canvas, sc: Scene, lines: list[tuple], L: dict, sheet: int, sheets: int):
     W, H = 420, 297
     pen = Pen(c)
-    _draw_notes(pen, notes, H - 22, L)
+    _set_lines(pen, lines, NOTES_TOP)
     _frame(pen, W, H, sc, sheet, sheets, L["notes"], None, L)
 
 
-def _sheet_checks(c: Canvas, sc: Scene, checks: list[dict], L: dict, sheets: int, notes: Notes | None = None):
+def _sheet_checks(c: Canvas, sc: Scene, checks: list[dict], L: dict, sheets: int,
+                  notes: tuple[float, list[tuple]] | None = None):
     W, H = 420, 297
     pen = Pen(c)
     pen.text(18, H - 22, L["checks"], 5, INK, bold=True)
@@ -687,32 +707,32 @@ def _sheet_checks(c: Canvas, sc: Scene, checks: list[dict], L: dict, sheets: int
         for i, s in enumerate(res):
             pen.text(205, y - 5 - 4.2 * i, s, 3.0, INK)
         y -= hgt
-    if notes:
-        _draw_notes(pen, notes, y - 10, L)
+    if notes and notes[1]:
+        _set_lines(pen, notes[1], notes[0])
     _frame(pen, W, H, sc, 3, sheets, L["checks"], None, L)
 
 
 def design_document(sc: Scene, path: Path, checks: list[dict], lang: str = "fr",
                     notes: Notes | None = None) -> Path:
     """The design file of a piece, A3 landscape: the general views, the parts, the checks with
-    the design notes under them, and the notes on a fourth sheet when they do not fit there.
-    `notes` are the caller's sections (a heading and its paragraphs each); given none, the
+    the design notes under them, the notes going on over as many sheets of their own as they
+    need. `notes` are the caller's sections (a heading and its paragraphs each); given none, the
     piece's payload description is the notes, one paragraph each, under no heading."""
     L = LABELS[lang]
     if notes is None:
         notes = [("", list(sc.info.get("description") or []))] if sc.info.get("description") else []
-    fit = _notes_fit(checks, notes)
-    sheets = 3 if fit else 4
+    pages = _flow(_note_lines(notes, L), 297 - 30 - sum(_check_height(r) for r in checks) - 10) if notes else []
+    sheets = 3 + max(0, len(pages) - 1)
     c = Canvas(str(path), pagesize=landscape(A3))
     c.setTitle(f"{sc.title} - {sc.info.get('version', '')}")
     _sheet_general(c, sc, L, sheets)
     c.showPage()
     _sheet_parts(c, sc, L, sheets)
     c.showPage()
-    _sheet_checks(c, sc, checks, L, sheets, notes if fit else None)
+    _sheet_checks(c, sc, checks, L, sheets, pages[0] if pages else None)
     c.showPage()
-    if not fit:
-        _sheet_notes(c, sc, notes, L, 4, sheets)
+    for sheet, (_, lines) in enumerate(pages[1:], start=4):
+        _sheet_notes(c, sc, lines, L, sheet, sheets)
         c.showPage()
     c.save()
     return path

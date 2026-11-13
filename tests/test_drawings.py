@@ -289,16 +289,20 @@ def test_the_plans_print_the_notes_they_are_given_under_their_headings(monkeypat
     assert "Un paragraphe écrit à la main." in " ".join(said)
 
 
-def test_notes_too_long_for_the_checks_sheet_get_a_sheet_of_their_own(monkeypatch, tmp_path):
-    """Notes that would run into the title block are printed on a fourth sheet, and every sheet
-    says it is one of four; short ones stay under the checks, one of three."""
+def test_notes_start_under_the_checks_and_go_on_over_sheets_of_their_own(monkeypatch, tmp_path):
+    """The notes are set under the checks, and what does not fit above the title block goes on
+    over sheets of their own, every sheet saying it is one of all of them; short notes keep the
+    design document to three sheets. No line is lost and none is set twice."""
     from furniture_design import sheets
     said = []
     real = sheets.Pen.text
     monkeypatch.setattr(sheets.Pen, "text", lambda self, x, y, s, *a, **k: (said.append(str(s)), real(self, x, y, s, *a, **k))[1])
     drawings.documents(_tree(), BENCH, tmp_path / "short", notes=[("Décisions", ["Une seule."])])
-    assert "3/3" in said and "4/4" not in said
+    assert "3/3" in said and "Une seule." in " ".join(said)
     said.clear()
-    long = [("Décisions", [f"Décision numéro {i}, " + "avec ses raisons " * 20 for i in range(30)])]
+    long = [("Décisions", [f"Décision numéro {i}." for i in range(120)])]
     drawings.documents(_tree(), BENCH, tmp_path / "long", notes=long)
-    assert "4/4" in said and "3/3" not in said and "Décision numéro 29," in " ".join(said)
+    n = max(int(x.split("/")[1]) for x in said if x.count("/") == 1 and x.replace("/", "").isdigit())
+    assert n >= 4 and all(f"{k}/{n}" in said for k in range(1, n + 1))
+    lines = [x for x in said if x.startswith("- Décision numéro")]
+    assert lines == [f"- Décision numéro {i}." for i in range(120)]

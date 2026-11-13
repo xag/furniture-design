@@ -909,6 +909,24 @@ def entries() -> list[Node]:
                      "A note left out of the plans is one the people who build never read."),
             ],
         ),
+        Node(
+            id="the-design-notes-flow-on-from-the-checks", kind="decision",
+            name="The design document prints the notes its caller gives (sections of a heading and their "
+                 "paragraphs, a paragraph with the lines under it) starting under the checks, and goes on over "
+                 "as many sheets of their own as they need, a heading never left at the foot of a sheet; the "
+                 "piece's payload description is printed only when the caller gives none",
+            payload={"decided_on": "2026-11-14",
+                     "why": "Moved whole to a fourth sheet when they did not all fit, the bench's notes left half "
+                            "of the third sheet, titled checks and notes, empty and the notes on the next; and a "
+                            "ledger longer than one sheet had nowhere to go."},
+            links={"supersedes": ["the-design-notes-are-the-callers"]},
+            children=[
+                _alt("a-fourth-sheet-whole", "Put the notes whole on a fourth sheet when they do not fit under the "
+                     "checks", "Half a sheet left empty under a title that says notes, and no room past one sheet."),
+                _alt("cut-what-does-not-fit", "Print what fits and leave the rest out",
+                     "A note left out of the plans is one the people who build never read."),
+            ],
+        ),
     ]
 
 
