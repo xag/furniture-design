@@ -613,7 +613,19 @@ def _wrap(text: str, width_chars: int) -> list[str]:
     return out
 
 
-Notes = list[tuple[str, list[str]]]  # the design notes: sections, each a heading and its paragraphs
+# The design notes: sections, each a heading and its paragraphs; a paragraph is a text, or a text
+# and the lines under it (an open point and what would settle it)
+Notes = list[tuple[str, list]]
+
+
+def _paragraphs(texts: list) -> list[tuple[int, str]]:
+    """(depth, text) for each paragraph of a section and each line under one."""
+    out = []
+    for t in texts:
+        text, under = (t, []) if isinstance(t, str) else (t[0], list(t[1]))
+        out.append((0, text))
+        out += [(1, u) for u in under]
+    return out
 NOTES_FLOOR = 52  # mm: the lowest a line of notes goes, above the title block
 
 
@@ -622,7 +634,8 @@ def _check_height(row: dict) -> float:
 
 
 def _notes_height(notes: Notes) -> float:
-    return sum(7 + sum(4.4 * len(_wrap(t, 150)) + 1.5 for t in texts) + 3 for _, texts in notes) + 7
+    return sum(7 + sum(4.4 * len(_wrap(t, 150 - 6 * d)) + 1.5 for d, t in _paragraphs(texts)) + 3
+               for _, texts in notes) + 7
 
 
 def _draw_notes(pen: Pen, notes: Notes, y: float, L: dict) -> None:
@@ -632,11 +645,13 @@ def _draw_notes(pen: Pen, notes: Notes, y: float, L: dict) -> None:
         if heading:
             pen.text(18, y, heading, 3.4, INK, bold=True)
             y -= 5.5
-        for text in texts:
-            for i, line in enumerate(_wrap(text, 150)):
-                pen.text(22 if i else 18, y, ("- " if i == 0 else "") + line, 3.0, INK)
+        for depth, text in _paragraphs(texts):
+            x = 18 + 8 * depth
+            for i, line in enumerate(_wrap(text, 150 - 6 * depth)):
+                pen.text(x + 4 if i else x, y, (("- ", "· ")[depth] if i == 0 else "") + line, 3.0,
+                         INK if depth == 0 else THIN)
                 y -= 4.4
-            y -= 1.5
+            y -= 1.5 if depth == 0 else 0.5
         y -= 3
 
 

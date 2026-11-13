@@ -214,8 +214,9 @@ def documents(tree: Quern, piece: str, out_dir: Path, *, lang: str = "fr",
               stem: str | None = None, notes: list[tuple[str, list[str]]] | None = None) -> dict[str, Path]:
     """The three things a piece is built from, written into `out_dir`: the interactive 3D
     view (HTML), the design document (PDF, A3) and the assembly instructions (PDF, A4).
-    `notes` are the design document's notes, sections of a heading and its paragraphs (the
-    piece's payload description when none are given)."""
+    `notes` are the design document's notes, sections of a heading and its paragraphs, a
+    paragraph being a text or (text, [lines under it]) (the piece's payload description when none
+    are given)."""
     from .report import checks as plain_checks
     from .scene import scene
     from .sheets import assembly_instructions, design_document

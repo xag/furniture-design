@@ -273,14 +273,16 @@ def test_the_plans_print_the_notes_they_are_given_under_their_headings(monkeypat
     and the piece's own description is not when notes are given; given none, it is."""
     tree = _tree()
     get_node(tree, BENCH).payload["description"] = ["Un paragraphe écrit à la main."]
-    given = [("Décisions", ["Le plateau fait 36 mm."]), ("Ouvert", ["La poussée de côté n'est pas tranchée."])]
+    given = [("Décisions", ["Le plateau fait 36 mm."]),
+             ("Ouvert", [("La poussée de côté n'est pas tranchée.", ["Visser la traverse au mur"])])]
     from furniture_design import sheets
     said = []
     real = sheets.Pen.text
     monkeypatch.setattr(sheets.Pen, "text", lambda self, x, y, s, *a, **k: (said.append(str(s)), real(self, x, y, s, *a, **k))[1])
     drawings.documents(tree, BENCH, tmp_path / "a", notes=given)
     text = " ".join(said)
-    assert all(w in text for w in ("Décisions", "Le plateau fait 36 mm.", "Ouvert", "La poussée de côté"))
+    assert all(w in text for w in ("Décisions", "Le plateau fait 36 mm.", "Ouvert", "La poussée de côté",
+                                   "Visser la traverse au mur"))
     assert "écrit à la main" not in text
     said.clear()
     drawings.documents(tree, BENCH, tmp_path / "b")
