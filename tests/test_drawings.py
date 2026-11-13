@@ -266,3 +266,37 @@ def test_a_sag_limit_is_read_beside_the_sag_with_creep_it_is_compared_with():
             [row] = [r for r in checks(tree, "pieces/bookshelf", lang) if r["requirement"].startswith(("Flèche", "Sag"))]
             assert f"{longtime:.2f}".replace(".", sep) in row["result"], (lang, row)
             assert row["verdict"] == ("ok" if longtime <= limit else "fail"), (lang, limit, row)
+
+
+def test_the_plans_print_the_notes_they_are_given_under_their_headings(monkeypatch, tmp_path):
+    """The design notes are the caller's: each section's heading and its paragraphs are printed,
+    and the piece's own description is not when notes are given; given none, it is."""
+    tree = _tree()
+    get_node(tree, BENCH).payload["description"] = ["Un paragraphe écrit à la main."]
+    given = [("Décisions", ["Le plateau fait 36 mm."]), ("Ouvert", ["La poussée de côté n'est pas tranchée."])]
+    from furniture_design import sheets
+    said = []
+    real = sheets.Pen.text
+    monkeypatch.setattr(sheets.Pen, "text", lambda self, x, y, s, *a, **k: (said.append(str(s)), real(self, x, y, s, *a, **k))[1])
+    drawings.documents(tree, BENCH, tmp_path / "a", notes=given)
+    text = " ".join(said)
+    assert all(w in text for w in ("Décisions", "Le plateau fait 36 mm.", "Ouvert", "La poussée de côté"))
+    assert "écrit à la main" not in text
+    said.clear()
+    drawings.documents(tree, BENCH, tmp_path / "b")
+    assert "Un paragraphe écrit à la main." in " ".join(said)
+
+
+def test_notes_too_long_for_the_checks_sheet_get_a_sheet_of_their_own(monkeypatch, tmp_path):
+    """Notes that would run into the title block are printed on a fourth sheet, and every sheet
+    says it is one of four; short ones stay under the checks, one of three."""
+    from furniture_design import sheets
+    said = []
+    real = sheets.Pen.text
+    monkeypatch.setattr(sheets.Pen, "text", lambda self, x, y, s, *a, **k: (said.append(str(s)), real(self, x, y, s, *a, **k))[1])
+    drawings.documents(_tree(), BENCH, tmp_path / "short", notes=[("Décisions", ["Une seule."])])
+    assert "3/3" in said and "4/4" not in said
+    said.clear()
+    long = [("Décisions", [f"Décision numéro {i}, " + "avec ses raisons " * 20 for i in range(30)])]
+    drawings.documents(_tree(), BENCH, tmp_path / "long", notes=long)
+    assert "4/4" in said and "3/3" not in said and "Décision numéro 29," in " ".join(said)

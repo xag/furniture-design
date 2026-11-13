@@ -430,6 +430,26 @@
     "digest": "568f5a9112f0"
   },
   {
+    "path": "the-design-notes-are-the-callers",
+    "kind": "decision",
+    "digest": "848a0bdc8b2c"
+  },
+  {
+    "path": "the-design-notes-are-the-callers/cut-the-notes",
+    "kind": "alternative",
+    "digest": "bb0d8532ae71"
+  },
+  {
+    "path": "the-design-notes-are-the-callers/drop-description",
+    "kind": "alternative",
+    "digest": "6f83e6b118f7"
+  },
+  {
+    "path": "the-design-notes-are-the-callers/read-a-ledger-here",
+    "kind": "alternative",
+    "digest": "aca5ffb5c7e6"
+  },
+  {
     "path": "the-documents-are-for-the-people-who-build",
     "kind": "decision",
     "digest": "4244002f6cd0"

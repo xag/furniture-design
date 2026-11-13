@@ -613,7 +613,46 @@ def _wrap(text: str, width_chars: int) -> list[str]:
     return out
 
 
-def _sheet_checks(c: Canvas, sc: Scene, checks: list[dict], L: dict, sheets: int):
+Notes = list[tuple[str, list[str]]]  # the design notes: sections, each a heading and its paragraphs
+NOTES_FLOOR = 52  # mm: the lowest a line of notes goes, above the title block
+
+
+def _check_height(row: dict) -> float:
+    return 5 + 4.2 * max(len(_wrap(row["requirement"], 70)), len(_wrap(row["result"], 80)))
+
+
+def _notes_height(notes: Notes) -> float:
+    return sum(7 + sum(4.4 * len(_wrap(t, 150)) + 1.5 for t in texts) + 3 for _, texts in notes) + 7
+
+
+def _draw_notes(pen: Pen, notes: Notes, y: float, L: dict) -> None:
+    pen.text(18, y, L["notes"], 4.2, INK, bold=True)
+    y -= 8
+    for heading, texts in notes:
+        if heading:
+            pen.text(18, y, heading, 3.4, INK, bold=True)
+            y -= 5.5
+        for text in texts:
+            for i, line in enumerate(_wrap(text, 150)):
+                pen.text(22 if i else 18, y, ("- " if i == 0 else "") + line, 3.0, INK)
+                y -= 4.4
+            y -= 1.5
+        y -= 3
+
+
+def _notes_fit(checks: list[dict], notes: Notes) -> bool:
+    """Whether the notes fit on the checks sheet, under the checks and above the title block."""
+    return not notes or 297 - 30 - sum(_check_height(r) for r in checks) - 10 - _notes_height(notes) >= NOTES_FLOOR
+
+
+def _sheet_notes(c: Canvas, sc: Scene, notes: Notes, L: dict, sheet: int, sheets: int):
+    W, H = 420, 297
+    pen = Pen(c)
+    _draw_notes(pen, notes, H - 22, L)
+    _frame(pen, W, H, sc, sheet, sheets, L["notes"], None, L)
+
+
+def _sheet_checks(c: Canvas, sc: Scene, checks: list[dict], L: dict, sheets: int, notes: Notes | None = None):
     W, H = 420, 297
     pen = Pen(c)
     pen.text(18, H - 22, L["checks"], 5, INK, bold=True)
@@ -623,7 +662,7 @@ def _sheet_checks(c: Canvas, sc: Scene, checks: list[dict], L: dict, sheets: int
         lines = _wrap(row["requirement"], 70)
         res = _wrap(row["result"], 80)
         n = max(len(lines), len(res))
-        hgt = 5 + 4.2 * n
+        hgt = _check_height(row)
         pen.rect(18, y - hgt, 384, hgt, fill=None, stroke=THIN, lw_=0.15)
         col = colours[row["verdict"]]
         pen.rect(20, y - hgt + 1.5, 22, hgt - 3, fill=col, stroke=None)
@@ -633,30 +672,33 @@ def _sheet_checks(c: Canvas, sc: Scene, checks: list[dict], L: dict, sheets: int
         for i, s in enumerate(res):
             pen.text(205, y - 5 - 4.2 * i, s, 3.0, INK)
         y -= hgt
-    notes = sc.info.get("description") or []
     if notes:
-        y -= 10
-        pen.text(18, y, L["notes"], 4.2, INK, bold=True)
-        y -= 7
-        for note in notes:
-            for i, s in enumerate(_wrap(note, 150)):
-                pen.text(22 if i else 18, y, ("- " if i == 0 else "") + s, 3.0, INK)
-                y -= 4.4
-            y -= 1.5
+        _draw_notes(pen, notes, y - 10, L)
     _frame(pen, W, H, sc, 3, sheets, L["checks"], None, L)
 
 
-def design_document(sc: Scene, path: Path, checks: list[dict], lang: str = "fr") -> Path:
-    """The design file of a piece, A3 landscape, three sheets."""
+def design_document(sc: Scene, path: Path, checks: list[dict], lang: str = "fr",
+                    notes: Notes | None = None) -> Path:
+    """The design file of a piece, A3 landscape: the general views, the parts, the checks with
+    the design notes under them, and the notes on a fourth sheet when they do not fit there.
+    `notes` are the caller's sections (a heading and its paragraphs each); given none, the
+    piece's payload description is the notes, one paragraph each, under no heading."""
     L = LABELS[lang]
+    if notes is None:
+        notes = [("", list(sc.info.get("description") or []))] if sc.info.get("description") else []
+    fit = _notes_fit(checks, notes)
+    sheets = 3 if fit else 4
     c = Canvas(str(path), pagesize=landscape(A3))
     c.setTitle(f"{sc.title} - {sc.info.get('version', '')}")
-    _sheet_general(c, sc, L, 3)
+    _sheet_general(c, sc, L, sheets)
     c.showPage()
-    _sheet_parts(c, sc, L, 3)
+    _sheet_parts(c, sc, L, sheets)
     c.showPage()
-    _sheet_checks(c, sc, checks, L, 3)
+    _sheet_checks(c, sc, checks, L, sheets, notes if fit else None)
     c.showPage()
+    if not fit:
+        _sheet_notes(c, sc, notes, L, 4, sheets)
+        c.showPage()
     c.save()
     return path
 

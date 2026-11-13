@@ -5,7 +5,8 @@ the assembly instructions (sheets.py), with the checks in plain words (report.py
 Everything here reads the tree; nothing is typed twice. A part's sizes come from its box
 (sizes may be expressions over params), its place from its transform, its name from the node's
 `name` (else its id). The piece's payload carries its `steps` (scene.py says how), its
-`version`, `authors`, `date` and `description` (design notes, one paragraph each).
+`version`, `authors`, `date`, and may carry `description` (design notes, one paragraph each),
+which the design document prints when the caller gives it no notes of its own.
 
 The frame is furniture-design's: x across from the left, y from the front to the back, z up
 from the floor, mm.
@@ -210,9 +211,11 @@ def checks(tree: Quern, piece: str) -> list[tuple[str, str, str, str]]:
 
 
 def documents(tree: Quern, piece: str, out_dir: Path, *, lang: str = "fr",
-              stem: str | None = None) -> dict[str, Path]:
+              stem: str | None = None, notes: list[tuple[str, list[str]]] | None = None) -> dict[str, Path]:
     """The three things a piece is built from, written into `out_dir`: the interactive 3D
-    view (HTML), the design document (PDF, A3) and the assembly instructions (PDF, A4)."""
+    view (HTML), the design document (PDF, A3) and the assembly instructions (PDF, A4).
+    `notes` are the design document's notes, sections of a heading and its paragraphs (the
+    piece's payload description when none are given)."""
     from .report import checks as plain_checks
     from .scene import scene
     from .sheets import assembly_instructions, design_document
@@ -225,6 +228,6 @@ def documents(tree: Quern, piece: str, out_dir: Path, *, lang: str = "fr",
     return {
         "viewer": viewer_html(sc, out_dir / f"{stem}-{words[0]}.html", lang),
         "design": design_document(sc, out_dir / f"{stem}-{words[1]}.pdf",
-                                  plain_checks(tree, piece, lang), lang),
+                                  plain_checks(tree, piece, lang), lang, notes),
         "assembly": assembly_instructions(sc, out_dir / f"{stem}-{words[2]}.pdf", lang),
     }

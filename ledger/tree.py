@@ -881,6 +881,28 @@ def entries() -> list[Node]:
                      "build after a package moves would pay the whole run again."),
             ],
         ),
+        Node(
+            id="the-design-notes-are-the-callers", kind="decision",
+            name="The design document prints the notes its caller gives, sections of a heading and their "
+                 "paragraphs, under the checks or on a fourth sheet when they would run into the title block; "
+                 "the piece's payload description is printed only when the caller gives none",
+            payload={"decided_on": "2026-11-13",
+                     "the_owner": "Was it a good idea to replace the assistant authored notes with notes generated "
+                                  "from a ledger? ... Ok go do the work in full",
+                     "why": "A piece's design notes were a description written by hand in its model, beside a "
+                            "ledger that says the same decisions and open points as entries a rule can check: the "
+                            "plans printed the copy nothing checks. Whoever builds the documents knows where its "
+                            "notes are kept, so it hands them over; this package knows no ledger format, and a "
+                            "caller with none keeps the description."},
+            children=[
+                _alt("read-a-ledger-here", "Read the piece's ledger in furniture-design",
+                     "The package would carry one consumer's ledger format and its words."),
+                _alt("drop-description", "Drop the description and print no notes unless given",
+                     "A caller with no ledger would lose the notes it has."),
+                _alt("cut-the-notes", "Print what fits under the checks and leave the rest out",
+                     "A note left out of the plans is one the people who build never read."),
+            ],
+        ),
     ]
 
 
