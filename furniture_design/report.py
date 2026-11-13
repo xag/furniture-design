@@ -93,7 +93,7 @@ def checks(tree: Quern, piece: str, lang: str = "fr") -> list[dict]:
         return f"{v:.{nd}f}".replace(".", DECIMAL[lang])
 
     prefix = piece.rstrip("/")
-    results = [r for r in run_rules(tree)
+    results = [r for r in run_rules(tree, prefix)
                if r.node == prefix or r.node.startswith(prefix + "/")]
     rows = []
     for path, node in tree.walk(prefix):

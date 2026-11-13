@@ -220,6 +220,21 @@
     "digest": "57319dbe036f"
   },
   {
+    "path": "a-pieces-checks-are-the-rules-under-it",
+    "kind": "decision",
+    "digest": "52442afeb128"
+  },
+  {
+    "path": "a-pieces-checks-are-the-rules-under-it/verdict-cache",
+    "kind": "alternative",
+    "digest": "2d96723ba41c"
+  },
+  {
+    "path": "a-pieces-checks-are-the-rules-under-it/whole-tree",
+    "kind": "alternative",
+    "digest": "4f57914b8509"
+  },
+  {
     "path": "a-published-sag-limit-is-a-source-a-piece-chooses-from",
     "kind": "decision",
     "digest": "5024fbaa9e4e"
@@ -378,6 +393,21 @@
     "path": "only-the-owner-earns-from-the-knowledge/no-maker-permission",
     "kind": "alternative",
     "digest": "49012351dba9"
+  },
+  {
+    "path": "the-birch-laminate-borrows-plywoods-kdef",
+    "kind": "decision",
+    "digest": "23e98f989e43"
+  },
+  {
+    "path": "the-birch-laminate-borrows-plywoods-kdef/handbook-two-thirds",
+    "kind": "alternative",
+    "digest": "2dd687a61a84"
+  },
+  {
+    "path": "the-birch-laminate-borrows-plywoods-kdef/no-creep",
+    "kind": "alternative",
+    "digest": "8874bf03ff56"
   },
   {
     "path": "the-code-is-agpl-and-the-knowledge-odbl",

@@ -427,10 +427,11 @@ DESIGN_STRESS_CLAUSES = [f"{WOOD_HANDBOOK}/cov-table-5-6", f"{WOOD_HANDBOOK}/nea
 
 def _panel(id_: str, name: str, *, form: str, sg: float, sg_ref: str, e: float, e_ref: str,
            mor: float, mor_ref: str, bent: str, per: list[str], note: str = "",
-           connector_key: str = "plywood") -> Node:
+           connector_key: str = "plywood", creep: Quantity | None = None) -> Node:
     """A panel product: its bending modulus is the one measured on the panel (shear
     deflection included, so no shear term is added to it), and its values hold only bent the
-    way the source says it bent them (`measured_along`; 'unstated' when it does not say)."""
+    way the source says it bent them (`measured_along`; 'unstated' when it does not say).
+    `creep`, when given, is its initial_share_of_longtime."""
     wh = WOOD_HANDBOOK
     return Node(
         id=id_, kind="material", name=name,
@@ -445,8 +446,47 @@ def _panel(id_: str, name: str, *, form: str, sg: float, sg_ref: str, e: float, 
                                              "bending modulus as tested on the panel"),
             "modulus_of_rupture": derived(mor, "MPa", [mor_ref], "as tabulated"),
             "design_bending_stress": _design_stress(mor, mor_ref),
+            **({"initial_share_of_longtime": creep} if creep else {}),
         },
-        links={"per": per})
+        links={"per": per + ([CREEP_PLYWOOD_CLAUSE] if creep else [])})
+
+
+# EN 1995-1-1, Table 3.2, as Swedish Wood's Table 9.1 prints it: (key, group, row, as printed,
+# kdef for service classes 1, 2, 3 where printed)
+KDEF_ROWS = [
+    ("structural-timber", "Structural timber", "EN 14081-1", "0,60 0,80 2,00", (0.60, 0.80, 2.00)),
+    ("glulam", "Glulam", "EN 14080", "0,60 0,80 2,00", (0.60, 0.80, 2.00)),
+    ("plywood", "Plywood EN 636", "Type 1", "0,80 - -", (0.80,)),
+    ("plywood-type-2", "Plywood EN 636", "Type 2", "0,80 1,00 -", (0.80, 1.00)),
+    ("plywood-type-3", "Plywood EN 636", "Type 3", "0,80 1,00 2,50", (0.80, 1.00, 2.50)),
+    ("osb-2", "OSB EN 300", "OSB/2", "2,25 - -", (2.25,)),
+    ("osb-3", "OSB EN 300", "OSB/3, OSB/4", "1,50 2,25 -", (1.50, 2.25)),
+    ("p4", "Particleboard EN 312", "Type P4", "2,25 - -", (2.25,)),
+    ("p5", "Particleboard EN 312", "Type P5", "2,25 3,00 -", (2.25, 3.00)),
+    ("p6", "Particleboard EN 312", "Type P6", "1,50 - -", (1.50,)),
+    ("p7", "Particleboard EN 312", "Type P7", "1,50 2,25 -", (1.50, 2.25)),
+    ("hb-la", "Fibreboard, hard EN 622-2", "HB.LA", "2,25 - -", (2.25,)),
+    ("hb-hla", "Fibreboard, hard EN 622-2", "HB.HLA1, HB.HLA2", "2,25 3,00 -", (2.25, 3.00)),
+    ("mbh-la", "Fibreboard medium EN 622-3", "MBH.LA1, MBH.LA2", "3,00 - -", (3.00,)),
+    ("mbh-hls", "Fibreboard medium EN 622-3", "MBH.HLS1, MBH.HLS2", "3,00 4,00 -", (3.00, 4.00)),
+    ("mdf-la", "Fibreboard, MDF EN 622-5", "MDF.LA", "2,25 - -", (2.25,)),
+    ("mdf-hls", "Fibreboard, MDF EN 622-5", "MDF.HLS", "2,25 3,00 -", (2.25, 3.00)),
+]
+
+
+# Creep of the Handbook's birch laminate: EN 1995-1-1's kdef for plywood in service class 1,
+# as 1/(1 + kdef), the share of the final deflection the initial one is. Eurocode 5 rates EN 636
+# plywood; the Handbook does not say its laminate is one, so the value is borrowed and not
+# grounded (ledger: the-birch-laminate-borrows-plywoods-kdef).
+CREEP_PLYWOOD_CLAUSE = "sources/swedish-wood-design-vol-2-2022/table-9-1-plywood"
+
+
+def _plywood_creep() -> Quantity:
+    kdef = next(values[0] for key, *_, values in KDEF_ROWS if key == "plywood")
+    return Quantity(value=1 / (1 + kdef), unit="", provenance="derived", grounded=False,
+                    derived_from=[f"{CREEP_PLYWOOD_CLAUSE}/kdef_service_class_1"],
+                    note="1/(1 + kdef): EN 1995-1-1's kdef for EN 636 plywood in service class 1, "
+                         "borrowed, since the Handbook does not say its laminate is EN 636 plywood")
 
 
 def _birch_on_edge() -> Node:
@@ -485,8 +525,9 @@ def _birch_on_edge() -> Node:
             "design_bending_stress": _design_stress(
                 40.0, f"{edge}/compression_strength", 0.18,
                 "cov-table-5-6-compression/cov_compression_parallel"),
+            "initial_share_of_longtime": _plywood_creep(),
         },
-        links={"per": [edge, f"{wh}/table-19-2-note-a", f"{wh}/table-19-2-note-b",
+        links={"per": [CREEP_PLYWOOD_CLAUSE, edge, f"{wh}/table-19-2-note-a", f"{wh}/table-19-2-note-b",
                        f"{wh}/table-19-2-note-f", f"{wh}/table-19-3-note-b",
                        f"{wh}/table-19-3-birch-laminate", f"{wh}/table-5-1-birch-yellow",
                        f"{wh}/table-5-3a-birch-yellow", f"{wh}/cov-table-5-6-compression",
@@ -507,7 +548,8 @@ def panels() -> list[Node]:
              f"{wh}/table-19-3-birch-laminate", f"{wh}/cov-table-5-6", f"{wh}/near-minimum-7-6",
              f"{wh}/design-factor-7-10", f"{wh}/panels-uniform-12-2"],
         note="Tested as a 27 mm laminate, load on the face, face grain along the span. A "
-             "panel with other ply thicknesses or another glue is near it, not it.")]
+             "panel with other ply thicknesses or another glue is near it, not it.",
+        creep=_plywood_creep())]
     out.append(_birch_on_edge())
     for id_, name, _row, g, e, mor in PLYWOOD_SHEATHING:
         ref = f"{wh}/table-12-2-{id_}"
@@ -1299,25 +1341,7 @@ def sag_limits() -> list[Node]:
                                  "deflection under a lasting load being the initial one times (1 + kdef)",
                         applies_to=f"{group}, {row}", service_classes="1, 2, 3 as printed; '-' where the "
                                                                     "material may not be used")
-                for key, group, row, printed, values in [
-                    ("structural-timber", "Structural timber", "EN 14081-1", "0,60 0,80 2,00", (0.60, 0.80, 2.00)),
-                    ("glulam", "Glulam", "EN 14080", "0,60 0,80 2,00", (0.60, 0.80, 2.00)),
-                    ("plywood", "Plywood EN 636", "Type 1", "0,80 - -", (0.80,)),
-                    ("plywood-type-2", "Plywood EN 636", "Type 2", "0,80 1,00 -", (0.80, 1.00)),
-                    ("plywood-type-3", "Plywood EN 636", "Type 3", "0,80 1,00 2,50", (0.80, 1.00, 2.50)),
-                    ("osb-2", "OSB EN 300", "OSB/2", "2,25 - -", (2.25,)),
-                    ("osb-3", "OSB EN 300", "OSB/3, OSB/4", "1,50 2,25 -", (1.50, 2.25)),
-                    ("p4", "Particleboard EN 312", "Type P4", "2,25 - -", (2.25,)),
-                    ("p5", "Particleboard EN 312", "Type P5", "2,25 3,00 -", (2.25, 3.00)),
-                    ("p6", "Particleboard EN 312", "Type P6", "1,50 - -", (1.50,)),
-                    ("p7", "Particleboard EN 312", "Type P7", "1,50 2,25 -", (1.50, 2.25)),
-                    ("hb-la", "Fibreboard, hard EN 622-2", "HB.LA", "2,25 - -", (2.25,)),
-                    ("hb-hla", "Fibreboard, hard EN 622-2", "HB.HLA1, HB.HLA2", "2,25 3,00 -", (2.25, 3.00)),
-                    ("mbh-la", "Fibreboard medium EN 622-3", "MBH.LA1, MBH.LA2", "3,00 - -", (3.00,)),
-                    ("mbh-hls", "Fibreboard medium EN 622-3", "MBH.HLS1, MBH.HLS2", "3,00 4,00 -", (3.00, 4.00)),
-                    ("mdf-la", "Fibreboard, MDF EN 622-5", "MDF.LA", "2,25 - -", (2.25,)),
-                    ("mdf-hls", "Fibreboard, MDF EN 622-5", "MDF.HLS", "2,25 3,00 -", (2.25, 3.00)),
-                ]]),
+                for key, group, row, printed, values in KDEF_ROWS]),
         _publication(
             "cpa-shelving-bulletin",
             "Composite Panel Association, Technical Bulletin: Particleboard and MDF for Shelving "

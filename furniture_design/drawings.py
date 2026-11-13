@@ -205,7 +205,7 @@ def checks(tree: Quern, piece: str) -> list[tuple[str, str, str, str]]:
     """The rules' verdicts that are not passes, on the piece and everything under it, with
     the reason when the rule could not answer."""
     prefix = piece.rstrip("/")
-    return [(r.rule, r.node, r.verdict, r.detail or "") for r in run_rules(tree)
+    return [(r.rule, r.node, r.verdict, r.detail or "") for r in run_rules(tree, prefix)
             if not r.ok and (r.node == prefix or r.node.startswith(prefix + "/"))]
 
 

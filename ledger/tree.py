@@ -838,6 +838,49 @@ def entries() -> list[Node]:
                      "means: a part's own weight, and so its sag, would be understated."),
             ],
         ),
+        Node(
+            id="the-birch-laminate-borrows-plywoods-kdef", kind="decision",
+            name="The Wood Handbook's yellow birch laminate, flat and on edge, carries EN 1995-1-1's creep for "
+                 "plywood in service class 1, 1/(1 + 0.80), read from Swedish Wood's Table 9.1 and not grounded: "
+                 "Eurocode 5 rates EN 636 plywood, and the Handbook does not say its laminate is one",
+            payload={"decided_on": "2026-11-13",
+                     "the_owner": "If I like a panel in Leroy Merlin would it be able to adapt the design for the "
+                                  "panel to be used while keeping the desired qualities? ... Ok do it",
+                     "why": "A part is held to a longtime sag limit through its material's initial_share_of_longtime; "
+                            "without one the bench's seat, in this laminate, could not be held to a limit at all. The "
+                            "boards it is compared with, Leroy Merlin's plywoods, carry EN 1995-1-1's plywood figure "
+                            "(wood-panels: creep-is-ec5s-kdef-for-service-class-1), so the laminate takes the same, "
+                            "and a seat judged in either is judged on one basis."},
+            links={"rests_on": ["a-document-is-one-source-in-the-tree"]},
+            children=[
+                _alt("handbook-two-thirds", "The Handbook's two-thirds for initially dry timber (Chapter 9, p. 9-4)",
+                     "Written for timber beams, not panels; and the plywoods on sale take Eurocode 5's figure, so "
+                     "the laminate would sag less over the years than a board of the same stiffness."),
+                _alt("no-creep", "Leave the laminate without a creep share",
+                     "A part in it could not be held to a longtime sag limit."),
+            ],
+        ),
+        Node(
+            id="a-pieces-checks-are-the-rules-under-it", kind="decision",
+            name="The checks a piece's documents print (drawings.checks, report.checks) run the rules on the piece "
+                 "and the nodes beneath it only, and keep the verdicts whose path is the piece's or beneath it, id "
+                 "by id; the knowledge's own verdicts are this package's tests', not each build's",
+            payload={"decided_on": "2026-11-13",
+                     "why": "Run over the whole tree, each check judged every source, clause and material again: "
+                            "7.5 s of a check on the bench, twice a build, for verdicts the checks then threw away. "
+                            "Under the piece, the bench's 62 verdicts are the same in 0.03 s, which is what makes "
+                            "judging a draft in many boards in one call possible. quern before 061f79d bound a run "
+                            "under pieces/bench to pieces/bench-side as well, so the checks keep only the piece's "
+                            "paths themselves; a test holds the checks to the whole tree's verdicts in every world "
+                            "the package states."},
+            children=[
+                _alt("whole-tree", "Run the rules over the whole tree and keep the piece's verdicts",
+                     "Seconds per check spent on verdicts nobody reads."),
+                _alt("verdict-cache", "Keep the whole-tree run, with a verdict cache across builds",
+                     "Each build is a process of its own, so the cache would have to live on disk, and the first "
+                     "build after a package moves would pay the whole run again."),
+            ],
+        ),
     ]
 
 

@@ -195,3 +195,29 @@ def test_a_step_with_cuts_is_drawn_with_its_card(tmp_path):
         {"text": "Cut the notch.", "prepare": True, "add": ["side"], "cuts": ["side"]}]
     out = drawings.documents(tree, "pieces/bench-side", tmp_path)
     assert out["assembly"].read_bytes()[:4] == b"%PDF"
+
+
+def test_a_pieces_checks_are_the_whole_trees_verdicts_under_it():
+    """The checks run the rules under the piece only, and answer what running them over the
+    whole tree and keeping the piece's verdicts does, in every world the package states (its
+    examples and each counter-example's), on every piece in it: a verdict on a piece that
+    depended on a run elsewhere, or a sibling whose name starts like the piece's (bench,
+    bench-side), would show here as a difference."""
+    from quern import run_rules
+
+    from furniture_design.package import COUNTER_EXAMPLES
+
+    worlds = [EXAMPLES] + [c.nodes for c in COUNTER_EXAMPLES]
+    seen = 0
+    for nodes in worlds:
+        tree = Quern(vocabulary=PACKAGE.vocabulary, rules=PACKAGE.rules, solvers=PACKAGE.solvers)
+        tree.root.children = [n.model_copy(deep=True) for n in nodes]
+        whole = run_rules(tree)
+        for path, node in tree.walk(""):
+            if node.kind != "piece":
+                continue
+            under = [(r.rule, r.node, r.verdict, r.detail or "") for r in whole
+                     if not r.ok and (r.node == path or r.node.startswith(path + "/"))]
+            assert sorted(drawings.checks(tree, path)) == sorted(under), path
+            seen += 1
+    assert seen > len(worlds)
