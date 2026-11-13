@@ -130,6 +130,21 @@
     "digest": "cf39a362d53b"
   },
   {
+    "path": "a-document-is-one-source-in-the-tree",
+    "kind": "decision",
+    "digest": "a236289c500c"
+  },
+  {
+    "path": "a-document-is-one-source-in-the-tree/each-package-its-own-copy",
+    "kind": "alternative",
+    "digest": "4bd4c4b67ce1"
+  },
+  {
+    "path": "a-document-is-one-source-in-the-tree/merge-same-id",
+    "kind": "alternative",
+    "digest": "2eb1e9b201e3"
+  },
+  {
     "path": "a-european-species-is-read-from-tropix",
     "kind": "decision",
     "digest": "441e2122ff04"

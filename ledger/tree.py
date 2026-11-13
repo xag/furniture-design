@@ -711,6 +711,26 @@ def entries() -> list[Node]:
             ],
         ),
         Node(
+            id="a-document-is-one-source-in-the-tree", kind="decision",
+            name="A document is one source node in the tree a design mounts: when two packages read the same "
+                 "document, the more general one holds it, with every clause either reads, and the other links "
+                 "to its clauses (EN 1995-1-1's creep factors kdef, Table 9.1 of Swedish Wood's Design of timber "
+                 "structures Vol. 2, are clauses of furniture-design's source, which wood-panels reads)",
+            payload={"decided_on": "2026-11-13",
+                     "the_owner": "Now source lots of data from authoritative sources to answer any relevant "
+                                  "question about the bench for any choice of wood panel",
+                     "why": "Two packages that each define a source by the same id are refused when their knowledge "
+                            "is merged; under two ids, one book reads as two sources and its clauses split "
+                            "between them, so a reader asking what the book says finds half of it."},
+            children=[
+                _alt("each-package-its-own-copy", "Each package keeps its own source node for the document, under "
+                     "its own id", "The same book twice, each with part of what it says."),
+                _alt("merge-same-id", "Let the merge join two packages' nodes of the same id",
+                     "A clause could then be changed by a package that does not own it, and a clash between two "
+                     "definitions would pass silently."),
+            ],
+        ),
+        Node(
             id="a-published-sag-limit-is-a-source-a-piece-chooses-from", kind="decision",
             name="A published limit on how far a shelf, a beam or a seat may sag is a clause under its "
                  "source, never a requirement every part is held to: a piece that wants one authors its own "

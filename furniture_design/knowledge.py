@@ -1291,6 +1291,32 @@ def sag_limits() -> list[Node]:
                      "final, creep included, less any precamber"),
                     ("cantilever", "Cantilever beam", "final", "wfin",
                      "l ⁄75 – l ⁄150", 75, 150, "final, creep included"),
+                ]] + [
+                _stated(f"table-9-1-{key}", f"Table 9.1, {group}, row {row}, p. 33",
+                        [(f"kdef_service_class_{i + 1}", "", group, f"{row} {printed}", v, SAME)
+                         for i, v in enumerate(values)],
+                        standard="EN 1995-1-1:2004, 3.1.4, Table 3.2: the deformation factor kdef, the final "
+                                 "deflection under a lasting load being the initial one times (1 + kdef)",
+                        applies_to=f"{group}, {row}", service_classes="1, 2, 3 as printed; '-' where the "
+                                                                    "material may not be used")
+                for key, group, row, printed, values in [
+                    ("structural-timber", "Structural timber", "EN 14081-1", "0,60 0,80 2,00", (0.60, 0.80, 2.00)),
+                    ("glulam", "Glulam", "EN 14080", "0,60 0,80 2,00", (0.60, 0.80, 2.00)),
+                    ("plywood", "Plywood EN 636", "Type 1", "0,80 - -", (0.80,)),
+                    ("plywood-type-2", "Plywood EN 636", "Type 2", "0,80 1,00 -", (0.80, 1.00)),
+                    ("plywood-type-3", "Plywood EN 636", "Type 3", "0,80 1,00 2,50", (0.80, 1.00, 2.50)),
+                    ("osb-2", "OSB EN 300", "OSB/2", "2,25 - -", (2.25,)),
+                    ("osb-3", "OSB EN 300", "OSB/3, OSB/4", "1,50 2,25 -", (1.50, 2.25)),
+                    ("p4", "Particleboard EN 312", "Type P4", "2,25 - -", (2.25,)),
+                    ("p5", "Particleboard EN 312", "Type P5", "2,25 3,00 -", (2.25, 3.00)),
+                    ("p6", "Particleboard EN 312", "Type P6", "1,50 - -", (1.50,)),
+                    ("p7", "Particleboard EN 312", "Type P7", "1,50 2,25 -", (1.50, 2.25)),
+                    ("hb-la", "Fibreboard, hard EN 622-2", "HB.LA", "2,25 - -", (2.25,)),
+                    ("hb-hla", "Fibreboard, hard EN 622-2", "HB.HLA1, HB.HLA2", "2,25 3,00 -", (2.25, 3.00)),
+                    ("mbh-la", "Fibreboard medium EN 622-3", "MBH.LA1, MBH.LA2", "3,00 - -", (3.00,)),
+                    ("mbh-hls", "Fibreboard medium EN 622-3", "MBH.HLS1, MBH.HLS2", "3,00 4,00 -", (3.00, 4.00)),
+                    ("mdf-la", "Fibreboard, MDF EN 622-5", "MDF.LA", "2,25 - -", (2.25,)),
+                    ("mdf-hls", "Fibreboard, MDF EN 622-5", "MDF.HLS", "2,25 3,00 -", (2.25, 3.00)),
                 ]]),
         _publication(
             "cpa-shelving-bulletin",
