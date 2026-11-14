@@ -233,11 +233,12 @@ RULES = [
                      "removes and not a guess. A saw whose maker prints neither is measured, "
                      "and the measure stated on a saw of the design's own."),
     Rule(name="a-part-is-no-thicker-than-its-saw-cuts", kind="part",
-         expr="every(t, linked(self, 'sawn_with'), not states(t, 'max_cut_depth') or "
+         expr="every(t, linked(self, 'sawn_with'), "
               "param(self, 'thickness') / payload(self, 'sheets', 1) <= param(t, 'max_cut_depth'))",
          description="Each sheet of a part (its thickness over the sheets glued into it) is no "
                      "thicker than every saw it is cut out with cuts through at 90°, as that "
-                     "saw's maker states it."),
+                     "saw's maker states it; a saw whose maker states no depth leaves the check "
+                     "absent, not passed."),
     Rule(name="a-requirement-rests-on-clauses", kind="requirement",
          expr="len(linked(self, 'per')) > 0 and "
               "every(c, linked(self, 'per'), some(k, nodes('clause'), k == c))",
@@ -611,7 +612,7 @@ COUNTER_EXAMPLES = [
 
 PACKAGE = Package(
     name="furniture-design",
-    version="0.8.0",
+    version="0.8.1",
     description=(
         "Furniture designs and the published knowledge they are judged against. Kinds: "
         "source and clause (a publication and its verbatim, located statements, with the "
