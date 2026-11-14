@@ -162,7 +162,60 @@ def strip(width: float, saws: dict[str, float | None]) -> list[Node]:
     return [Node(id="tools", kind="", children=tools), Node(id="bench", kind="piece", children=[rail])]
 
 
+def shelf_between(steps: list[dict], engages: str | None = "square") -> list[Node]:
+    """Two sides 18 thick, 300 deep, 400 tall, 780 apart outside, and a shelf 744 long between
+    them at 200, each end joined to a side by a connector that engages as `engages` (None: it
+    does not say); the piece's assembly is `steps`."""
+    def board(id_: str, size: list, at: list) -> Node:
+        return Node(id=id_, kind="part", params={"mass": _kg(1)},
+                    payload={"shape": {"op": "box", "size": size}, "transform": {"translate": at}})
+
+    def joint(id_: str, side: str) -> Node:
+        return Node(id=id_, kind="joint", links={"joins": ["bench/shelf", f"bench/{side}"],
+                                                 "uses": ["connectors/clip"]})
+    clip = Node(id="clip", kind="connector",
+                payload={} if engages is None else {"engages": engages})
+    return [Node(id="connectors", kind="", children=[clip]),
+            Node(id="bench", kind="piece", payload={"steps": steps},
+                 children=[board("left", [18, 300, 400], [0, 0, 0]),
+                           board("right", [18, 300, 400], [762, 0, 0]),
+                           board("shelf", [744, 300, 18], [18, 0, 200]),
+                           joint("shelf-left", "left"), joint("shelf-right", "right")])]
+
+
+SIDES_UP = {"add": ["left", "right"]}
+SLID_IN = [SIDES_UP, {"add": ["shelf"], "direction": {"shelf": "front"},
+                      "joints": ["shelf-left", "shelf-right"]}]
+
+
 SPEC = {
+    "furniture/misfit_closings": [
+        d("misfit_closings", shelf_between(SLID_IN), ["bench"], expect=2,
+          because="the shelf slid in from the front between two sides already up moves along "
+                  "both faces it meets (they are square to x, it moves along y): both joints"),
+        d("misfit_closings", shelf_between([
+            {"add": ["left", "shelf"], "direction": {"shelf": "right"}, "joints": ["shelf-left"]},
+            {"add": ["right"], "direction": {"right": "right"}, "joints": ["shelf-right"]}]),
+          ["bench"], expect=0,
+          because="the shelf comes onto the left side from the right, square to the face they "
+                  "meet on, then the right side onto the shelf's end from the right: no joint "
+                  "closed against its connector"),
+        d("misfit_closings", shelf_between([
+            SIDES_UP, {"add": ["shelf"], "direction": {"shelf": "right"},
+                       "joints": ["shelf-left", "shelf-right"]}]), ["bench"], expect=1,
+          because="from the right, between two sides already up, the shelf meets the left side "
+                  "square, but reaches the right one from its far side: one"),
+        d("misfit_closings", shelf_between([
+            {"add": ["left", "shelf"], "direction": {"shelf": "right"}, "joints": ["shelf-left"]},
+            {"add": ["right"], "direction": {"right": "up"}, "joints": ["shelf-right"]}]),
+          ["bench"], expect=1,
+          because="the right side lowered from above slides down along the shelf's end: one"),
+        d("misfit_closings", shelf_between(SLID_IN, engages="any way"), ["bench"], expect=0,
+          because="a connector that does not engage square takes its parts whichever way they come"),
+        d("misfit_closings", shelf_between(SLID_IN, engages=None), ["bench"],
+          expect_error="does not say how its parts come together",
+          because="a connector that does not say how it engages cannot judge the steps"),
+    ],
     "furniture/narrow_margin": [
         d("narrow_margin", strip(75, {"shop": 100}), ["bench/rail"], expect=-25,
           because="a 75 mm rail, standing on its edge (744 x 18 x 75: its face 744 by 75), from a "

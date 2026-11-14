@@ -345,6 +345,26 @@
     "digest": "e984e4619467"
   },
   {
+    "path": "a-step-closes-a-joint-the-way-its-connector-engages",
+    "kind": "decision",
+    "digest": "0cc13a876308"
+  },
+  {
+    "path": "a-step-closes-a-joint-the-way-its-connector-engages/engagement-in-the-rule",
+    "kind": "alternative",
+    "digest": "32c64fa10739"
+  },
+  {
+    "path": "a-step-closes-a-joint-the-way-its-connector-engages/fix-the-design-only",
+    "kind": "alternative",
+    "digest": "fccc425cf023"
+  },
+  {
+    "path": "a-step-closes-a-joint-the-way-its-connector-engages/unstated-passes",
+    "kind": "alternative",
+    "digest": "c527f6c375bd"
+  },
+  {
     "path": "a-thermally-modified-wood-is-read-from-a-study-of-its-treatment",
     "kind": "decision",
     "digest": "101bc5926d47"

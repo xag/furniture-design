@@ -32,10 +32,8 @@ from dataclasses import dataclass, field
 from quern import Quern
 from quern.tree import _segs, get_node
 
-from .natives import _param, bodies, joint_layout, number
+from .natives import DIRECTIONS, _param, bodies, joint_layout, number
 
-DIRECTIONS = {"up": (0, 0, 1), "down": (0, 0, -1), "left": (-1, 0, 0), "right": (1, 0, 0),
-              "front": (0, -1, 0), "back": (0, 1, 0)}
 TOUCH = 0.5
 
 

@@ -152,7 +152,9 @@ VOCABULARY = [
         "moment_closing_<material> (N mm: one connector's share of what a corner joint "
         "resists being bent open or shut) — each derived from a clause; and its size as its "
         "maker states it, length (mm, along the joint) and thickness (mm, across it), which "
-        "the documents draw it at."),
+        "the documents draw it at. payload engages says how its two parts come together, as "
+        "its maker shows it: square (pushed straight together, square to the face they meet "
+        "on; neither can be slid along that face into place)."),
         params={"min_width": "mm", "min_thickness_<cut>": "mm", "pull_out_<material>": "N",
                 "shear_<material>": "N",
                 "moment_opening_<material>": "N mm, one connector's share of what a corner "
@@ -252,6 +254,14 @@ RULES = [
               "every(u, linked(self, 'uses'), m != u)))",
          description="No saw a part is cut out with refuses the material it is made of (a shop's "
                      "cutting service that does not cut a kind of board)."),
+    Rule(name="a-step-closes-each-joint-the-way-its-connector-engages", kind="piece",
+         expr="solve('furniture/misfit_closings', self) == 0",
+         description="In the piece's assembly steps, every part brought in to close a joint whose "
+                     "connector engages square comes straight at the face its parts meet on, "
+                     "from its own side of it: never slid along that face, nor brought from the "
+                     "far side, which would mean spreading or twisting the parts already in "
+                     "place (furniture/misfit_closings). A connector that does not say how it "
+                     "engages leaves the check absent."),
     Rule(name="a-requirement-rests-on-clauses", kind="requirement",
          expr="len(linked(self, 'per')) > 0 and "
               "every(c, linked(self, 'per'), some(k, nodes('clause'), k == c))",
@@ -432,7 +442,7 @@ def _joinery(*, thickness: float = 18, width: float = 300, tool: str = "tools/gr
                                                                   provenance="published")})])
     per = ["sources/example-catalogue/technical-data"] if cited else []
     connector = Node(id="example-connector", kind="connector",
-                     payload={"maker": "an example maker", "setting": "S-1"},
+                     payload={"maker": "an example maker", "setting": "S-1", "engages": "square"},
                      params={"min_thickness_surface": Quantity(
                                  value=15, unit="mm", provenance="derived",
                                  derived_from=["sources/example-catalogue/technical-data"]),
@@ -496,9 +506,23 @@ def _joinery(*, thickness: float = 18, width: float = 300, tool: str = "tools/gr
                        Node(id="tools", kind="", children=tools)], box
 
 
-def _seat(back_count: float = 4) -> Node:
+SEAT_STEPS = [
+    {"add": ["left", "back"], "direction": {"back": "right"}, "joints": ["back-left"],
+     "text": "Push the back onto the left side."},
+    {"add": ["right"], "direction": {"right": "right"}, "joints": ["back-right"],
+     "text": "Push the right side onto the back."},
+    {"add": ["top"], "direction": {"top": "up"}, "joints": ["back-top"],
+     "text": "Lower the top onto the sides and the back."}]
+SEAT_BACK_SLID_IN = [
+    {"add": ["left", "right", "top"], "text": "Stand the sides up under the top."},
+    {"add": ["back"], "direction": {"back": "front"}, "joints": ["back-left", "back-right", "back-top"],
+     "text": "Slide the back in from the front."}]
+
+
+def _seat(back_count: float = 4, steps: list[dict] | None = None) -> Node:
     """A bench of yellow birch boards on the example maker's connectors: two sides, a top
-    and a back panel joined to the top and to each side, held to the light sidethrust."""
+    and a back panel joined to the top and to each side, held to the light sidethrust, and
+    put together in `steps` (by default each part pushed square onto its connectors)."""
     def board(id_: str, size: list, at: list) -> Node:
         return Node(id=id_, kind="part", links={"uses": ["materials/birch-yellow"]},
                     params={"thickness": _target(20, "mm", ""), "width": _target(300, "mm", "")},
@@ -510,7 +534,8 @@ def _seat(back_count: float = 4) -> Node:
                     links={"joins": ["pieces/bench/back", f"pieces/bench/{other}"],
                            "uses": ["connectors/example-connector"],
                            "made_with": ["tools/groove-cutter"]})
-    return Node(id="bench", kind="piece", payload={"category": "seating"},
+    return Node(id="bench", kind="piece",
+                payload={"category": "seating", "steps": SEAT_STEPS if steps is None else steps},
                 links={"sideways_case": [f"{REQUIREMENTS}/seating-sidethrust-light"],
                        "braced_by": ["pieces/bench/back"]},
                 children=[board("left", [20, 300, 450], [0, 0, 0]),
@@ -539,7 +564,7 @@ def _world(*, chest: Node | None = None, sag_limit: float = 4.0, clearance: floa
            rh_max: float = 0.65, books_kg: float = 30, span_along: str = "grain",
            back_count: float = 4, cut_with: str = "tools/crosscut-saw",
            sawn_with: str = "tools/example-saw", side_thickness: float = 18,
-           **joinery) -> list[Node]:
+           seat_steps: list[dict] | None = None, **joinery) -> list[Node]:
     kb = knowledge()
     sag, bookshelf = _shelf(sag_limit, books_kg, span_along)
     kb[2].children.append(sag)
@@ -547,7 +572,7 @@ def _world(*, chest: Node | None = None, sag_limit: float = 4.0, clearance: floa
     catalogue, hardware, box = _joinery(**joinery)
     kb[0].children.append(catalogue)
     return merge(kb, hardware) + [climates, Node(id="pieces", kind="", children=[
-        chest or _chest(), bookshelf, cabinet, box, _seat(back_count),
+        chest or _chest(), bookshelf, cabinet, box, _seat(back_count, seat_steps),
         _notched(cut_with, sawn_with, side_thickness)])]
 
 
@@ -577,6 +602,11 @@ COUNTER_EXAMPLES = [
     CounterExample(rule="a-part-is-no-thicker-than-its-saw-cuts",
                    nodes=_world(side_thickness=60),
                    because="a 60 mm side cut out with a saw that cuts through 55"),
+    CounterExample(rule="a-step-closes-each-joint-the-way-its-connector-engages",
+                   nodes=_world(seat_steps=SEAT_BACK_SLID_IN),
+                   because="a back slid in from the front between two sides and under a top "
+                           "already up: its connectors engage square, so it would have to be "
+                           "forced along every face it meets"),
     CounterExample(rule="a-requirement-rests-on-clauses",
                    nodes=[Node(id="requirements", kind="", children=[
                        Node(id="a-wish", kind="requirement", payload={"measure": "overturning"})])],
@@ -642,7 +672,7 @@ COUNTER_EXAMPLES = [
 
 PACKAGE = Package(
     name="furniture-design",
-    version="0.9.0",
+    version="0.10.0",
     description=(
         "Furniture designs and the published knowledge they are judged against. Kinds: "
         "source and clause (a publication and its verbatim, located statements, with the "
@@ -653,7 +683,7 @@ PACKAGE = Package(
         "stability cases (furniture/tipping_cases); a part bends within its longtime sag "
         "limit (Wood Handbook Eq. 9-2 to 9-4 and its creep guidance, furniture/deflection, with no shear term for a panel whose modulus was measured on the panel); a part is strong enough (Eq. 9-13 against the near-minimum modulus of rupture over the Handbook's factor for 10-year duration of load and safety); a part bends the way its material's values were measured; a seat carries the light-service sidethrust of GSA's FNAE-80-214A through a panel in the push's plane (furniture/sideways_margin); a part that swells and "
         "shrinks with the air has room to (Eq. 13-3, the moisture content of its climate from "
-        "Eq. 4-5, kind climate), and is judged only where that equation holds; a joint is cut with a tool its connector takes, at its setting, in parts thick and wide enough for it (kinds tool, connector, joint; a maker's products are data in a package of their own); a part with cuts is cut with tools that rest on clauses saying how they are used; a part is cut out of its board with saws that state, from their makers' clauses, the width they take out (which the cutting sheet leaves between parts) and that cut through each of its sheets, and no narrower than or of a material its saws refuse (a shop's cutting service's rules, furniture/narrow_margin). The rules carry no "
+        "Eq. 4-5, kind climate), and is judged only where that equation holds; a joint is cut with a tool its connector takes, at its setting, in parts thick and wide enough for it (kinds tool, connector, joint; a maker's products are data in a package of their own); a part with cuts is cut with tools that rest on clauses saying how they are used; a part is cut out of its board with saws that state, from their makers' clauses, the width they take out (which the cutting sheet leaves between parts) and that cut through each of its sheets, and no narrower than or of a material its saws refuse (a shop's cutting service's rules, furniture/narrow_margin); an assembly step brings each part in square to the face of every joint it closes whose connector engages square, never sliding it along that face (furniture/misfit_closings). The rules carry no "
         "number a source states: limits and properties are read from the knowledge base. "
         "Every published shelf and beam deflection limit found is a clause a design chooses its own "
         "sag limit from; none is a requirement every part is held to."),

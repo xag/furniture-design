@@ -32,6 +32,10 @@ from quern.tree import Node, Quern, _segs, get_node, register_native, resolve_pa
 from .units import STANDARD_GRAVITY
 
 TOUCH_MM = 0.5  # a part whose bottom is this close to the lowest bottom stands on the floor
+# The side an assembly step brings a part in from (a step's `direction`): "up", lowered from
+# above, moves it down; "front", slid in from the front, moves it towards the back.
+DIRECTIONS = {"up": (0, 0, 1), "down": (0, 0, -1), "left": (-1, 0, 0), "right": (1, 0, 0),
+              "front": (0, -1, 0), "back": (0, 1, 0)}
 
 
 @dataclass
@@ -378,6 +382,62 @@ def narrow_margin(tree: Quern, part: str) -> float:
     return width - max(limits, default=0.0)
 
 
+def misfit_closings(tree: Quern, piece: str) -> float:
+    """Count: the joints the piece's assembly steps close against their connector. A step (its
+    payload `steps`, a `prepare` step aside) that closes a joint and brings one of its parts in
+    from a side (`direction`) moves that part straight in from there; a connector that engages
+    square (payload engages: square) takes its two parts only brought together square to the
+    face they meet on, the moving part coming from its own side of that face. Each joint a moving
+    part closes otherwise counts one: slid along the face, or brought from the far side (a shelf
+    pushed in from the right between two sides already up closes the left joint and not the
+    right one). A joint closed by a moving part whose connector does not say how it engages
+    leaves the count absent."""
+    root = get_node(tree, piece)
+    if root is None:
+        raise ValueError(f"no node at '{piece}'")
+    base = "/".join(_segs(piece))
+    boxes = {b.path: b for b in bodies(tree, piece)}
+    bad = 0
+    for n, step in enumerate((root.payload or {}).get("steps") or [], 1):
+        if step.get("prepare"):
+            continue
+        moving = step.get("direction") or {}
+        for key, side in moving.items():
+            if side not in DIRECTIONS:
+                raise ValueError(f"step {n} brings '{key}' in from '{side}', which is not one of "
+                                 f"{', '.join(DIRECTIONS)}")
+        for jid in step.get("joints") or []:
+            jpath = f"{base}/{jid}"
+            joint = get_node(tree, jpath)
+            if joint is None:
+                raise ValueError(f"step {n} closes '{jid}', which is not a joint of '{base}'")
+            ends = ["/".join(_segs(t)) for t in (joint.links or {}).get("joins", [])]
+            movers = [e for e in ends if e.startswith(base + "/") and e[len(base) + 1:] in moving]
+            if not movers:
+                continue
+            uses = (joint.links or {}).get("uses", [])
+            connector = get_node(tree, uses[0]) if uses else None
+            engages = ((connector.payload if connector else None) or {}).get("engages")
+            if engages is None:
+                raise Absent(f"the connector of '{jpath}' does not say how its parts come "
+                             f"together (engages)")
+            if engages != "square":
+                continue
+            if len(ends) != 2 or any(e not in boxes for e in ends):
+                raise ValueError(f"joint '{jpath}' does not join two parts of '{base}'")
+            touch = contact(boxes[ends[0]], boxes[ends[1]])
+            if touch is None:
+                raise ValueError(f"joint '{jpath}' joins parts that do not touch")
+            axis = touch[2]
+            for m in movers:
+                mine, other = boxes[m], boxes[ends[1] if m == ends[0] else ends[0]]
+                want = [0, 0, 0]
+                want[axis] = 1 if mine.lo[axis] >= other.hi[axis] - TOUCH_MM else -1
+                if DIRECTIONS[moving[m[len(base) + 1:]]] != tuple(want):
+                    bad += 1
+    return float(bad)
+
+
 def _material(tree: Quern, path: str):
     uses = (get_node(tree, path).links or {}).get("uses", [])
     return get_node(tree, uses[0]) if uses else None
@@ -583,6 +643,7 @@ NATIVES = {
     "furniture/tipping_cases": tipping_cases,
     "furniture/unheld": unheld,
     "furniture/narrow_margin": narrow_margin,
+    "furniture/misfit_closings": misfit_closings,
 }
 
 

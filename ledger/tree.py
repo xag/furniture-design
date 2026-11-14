@@ -1013,6 +1013,40 @@ def entries() -> list[Node]:
                      "leaves the check absent everywhere."),
             ],
         ),
+        Node(
+            id="a-step-closes-a-joint-the-way-its-connector-engages", kind="decision",
+            name="A connector says how its two parts come together (payload engages; square: pushed "
+                 "straight together, square to the face they meet on), as its maker shows it, and the "
+                 "assembly steps are judged by it: a part a step brings in (direction) to close a joint whose "
+                 "connector engages square comes straight at that face from its own side, never slid along it "
+                 "nor brought from the far side (furniture/misfit_closings, rule "
+                 "a-step-closes-each-joint-the-way-its-connector-engages). A connector that does not say "
+                 "leaves the check absent",
+            links={"rests_on": ["the-rules-read-the-knowledge", "the-documents-are-for-the-people-who-build",
+                                "what-the-grammar-cannot-sum-is-a-calculation-with-cases"]},
+            payload={"decided_on": "2026-11-14",
+                     "the_owner": "if you know Clamex, you know that sliding a piece like that on the image is "
+                                  "not possible or not a god practice because it implied torsion. The "
+                                  "instructions are incorrect. [...] Adding this check should have been the fix",
+                     "why": "A design's assembly instructions told its builder to slide a shelf in from the front "
+                            "between two sides already joined, on Clamex P-14 connectors, which close square "
+                            "across the joint line; the rules let it through because nothing read the steps. "
+                            "Fixing the one design left the next one free to say the same. Which face a joint's "
+                            "parts meet on is read from their boxes, which the rule grammar cannot do: a "
+                            "calculation, with cases worked by hand.",
+                     "the_rule": "rule a-step-closes-each-joint-the-way-its-connector-engages; "
+                                 "natives.misfit_closings; spec furniture/misfit_closings."},
+            children=[
+                _alt("fix-the-design-only", "Correct the steps of the one design that slid a shelf in",
+                     "The next design, or the next edit of this one, could slide a part in again and no rule "
+                     "would say so."),
+                _alt("engagement-in-the-rule", "Hold every connector to square engagement in the rule itself",
+                     "How a connector closes is its maker's statement, knowledge like its limits; a rule that "
+                     "assumed it would judge a sliding connector wrongly and rest on no source."),
+                _alt("unstated-passes", "Let a connector that does not say how it engages pass",
+                     "The check would read as passed on a design no one has judged; absent says it was not."),
+            ],
+        ),
     ]
 
 
