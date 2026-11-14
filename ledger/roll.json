@@ -220,6 +220,21 @@
     "digest": "57319dbe036f"
   },
   {
+    "path": "a-piece-has-a-cutting-sheet-for-the-shop",
+    "kind": "decision",
+    "digest": "4de9582d9faa"
+  },
+  {
+    "path": "a-piece-has-a-cutting-sheet-for-the-shop/cut-list-on-the-plans",
+    "kind": "alternative",
+    "digest": "237ac3770dbd"
+  },
+  {
+    "path": "a-piece-has-a-cutting-sheet-for-the-shop/the-lib-reads-a-shops-range",
+    "kind": "alternative",
+    "digest": "b993c35297b9"
+  },
+  {
     "path": "a-pieces-checks-are-the-rules-under-it",
     "kind": "decision",
     "digest": "52442afeb128"

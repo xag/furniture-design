@@ -927,6 +927,30 @@ def entries() -> list[Node]:
                      "A note left out of the plans is one the people who build never read."),
             ],
         ),
+        Node(
+            id="a-piece-has-a-cutting-sheet-for-the-shop", kind="decision",
+            name="Every piece's documents include a cutting sheet (A4) to hand a shop's cutting service: the "
+                 "rectangles the saw cuts, length along the grain; then for each material and thickness the "
+                 "panels to buy, the smallest sheet sold that takes the parts, and where each part sits on it, "
+                 "in strips across the panel and end to end along its grain, drawn to scale with the grain of "
+                 "panel and parts. What can be bought is the caller's (`stock`, per material); a material with "
+                 "none is listed with its parts. A part's grain runs along its length unless its span_along bends "
+                 "it across the face grain. A part's own cuts are made afterwards, as the assembly instructions say",
+            payload={"decided_on": "2026-11-14",
+                     "the_owner": "Dans les documents ajoute un document de découpe. Notamment avec le sens de "
+                                  "découpe. ... Pour donner a l'atelier à Leroy Merlin par exemple ... Build it",
+                     "why": "The plans' cut list gave the grain for one part in four and no panel: a cutting "
+                            "service cuts from a panel bought in the shop, and the grain of a plywood part is the "
+                            "panel's. The shop is not this package's: a caller passes the sheets it sells, and "
+                            "the lib knows no shop.",
+                     "the_rule": "furniture_design/cutting.py; drawings.documents gives it as 'cutting'."},
+            children=[
+                _alt("cut-list-on-the-plans", "Fill the plans' cut list's grain column and stop there",
+                     "A cutting service needs the panels to buy and where the parts sit on them."),
+                _alt("the-lib-reads-a-shops-range", "furniture-design reads a shop's range itself",
+                     "A lib knows nothing of who uses it; the shop's range is a package of its own."),
+            ],
+        ),
     ]
 
 

@@ -211,12 +211,16 @@ def checks(tree: Quern, piece: str) -> list[tuple[str, str, str, str]]:
 
 
 def documents(tree: Quern, piece: str, out_dir: Path, *, lang: str = "fr",
-              stem: str | None = None, notes: list[tuple[str, list[str]]] | None = None) -> dict[str, Path]:
-    """The three things a piece is built from, written into `out_dir`: the interactive 3D
-    view (HTML), the design document (PDF, A3) and the assembly instructions (PDF, A4).
+              stem: str | None = None, notes: list[tuple[str, list[str]]] | None = None,
+              stock: dict[str, list[dict]] | None = None) -> dict[str, Path]:
+    """The four things a piece is built from, written into `out_dir`: the interactive 3D
+    view (HTML), the design document (PDF, A3), the assembly instructions (PDF, A4) and the
+    cutting sheet for a shop's cutting service (PDF, A4).
     `notes` are the design document's notes, sections of a heading and its paragraphs, a
     paragraph being a text or (text, [lines under it]) (the piece's payload description when none
-    are given)."""
+    are given). `stock` is what can be bought of each material, the sheets the cutting sheet lays
+    the parts on (cutting.cutting_sheet)."""
+    from .cutting import cutting_sheet
     from .report import checks as plain_checks
     from .scene import scene
     from .sheets import assembly_instructions, design_document
@@ -225,10 +229,11 @@ def documents(tree: Quern, piece: str, out_dir: Path, *, lang: str = "fr",
     out_dir.mkdir(parents=True, exist_ok=True)
     sc = scene(tree, piece)
     stem = stem or piece.rsplit("/", 1)[-1]
-    words = {"fr": ("3d", "plans", "montage"), "en": ("3d", "design", "assembly")}[lang]
+    words = {"fr": ("3d", "plans", "montage", "decoupe"), "en": ("3d", "design", "assembly", "cutting")}[lang]
     return {
         "viewer": viewer_html(sc, out_dir / f"{stem}-{words[0]}.html", lang),
         "design": design_document(sc, out_dir / f"{stem}-{words[1]}.pdf",
                                   plain_checks(tree, piece, lang), lang, notes),
         "assembly": assembly_instructions(sc, out_dir / f"{stem}-{words[2]}.pdf", lang),
+        "cutting": cutting_sheet(sc, out_dir / f"{stem}-{words[3]}.pdf", lang, stock),
     }
