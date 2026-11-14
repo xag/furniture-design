@@ -3,7 +3,7 @@
 from quern import Quern
 
 from furniture_design import drawings
-from furniture_design.cutting import Cut, cuts, cutting_sheet, pack, panels
+from furniture_design.cutting import Cut, cuts, cutting_sheet, layout, pack, panels
 from furniture_design.package import EXAMPLES, PACKAGE
 from furniture_design.scene import scene
 
@@ -68,3 +68,19 @@ def test_the_cutting_sheet_is_one_of_the_documents(tmp_path):
     stock = {sc.parts[0].material: [{"length": 2500, "width": 1220, "ref": "123"}]}
     en = cutting_sheet(sc, tmp_path / "en.pdf", "en", stock)
     assert en.read_bytes()[:4] == b"%PDF"
+
+
+def test_the_parts_are_laid_on_the_sheets_sold_of_the_material_their_uses_names():
+    sc = scene(_tree(), BENCH)
+    path = next(n for n in _tree().get(f"{BENCH}/top").links["uses"])
+    stock = {path: [{"length": 2500, "width": 1220, "ref": "123"}]}
+    (group, done, left), = layout(sc, stock)
+    assert [s["ref"] for s, _ in done] == ["123"] and not left
+    assert sorted(q.mark for _, placed in done for q, _, _ in placed) == sorted(q.mark for q in group)
+
+
+def test_a_material_says_its_own_label_when_its_name_leads_with_something_else():
+    tree = _tree()
+    m = tree.get(next(n for n in tree.get(f"{BENCH}/top").links["uses"]))
+    m.payload = {**(m.payload or {}), "label": "contreplaqué bouleau Boutique"}
+    assert {p.material_name for p in scene(tree, BENCH).parts} == {"contreplaqué bouleau Boutique"}

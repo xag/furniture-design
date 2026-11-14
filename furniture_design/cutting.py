@@ -4,8 +4,9 @@ material and thickness, the panels to buy and where each part sits on them, draw
 the grain of the panel and of every part. A part's own cuts (a notch) are made afterwards, as the
 assembly instructions say, so the sheet lists its rectangle.
 
-What can be bought is the caller's: `stock` maps a material's path to the sheets sold of it, each
-{"length", "width", "ref"} in mm, length along the face grain. A material with none is listed with
+What can be bought is the caller's: `stock` maps a material (its path, as a part's `uses` names
+it, or its id) to the sheets sold of it, each {"length", "width", "ref"} in mm, length along the
+face grain. A material with none is listed with
 its parts and no panel. The parts are laid in strips across the panel, end to end along its grain,
 as a panel saw cuts: every part's grain then runs with the panel's.
 
@@ -237,6 +238,21 @@ def _panel(pg: _Page, y: float, i: int, sheet: dict, placed, q0: Cut) -> float:
     return yy - 9 * mm
 
 
+def layout(sc: Scene, stock: dict[str, list[dict]] | None = None, kerf: float = 4.0) -> list[tuple]:
+    """For each material and thickness, in the order the parts come: (its parts, the panels to
+    buy as [(sheet, placed)], the parts no sheet sold takes)."""
+    sold_of = {k.rsplit("/", 1)[-1]: v for k, v in (stock or {}).items()}
+    groups: OrderedDict[tuple, list[Cut]] = OrderedDict()
+    for q in cuts(sc):
+        groups.setdefault((q.material, round(q.thickness, 1)), []).append(q)
+    out = []
+    for (material, t), group in groups.items():
+        sold = [s for s in sold_of.get(material.rsplit("/", 1)[-1], []) if abs(s.get("thickness", t) - t) < 0.05]
+        done, left = panels(group, sold, kerf)
+        out.append((group, done, left))
+    return out
+
+
 def cutting_sheet(sc: Scene, path: Path, lang: str = "fr", stock: dict[str, list[dict]] | None = None,
                   kerf: float = 4.0) -> Path:
     """Write the cutting sheet to `path`. `kerf` is the room left between two parts for the
@@ -248,13 +264,9 @@ def cutting_sheet(sc: Scene, path: Path, lang: str = "fr", stock: dict[str, list
     scale = 10 if longest <= 1800 else 20 if longest <= 3600 else 40
     pg = _Page(path, sc, L, scale)
     y = _table(pg, pg.head(), parts)
-    groups: OrderedDict[tuple, list[Cut]] = OrderedDict()
-    for q in parts:
-        groups.setdefault((q.material, round(q.thickness, 1)), []).append(q)
     i = 0
-    for (material, t), group in groups.items():
-        sold = [s for s in (stock or {}).get(material, []) if abs(s.get("thickness", t) - t) < 0.05]
-        done, left = panels(group, sold, kerf)
+    for group, done, left in layout(sc, stock, kerf):
+        t = group[0].thickness
         for sheet, placed in done:
             i += 1
             y = _panel(pg, y, i, sheet, placed, group[0])

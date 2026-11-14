@@ -253,7 +253,8 @@ def scene(tree: Quern, piece: str) -> Scene:
             cuts.append((lo, tuple(lo[i] + size[i] for i in range(3))))
         tools = [_tool(tree, t) for t in (node.links or {}).get("made_with", [])]
         material = uses[0].rsplit("/", 1)[-1] if uses else ""
-        label = names.get(material) or ((mat.name if mat else "") or "").split(",")[0]
+        label = (names.get(material) or ((mat.payload or {}).get("label") if mat else "")
+                 or ((mat.name if mat else "") or "").split(",")[0])
         parts.append(Part(b.path, node.id, node.name or node.id, marks.get(b.path, ""),
                           tuple(b.lo), tuple(b.hi), material, label,
                           payload.get("span_along", ""),
