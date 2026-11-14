@@ -306,3 +306,21 @@ def test_notes_start_under_the_checks_and_go_on_over_sheets_of_their_own(monkeyp
     assert n >= 4 and all(f"{k}/{n}" in said for k in range(1, n + 1))
     lines = [x for x in said if x.startswith("- Décision numéro")]
     assert lines == [f"- Décision numéro {i}." for i in range(120)]
+
+
+def test_the_checks_name_the_step_that_slides_a_part_onto_its_connectors():
+    """The design document's checks say which step brings a part in against its connectors,
+    and say so in the reader's language; a design put together square passes. Tested and not
+    proved: the row is wording over misfit_closings, whose answers spec.py proves."""
+    from furniture_design.package import COUNTER_EXAMPLES
+    from furniture_design.report import checks
+    slid = next(c.nodes for c in COUNTER_EXAMPLES
+                if c.rule == "a-step-closes-each-joint-the-way-its-connector-engages")
+    for nodes, verdict in [(EXAMPLES, "ok"), (slid, "fail")]:
+        tree = Quern(vocabulary=PACKAGE.vocabulary, rules=PACKAGE.rules, solvers=PACKAGE.solvers)
+        tree.root.children.extend(nodes)
+        for lang, head in [("fr", "Montage"), ("en", "Assembly")]:
+            row, = [r for r in checks(tree, "pieces/bench", lang) if r["requirement"].startswith(head)]
+            assert row["verdict"] == verdict
+            if verdict == "fail":
+                assert "2" in row["result"] and "back-left, back-right, back-top" in row["result"]

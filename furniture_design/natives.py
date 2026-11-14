@@ -392,12 +392,20 @@ def misfit_closings(tree: Quern, piece: str) -> float:
     pushed in from the right between two sides already up closes the left joint and not the
     right one). A joint closed by a moving part whose connector does not say how it engages
     leaves the count absent."""
+    return float(sum(1 for *_, ok in closings(tree, piece) if not ok))
+
+
+def closings(tree: Quern, piece: str) -> list[tuple[int, str, str, bool]]:
+    """Each joint an assembly step closes by bringing a part in, whose connector engages
+    square: (step number, joint id, the moving part's id, whether it comes straight at the
+    face from its own side). misfit_closings counts the ones that do not; the documents name
+    them."""
     root = get_node(tree, piece)
     if root is None:
         raise ValueError(f"no node at '{piece}'")
     base = "/".join(_segs(piece))
     boxes = {b.path: b for b in bodies(tree, piece)}
-    bad = 0
+    out: list[tuple[int, str, str, bool]] = []
     for n, step in enumerate((root.payload or {}).get("steps") or [], 1):
         if step.get("prepare"):
             continue
@@ -433,9 +441,9 @@ def misfit_closings(tree: Quern, piece: str) -> float:
                 mine, other = boxes[m], boxes[ends[1] if m == ends[0] else ends[0]]
                 want = [0, 0, 0]
                 want[axis] = 1 if mine.lo[axis] >= other.hi[axis] - TOUCH_MM else -1
-                if DIRECTIONS[moving[m[len(base) + 1:]]] != tuple(want):
-                    bad += 1
-    return float(bad)
+                key = m[len(base) + 1:]
+                out.append((n, jid, key, DIRECTIONS[moving[key]] == tuple(want)))
+    return out
 
 
 def _material(tree: Quern, path: str):

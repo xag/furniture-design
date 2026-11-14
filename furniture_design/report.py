@@ -15,7 +15,7 @@ from quern import Quern, run_rules
 from quern.expr import Absent
 from quern.tree import get_node
 
-from .natives import _param, deflection, mass, sideways_margin
+from .natives import _param, closings, deflection, mass, sideways_margin
 from .units import STANDARD_GRAVITY
 
 TEXT = {
@@ -50,6 +50,12 @@ TEXT = {
         "direction": "Sens du fil : {part}",
         "direction_ok": "le panneau porte dans le sens où ses valeurs ont été mesurées",
         "direction_fail": "les valeurs du matériau ne valent pas dans ce sens",
+        "assembly": "Montage : chaque pièce arrive droit sur les connecteurs qu'elle ferme",
+        "assembly_ok": "{n} assemblages fermés dans le sens où leurs connecteurs se ferment",
+        "assembly_fail": "à l'étape {step}, {part} n'arrive pas droit sur ses connecteurs ({joints}) : "
+                         "il faudrait faire glisser la pièce le long de l'assemblage, ou écarter les pièces déjà en place",
+        "assembly_open": "non tranché : {why}",
+        "no_engagement": "le connecteur de l'assemblage {joint} ne dit pas comment ses pièces se rapprochent",
         "load_point": "{kg} kg au milieu",
         "other": "{rule}",
     },
@@ -83,6 +89,12 @@ TEXT = {
         "direction": "Grain direction: {part}",
         "direction_ok": "the panel spans the way its values were measured",
         "direction_fail": "the material's values do not hold in this direction",
+        "assembly": "Assembly: each part comes straight at the connectors it closes",
+        "assembly_ok": "{n} joints closed the way their connectors close",
+        "assembly_fail": "at step {step}, {part} does not come straight at its connectors ({joints}): "
+                         "it would have to slide along the joint, or spread the parts already in place",
+        "assembly_open": "not settled: {why}",
+        "no_engagement": "the connector of joint {joint} does not say how its parts come together",
         "load_point": "{kg} kg at the middle",
         "other": "{rule}",
     },
@@ -167,6 +179,25 @@ def checks(tree: Quern, piece: str, lang: str = "fr") -> list[dict]:
                 if got else str(e)
             row.update(result=T["sideways_open"].format(why=why), verdict="open")
         rows.append(row)
+    try:
+        closed = closings(tree, prefix)
+        if closed:
+            bad: dict[tuple[int, str], list[str]] = {}
+            for n, j, p, ok in closed:
+                if not ok:
+                    bad.setdefault((n, p), []).append(j)
+            names = {p: (get_node(tree, f"{prefix}/{p}").name or p) for _, _, p, _ in closed}
+            rows.append({"requirement": T["assembly"],
+                         "result": "; ".join(T["assembly_fail"].format(step=n, part=names[p],
+                                                                       joints=", ".join(js))
+                                             for (n, p), js in bad.items()) if bad
+                         else T["assembly_ok"].format(n=len(closed)),
+                         "verdict": "fail" if bad else "ok"})
+    except Absent as e:
+        got = re.search(r"connector of '([^']+)'", str(e))
+        why = T["no_engagement"].format(joint=got.group(1).rsplit("/", 1)[-1]) if got else str(e)
+        rows.append({"requirement": T["assembly"], "result": T["assembly_open"].format(why=why),
+                     "verdict": "open"})
     joint_results = [r for r in results if r.rule in JOINT_RULES]
     if joint_results:
         bad = sorted({r.node.rsplit("/", 1)[-1] for r in joint_results if not r.ok})
