@@ -96,3 +96,26 @@ def test_a_glued_up_parts_row_says_its_sheets_make_the_one_part(tmp_path):
     assert part_name(tops[0], LABELS["fr"]) == "top (2 × 10 collées en 20)"
     assert part_name(tops[0], LABELS["en"]) == "top (2 × 10 glued into 20)"
     assert all(part_name(c, LABELS["fr"]) == c.name for c in cuts(sc) if c.length != 1000)
+
+
+def test_the_parts_are_laid_apart_by_what_their_saw_takes_out_and_the_sheet_says_whose():
+    from furniture_design.cutting import group_kerf
+    tree = _tree()
+    for part in ("left", "right", "top", "back"):
+        tree.get(f"{BENCH}/{part}").links["sawn_with"] = ["tools/example-saw"]
+    got = cuts(scene(tree, BENCH))
+    assert {(c.kerf, c.saw) for c in got} == {(2.2, "Example plunge saw")}
+    assert group_kerf(got, 4.0) == (2.2, "Example plunge saw", [])
+    plain = cuts(scene(_tree(), BENCH))
+    k, saw, unknown = group_kerf(plain, 4.0)
+    assert (k, saw) == (4.0, "") and unknown == plain
+    # two strips of 298.5 fit across 600 with a 2.2 mm cut between them, not with 4
+    strips = [_cut(1000, 298.5), _cut(1000, 298.5)]
+    assert pack(strips, 1000, 600, 2.2) and pack(strips, 1000, 600, 4.0) is None
+
+
+def test_a_part_with_a_saw_that_states_no_cut_counts_the_default():
+    tree = _tree()
+    tree.get(f"{BENCH}/top").links["sawn_with"] = ["tools/example-saw", "tools/drill"]
+    top = [c for c in cuts(scene(tree, BENCH)) if c.length == 1000]
+    assert top and all(c.kerf is None for c in top)

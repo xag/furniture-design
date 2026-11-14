@@ -15,6 +15,11 @@ says how many make the part and how thick it is.
 
 A part's grain runs along its length (the longer side of its face), unless its `span_along` says
 it bends across the face grain, when it runs across.
+
+The parts are laid apart by the width the saw takes out: for each material and thickness, the widest
+kerf of the saws its parts link `sawn_with` (a saw's kerf, else the widest blade it takes). A part
+that names no saw, or a saw whose maker states neither, counts the caller's `kerf`, an allowance and
+not a measurement; the sheet says which it counted and from which saw.
 """
 
 from __future__ import annotations
@@ -41,7 +46,9 @@ LABELS = {
            "glued": "{n} × {t} collées en {T}",
            "panel": "Panneau {i} — {material}, {t} mm, {L} × {W}", "ref": "réf. {ref}",
            "grain": "sens du fil du panneau et des pièces",
-           "choose": "{material}, {t} mm — panneau à choisir : {parts}, fil dans la longueur."},
+           "choose": "{material}, {t} mm — panneau à choisir : {parts}, fil dans la longueur.",
+           "kerf": "Trait de scie compté entre les pièces : {k} mm, celui de la scie {saw}.",
+           "kerf_none": "Trait de scie compté entre les pièces : {k} mm par défaut ({parts} : aucune scie nommée ne donne son trait)."},
     "en": {"title": "Cutting list for the cutting service",
            "sub": "{version} · dimensions in mm, length along the grain · scale 1:{scale}",
            "mark": "Mark", "name": "Part", "qty": "Qty", "length": "Length (grain)", "width": "Width",
@@ -49,7 +56,9 @@ LABELS = {
            "glued": "{n} × {t} glued into {T}",
            "panel": "Board {i} — {material}, {t} mm, {L} × {W}", "ref": "ref. {ref}",
            "grain": "grain of the board and of the parts",
-           "choose": "{material}, {t} mm — board to choose: {parts}, grain along the length."},
+           "choose": "{material}, {t} mm — board to choose: {parts}, grain along the length.",
+           "kerf": "Saw cut counted between parts: {k} mm, that of the {saw}.",
+           "kerf_none": "Saw cut counted between parts: {k} mm by default ({parts}: no saw named states its cut)."},
 }
 
 
@@ -65,6 +74,8 @@ class Cut:
     material_name: str
     cut_later: bool
     glued: int = 1  # how many such sheets are glued into the one part
+    kerf: float | None = None  # the widest cut of the saws that cut it out, when they state one
+    saw: str = ""              # that saw's name
 
 
 def cuts(sc: Scene) -> list[Cut]:
@@ -76,8 +87,10 @@ def cuts(sc: Scene) -> list[Cut]:
         if "across" in (p.grain or ""):
             a, b = b, a
         for _ in range(p.sheets):
+            known = [(k, n) for n, k in p.saws if k is not None]
+            kerf, saw = max(known) if known and len(known) == len(p.saws) else (None, "")
             out.append(Cut(p.mark, p.name, a, b, dims[2] / p.sheets, p.material, p.material_name, bool(p.cuts),
-                           p.sheets))
+                           p.sheets, kerf, saw))
     return out
 
 
@@ -252,6 +265,16 @@ def _panel(pg: _Page, y: float, i: int, sheet: dict, placed, q0: Cut) -> float:
     return yy - 9 * mm
 
 
+def group_kerf(group: list[Cut], default: float) -> tuple[float, str, list[Cut]]:
+    """The width to leave between a group's parts: the widest its saws take out, and that saw's name;
+    the default when a part's saws state none, with those parts."""
+    unknown = [q for q in group if q.kerf is None]
+    known = sorted(((q.kerf, q.saw) for q in group if q.kerf is not None), reverse=True)
+    if unknown:
+        return max([default] + [k for k, _ in known]), "", unknown
+    return known[0][0], known[0][1], []
+
+
 def layout(sc: Scene, stock: dict[str, list[dict]] | None = None, kerf: float = 4.0) -> list[tuple]:
     """For each material and thickness, in the order the parts come: (its parts, the panels to
     buy as [(sheet, placed)], the parts no sheet sold takes)."""
@@ -262,15 +285,15 @@ def layout(sc: Scene, stock: dict[str, list[dict]] | None = None, kerf: float = 
     out = []
     for (material, t), group in groups.items():
         sold = [s for s in sold_of.get(material.rsplit("/", 1)[-1], []) if abs(s.get("thickness", t) - t) < 0.05]
-        done, left = panels(group, sold, kerf)
+        done, left = panels(group, sold, group_kerf(group, kerf)[0])
         out.append((group, done, left))
     return out
 
 
 def cutting_sheet(sc: Scene, path: Path, lang: str = "fr", stock: dict[str, list[dict]] | None = None,
                   kerf: float = 4.0) -> Path:
-    """Write the cutting sheet to `path`. `kerf` is the room left between two parts for the
-    blade, an allowance and not a measurement."""
+    """Write the cutting sheet to `path`. `kerf` is the room left between two parts whose saws state
+    no cut, an allowance and not a measurement."""
     L = LABELS[lang]
     parts = cuts(sc)
     longest = max((max(q.length for q in parts), *(s["length"] for v in (stock or {}).values() for s in v)),
@@ -281,6 +304,15 @@ def cutting_sheet(sc: Scene, path: Path, lang: str = "fr", stock: dict[str, list
     i = 0
     for group, done, left in layout(sc, stock, kerf):
         t = group[0].thickness
+        k, saw, unknown = group_kerf(group, kerf)
+        y = pg.room(y, 12 * mm)
+        pg.c.setFont("Helvetica", 9)
+        pg.c.setFillColor(INK)
+        marks = ", ".join(dict.fromkeys(q.mark for q in unknown))
+        ks = _f(k).replace(".", ",") if lang == "fr" else _f(k)
+        pg.c.drawString(pg.M, y, L["kerf_none"].format(k=ks, parts=marks) if unknown
+                        else L["kerf"].format(k=ks, saw=saw))
+        y -= 7 * mm
         for sheet, placed in done:
             i += 1
             y = _panel(pg, y, i, sheet, placed, group[0])

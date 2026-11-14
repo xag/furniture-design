@@ -12,7 +12,8 @@ all draw. Everything is read from the quern tree; nothing here is typed twice.
   each entry a number or an expression over params, as for a part's own size,
   such as a notch for a skirting board), drawn but not counted by the checks, and the
   tools the part links `made_with` with what each says of its use (`say`, per language);
-  cut_plan() reads a cut's shape: the edges it touches, its measures from them, and the
+  the saws it links `sawn_with`, which cut it out of its board, each with the width it takes out
+  (its param kerf, else max_kerf, the widest blade it takes); cut_plan() reads a cut's shape: the edges it touches, its measures from them, and the
   saw lines that make it, in order;
 - the steps: the piece's payload `steps`, each {text, add, joints, prepare, tools,
   direction}: `add` the part ids it brings in, `joints` the joint ids it closes,
@@ -60,6 +61,7 @@ class Part:
     sheets: int = 1
     cuts: list[tuple[tuple, tuple]] = field(default_factory=list)  # (lo, hi) in the piece frame
     tools: list[Tool] = field(default_factory=list)                # what cuts its cuts
+    saws: list[tuple[str, float | None]] = field(default_factory=list)  # what cuts it out: (name, kerf)
 
     @property
     def size(self) -> tuple[float, float, float]:
@@ -233,6 +235,13 @@ def _tool(tree: Quern, path: str) -> Tool:
     return Tool(path, node.name or node.id, (node.payload or {}).get("say", {}), cites)
 
 
+def _kerf(tree: Quern, path: str) -> float | None:
+    """The width a saw takes out: its blade's kerf, else the widest blade it takes (max_kerf), else
+    None when its maker states neither."""
+    kerf = _param(tree, path, "kerf")
+    return kerf if kerf is not None else _param(tree, path, "max_kerf")
+
+
 def scene(tree: Quern, piece: str) -> Scene:
     from .drawings import cut_list
 
@@ -252,13 +261,15 @@ def scene(tree: Quern, piece: str) -> Scene:
             lo = tuple(b.lo[i] + at[i] for i in range(3))
             cuts.append((lo, tuple(lo[i] + size[i] for i in range(3))))
         tools = [_tool(tree, t) for t in (node.links or {}).get("made_with", [])]
+        saws = [(get_node(tree, t).name or t.rsplit("/", 1)[-1], _kerf(tree, t))
+                for t in (node.links or {}).get("sawn_with", [])]
         material = uses[0].rsplit("/", 1)[-1] if uses else ""
         label = (names.get(material) or ((mat.payload or {}).get("label") if mat else "")
                  or ((mat.name if mat else "") or "").split(",")[0])
         parts.append(Part(b.path, node.id, node.name or node.id, marks.get(b.path, ""),
                           tuple(b.lo), tuple(b.hi), material, label,
                           payload.get("span_along", ""),
-                          int(payload.get("sheets", 1)), cuts, tools))
+                          int(payload.get("sheets", 1)), cuts, tools, saws))
     by_path = {p.path: p for p in parts}
     joints = []
     prefix = piece.rstrip("/") + "/"

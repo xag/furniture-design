@@ -951,6 +951,39 @@ def entries() -> list[Node]:
                      "A lib knows nothing of who uses it; the shop's range is a package of its own."),
             ],
         ),
+        Node(
+            id="a-part-names-the-saw-that-cuts-it-out", kind="decision",
+            name="A part links sawn_with the saws that cut it out of its board. A saw is a tool whose params, each "
+                 "derived from a clause its maker printed, are the width its blade takes out (kerf), else the widest "
+                 "blade it takes (max_kerf), and the thickest board it cuts through square (max_cut_depth). The "
+                 "cutting sheet leaves between a material's parts the widest cut of their saws and says whose; a "
+                 "part whose saws state none counts the caller's allowance (4 mm) and the sheet says it is one. "
+                 "Rules: every saw a part names states its cut and rests on clauses; each sheet of a part is no "
+                 "thicker than its saws cut",
+            links={"rests_on": ["the-rules-read-the-knowledge", "a-piece-has-a-cutting-sheet-for-the-shop",
+                                "makers-products-are-in-packages-outside-furniture-design"]},
+            payload={"decided_on": "2026-11-14",
+                     "the_owner": "le plan de découpe prend il en compte l'épaisseur de la scie? ... Source les "
+                                  "différents types de scies et les solvers et règles associés",
+                     "why": "The sheet left 4 mm between parts, a figure from no source, the same for a pull saw "
+                            "that takes out under 1 mm and a table saw blade that takes out 2.6. Makers print the "
+                            "cut of the blade a saw comes with (a plunge saw's 1.8 mm, a table saw's 2.6) or the "
+                            "widest blade it takes; a jigsaw's, a portable circular saw's and a panel saw's makers "
+                            "print neither, so such a saw is measured and stated on a saw of the design's own. "
+                            "The saws themselves, being makers' products, are a package of their own.",
+                     "the_rule": "rules a-part-is-sawn-with-a-saw-that-states-its-cut and "
+                                 "a-part-is-no-thicker-than-its-saw-cuts; cutting.group_kerf."},
+            children=[
+                _alt("a-kerf-per-piece", "The piece states one kerf as a number in its payload",
+                     "A number typed into a piece rests on nothing, and a piece cut with two saws has two."),
+                _alt("a-kerf-per-saw-kind", "One kerf per kind of saw (hand saw, circular saw, panel saw)",
+                     "The cut is the blade's: within one kind, makers' blades range from 0.46 to 1.07 mm for pull "
+                     "saws and 1.8 to 2.6 mm for the blades one plunge saw takes."),
+                _alt("a-saw-solver", "A furniture/* calculation for the cut and the depth",
+                     "The grammar states both checks (a param read through a link, a quotient and a comparison), "
+                     "and a calculation is only for what it cannot sum."),
+            ],
+        ),
     ]
 
 

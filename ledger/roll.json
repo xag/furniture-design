@@ -220,6 +220,26 @@
     "digest": "57319dbe036f"
   },
   {
+    "path": "a-part-names-the-saw-that-cuts-it-out",
+    "kind": "decision",
+    "digest": "51b1326735db"
+  },
+  {
+    "path": "a-part-names-the-saw-that-cuts-it-out/a-kerf-per-piece",
+    "kind": "alternative",
+    "digest": "af8354df14b8"
+  },
+  {
+    "path": "a-part-names-the-saw-that-cuts-it-out/a-kerf-per-saw-kind",
+    "kind": "alternative",
+    "digest": "147372498b68"
+  },
+  {
+    "path": "a-part-names-the-saw-that-cuts-it-out/a-saw-solver",
+    "kind": "alternative",
+    "digest": "8adbede236e2"
+  },
+  {
     "path": "a-piece-has-a-cutting-sheet-for-the-shop",
     "kind": "decision",
     "digest": "4de9582d9faa"
