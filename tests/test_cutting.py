@@ -84,3 +84,15 @@ def test_a_material_says_its_own_label_when_its_name_leads_with_something_else()
     m = tree.get(next(n for n in tree.get(f"{BENCH}/top").links["uses"]))
     m.payload = {**(m.payload or {}), "label": "contreplaqué bouleau Boutique"}
     assert {p.material_name for p in scene(tree, BENCH).parts} == {"contreplaqué bouleau Boutique"}
+
+
+def test_a_glued_up_parts_row_says_its_sheets_make_the_one_part(tmp_path):
+    tree = _tree()
+    tree.get(f"{BENCH}/top").payload["sheets"] = 2
+    sc = scene(tree, BENCH)
+    tops = [c for c in cuts(sc) if c.length == 1000]
+    assert [(c.thickness, c.glued) for c in tops] == [(10, 2), (10, 2)]
+    from furniture_design.cutting import LABELS, part_name
+    assert part_name(tops[0], LABELS["fr"]) == "top (2 × 10 collées en 20)"
+    assert part_name(tops[0], LABELS["en"]) == "top (2 × 10 glued into 20)"
+    assert all(part_name(c, LABELS["fr"]) == c.name for c in cuts(sc) if c.length != 1000)

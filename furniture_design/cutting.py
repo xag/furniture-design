@@ -10,6 +10,9 @@ face grain. A material with none is listed with
 its parts and no panel. The parts are laid in strips across the panel, end to end along its grain,
 as a panel saw cuts: every part's grain then runs with the panel's.
 
+A part glued up from several sheets is that many rectangles of the sheet's thickness, and its row
+says how many make the part and how thick it is.
+
 A part's grain runs along its length (the longer side of its face), unless its `span_along` says
 it bends across the face grain, when it runs across.
 """
@@ -35,6 +38,7 @@ LABELS = {
            "sub": "{version} · cotes en mm, longueur dans le sens du fil · échelle 1:{scale}",
            "mark": "Rep.", "name": "Pièce", "qty": "Qté", "length": "Long. (fil)", "width": "Larg.",
            "thickness": "Ép.", "cut_later": "découpe à faire ensuite (notice)",
+           "glued": "{n} × {t} collées en {T}",
            "panel": "Panneau {i} — {material}, {t} mm, {L} × {W}", "ref": "réf. {ref}",
            "grain": "sens du fil du panneau et des pièces",
            "choose": "{material}, {t} mm — panneau à choisir : {parts}, fil dans la longueur."},
@@ -42,6 +46,7 @@ LABELS = {
            "sub": "{version} · dimensions in mm, length along the grain · scale 1:{scale}",
            "mark": "Mark", "name": "Part", "qty": "Qty", "length": "Length (grain)", "width": "Width",
            "thickness": "Thk.", "cut_later": "cut afterwards (instructions)",
+           "glued": "{n} × {t} glued into {T}",
            "panel": "Board {i} — {material}, {t} mm, {L} × {W}", "ref": "ref. {ref}",
            "grain": "grain of the board and of the parts",
            "choose": "{material}, {t} mm — board to choose: {parts}, grain along the length."},
@@ -59,6 +64,7 @@ class Cut:
     material: str
     material_name: str
     cut_later: bool
+    glued: int = 1  # how many such sheets are glued into the one part
 
 
 def cuts(sc: Scene) -> list[Cut]:
@@ -70,7 +76,8 @@ def cuts(sc: Scene) -> list[Cut]:
         if "across" in (p.grain or ""):
             a, b = b, a
         for _ in range(p.sheets):
-            out.append(Cut(p.mark, p.name, a, b, dims[2] / p.sheets, p.material, p.material_name, bool(p.cuts)))
+            out.append(Cut(p.mark, p.name, a, b, dims[2] / p.sheets, p.material, p.material_name, bool(p.cuts),
+                           p.sheets))
     return out
 
 
@@ -163,6 +170,13 @@ def _grain_lines(c: Canvas, x, y, w, h):
         gy += 1.8 * mm
 
 
+def part_name(q: Cut, L: dict) -> str:
+    """The part as its row names it: a glued-up part says how many sheets make it and how thick."""
+    if q.glued < 2:
+        return q.name
+    return f"{q.name} ({L['glued'].format(n=q.glued, t=_f(q.thickness), T=_f(q.thickness * q.glued))})"
+
+
 def _table(pg: _Page, y: float, parts: list[Cut]) -> float:
     c, L, M = pg.c, pg.L, pg.M
     cols = [(L["mark"], 0), (L["name"], 12), (L["qty"], 62), (L["length"], 76), (L["width"], 100),
@@ -179,7 +193,7 @@ def _table(pg: _Page, y: float, parts: list[Cut]) -> float:
         rows.setdefault((q.mark, round(q.length, 1), round(q.width, 1), round(q.thickness, 1)), [q, 0])[1] += 1
     for (_, length, width, t), (q, n) in rows.items():
         y = pg.room(y, 6 * mm) - 5.5 * mm
-        vals = [q.mark, q.name, str(n), _f(length), _f(width), _f(t), L["cut_later"] if q.cut_later else ""]
+        vals = [q.mark, part_name(q, L), str(n), _f(length), _f(width), _f(t), L["cut_later"] if q.cut_later else ""]
         for (_, x), v in zip(cols, vals):
             c.drawString(M + x * mm, y, v)
     return y - 9 * mm
