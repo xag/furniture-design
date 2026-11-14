@@ -152,7 +152,28 @@ def braced(top_count: float = 4, side_count: float = 2, brace: bool = True,
             Node(id="requirements", kind="", children=[case])]
 
 
+def strip(width: float, saws: dict[str, float | None]) -> list[Node]:
+    """A rail 744 long, `width` wide and 18 thick, cut out with the saws named, each stating the
+    narrowest part it cuts (min_part_width) or, given None, not."""
+    tools = [Node(id=k, kind="tool", params={} if v is None else {"min_part_width": Quantity(
+        value=v, unit="mm", provenance="published", grounded=True)}) for k, v in saws.items()]
+    rail = Node(id="rail", kind="part", links={"sawn_with": [f"tools/{k}" for k in saws]},
+                payload={"shape": {"op": "box", "size": [744, 18, width]}})
+    return [Node(id="tools", kind="", children=tools), Node(id="bench", kind="piece", children=[rail])]
+
+
 SPEC = {
+    "furniture/narrow_margin": [
+        d("narrow_margin", strip(75, {"shop": 100}), ["bench/rail"], expect=-25,
+          because="a 75 mm rail, standing on its edge (744 x 18 x 75: its face 744 by 75), from a "
+                  "saw whose narrowest cut is 100: 25 short"),
+        d("narrow_margin", strip(250, {"shop": 100, "home": None}), ["bench/rail"], expect=150,
+          because="250 wide against the one saw that states a narrowest cut, 100"),
+        d("narrow_margin", strip(75, {"home": None}), ["bench/rail"], expect=75,
+          because="no saw states a narrowest cut: the margin is the cut width itself"),
+        d("narrow_margin", strip(120, {"a": 100, "b": 110}), ["bench/rail"], expect=10,
+          because="cut with two saws, it is held to the stricter, 110"),
+    ],
     "furniture/sideways_margin": [
         d("sideways_margin", braced(), ["seat", "requirements/across"], expect=275,
           because="top edge: 500 - 900/4 = 275 in shear. Each side edge: the back stops 100 "

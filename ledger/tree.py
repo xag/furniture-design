@@ -984,6 +984,35 @@ def entries() -> list[Node]:
                      "and a calculation is only for what it cannot sum."),
             ],
         ),
+        Node(
+            id="a-shops-cutting-service-is-a-saw-with-its-rules", kind="decision",
+            name="A shop's cutting service is a tool a part links sawn_with, like a saw: besides its cut and depth it "
+                 "states the narrowest part it cuts (min_part_width) and links refuses to the materials it does "
+                 "not cut. Rules: a part is no narrower than its saws cut (furniture/narrow_margin: the part's "
+                 "cut width, the middle of its box sides, less the largest min_part_width its saws state), and no "
+                 "saw it names refuses its material. The service's rules are a shop's package's data",
+            links={"rests_on": ["a-part-names-the-saw-that-cuts-it-out",
+                                "what-the-grammar-cannot-sum-is-a-calculation-with-cases"]},
+            payload={"decided_on": "2026-11-14",
+                     "the_owner": "Ça peut valoir le coup aussi de modéliser les règles de découpe dans le pack "
+                                  "Leroy Merlin unofficial. Par exemple j'ai appris sur place qu'ils ne pouvaient "
+                                  "pas faire une découpe de moins de 10 cm de large.",
+                     "why": "The cutting sheet is handed to a shop's service, whose rules decide whether a part "
+                            "can be cut there at all. A part's cut width is read from its box, which the rule "
+                            "grammar cannot sort, and most saws state no narrowest part, which a rule reading "
+                            "the param would turn into an absent check on every part: so a calculation, which "
+                            "takes a saw that states none as no limit.",
+                     "the_rule": "rules a-part-is-no-narrower-than-its-saw-cuts and "
+                                 "a-part-is-cut-by-a-saw-that-cuts-its-material; natives.narrow_margin."},
+            children=[
+                _alt("a-service-kind", "A kind of its own for a shop's cutting service",
+                     "It cuts parts out of boards as a saw does and is laid out the same way on the sheet; a "
+                     "new kind would double every rule about saws."),
+                _alt("min-width-in-the-grammar", "Read the part's width param in the rule",
+                     "A part states width only when a joint needs it, and a param the saw does not state "
+                     "leaves the check absent everywhere."),
+            ],
+        ),
     ]
 
 

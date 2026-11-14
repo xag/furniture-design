@@ -364,6 +364,20 @@ def deflection(tree: Quern, part: str) -> float:
     return bending + need["ks"] * w * span * 6 / (5 * g * b * h)
 
 
+def narrow_margin(tree: Quern, part: str) -> float:
+    """mm: how much wider than its saws' narrowest cut a part is. The part's cut width is the
+    middle of its three box sides (the narrower side of its face, its thickness being the
+    smallest); from it is taken the largest min_part_width of the saws it links `sawn_with`
+    that state one. A part none of whose saws states a narrowest cut answers its cut width."""
+    node = get_node(tree, part)
+    if node is None:
+        raise ValueError(f"no part at '{part}'")
+    width = sorted(_size(tree, part, node))[1]
+    limits = [v for v in (_param(tree, t, "min_part_width") for t in (node.links or {}).get("sawn_with", []))
+              if v is not None]
+    return width - max(limits, default=0.0)
+
+
 def _material(tree: Quern, path: str):
     uses = (get_node(tree, path).links or {}).get("uses", [])
     return get_node(tree, uses[0]) if uses else None
@@ -568,6 +582,7 @@ NATIVES = {
     "furniture/overturning_margin": overturning_margin,
     "furniture/tipping_cases": tipping_cases,
     "furniture/unheld": unheld,
+    "furniture/narrow_margin": narrow_margin,
 }
 
 

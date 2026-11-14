@@ -133,12 +133,16 @@ VOCABULARY = [
         "each derived from a clause its maker printed: kerf (mm, the width the blade it comes "
         "with takes out), max_kerf (mm, the widest blade it takes, when its maker states no "
         "blade's), blade_thickness (mm, the blade's body: a kerf is wider), max_cut_depth "
-        "(mm, the thickest board it cuts through square)."),
+        "(mm, the thickest board it cuts through square), min_part_width (mm, the narrowest "
+        "part it cuts, a shop's cutting service's rule). It links refuses to the materials it "
+        "does not cut."),
         params={"kerf": "mm, the width its blade takes out",
+                "min_part_width": "mm, the narrowest part it cuts",
                 "max_kerf": "mm, the widest blade it takes",
                 "blade_thickness": "mm, its blade's body",
                 "max_cut_depth": "mm, the thickest board it cuts through at 90°"},
-        links={"per": "the clauses that say what it does and its limits"}),
+        links={"per": "the clauses that say what it does and its limits",
+               "refuses": "the materials it does not cut"}),
     KindDef(kind="connector", description=(
         "A manufactured element that joins parts (a knock-down fitting, a biscuit, a dowel): "
         "payload maker and setting (the machine setting its seat is cut at, when it has "
@@ -239,6 +243,15 @@ RULES = [
                      "thicker than every saw it is cut out with cuts through at 90°, as that "
                      "saw's maker states it; a saw whose maker states no depth leaves the check "
                      "absent, not passed."),
+    Rule(name="a-part-is-no-narrower-than-its-saw-cuts", kind="part",
+         expr="solve('furniture/narrow_margin', self) >= 0",
+         description="A part is no narrower than the narrowest part every saw it is cut out with "
+                     "cuts (a shop's cutting service's min_part_width; furniture/narrow_margin)."),
+    Rule(name="a-part-is-cut-by-a-saw-that-cuts-its-material", kind="part",
+         expr="every(t, linked(self, 'sawn_with'), every(m, linked(t, 'refuses'), "
+              "every(u, linked(self, 'uses'), m != u)))",
+         description="No saw a part is cut out with refuses the material it is made of (a shop's "
+                     "cutting service that does not cut a kind of board)."),
     Rule(name="a-requirement-rests-on-clauses", kind="requirement",
          expr="len(linked(self, 'per')) > 0 and "
               "every(c, linked(self, 'per'), some(k, nodes('clause'), k == c))",
@@ -448,6 +461,11 @@ def _joinery(*, thickness: float = 18, width: float = 300, tool: str = "tools/gr
                                    params={"kerf": Quantity(value=2.2, unit="mm", provenance="published"),
                                            "max_cut_depth": Quantity(value=55, unit="mm",
                                                                      provenance="published")}))
+    shop_rules = "sources/example-catalogue/cutting-service"
+    catalogue.children.append(Node(id="cutting-service", kind="clause",
+                                   payload={"locator": "the cutting service's rules"},
+                                   params={"min_part_width": Quantity(value=350, unit="mm",
+                                                                      provenance="published")}))
     tools = [Node(id="groove-cutter", kind="tool", payload={"maker": "an example maker"}),
              Node(id="drill", kind="tool", payload={"maker": "any"}),
              Node(id="example-saw", kind="tool", name="Example plunge saw",
@@ -457,7 +475,13 @@ def _joinery(*, thickness: float = 18, width: float = 300, tool: str = "tools/gr
                                            derived_from=[f"{saw_data}/kerf"]),
                           "max_cut_depth": Quantity(value=55, unit="mm", provenance="derived",
                                                     derived_from=[f"{saw_data}/max_cut_depth"])},
-                  links={"per": [saw_data]})]
+                  links={"per": [saw_data]}),
+             Node(id="example-shop", kind="tool", name="Example shop's cutting service",
+                  payload={"maker": "an example shop", "saw_kind": "panel saw",
+                           "does": "cuts the boards it sells to the customer's sizes"},
+                  params={"min_part_width": Quantity(value=350, unit="mm", provenance="derived",
+                                                     derived_from=[f"{shop_rules}/min_part_width"])},
+                  links={"per": [shop_rules], "refuses": ["materials/birch-yellow"]})]
 
     def side(id_: str) -> Node:
         return Node(id=id_, kind="part", links={"uses": ["materials/birch-yellow"]},
@@ -544,6 +568,12 @@ COUNTER_EXAMPLES = [
                    nodes=_world(sawn_with="tools/drill"),
                    because="a side said to be cut out with a tool that states no cut: the cutting "
                            "sheet would leave a guess between the parts"),
+    CounterExample(rule="a-part-is-no-narrower-than-its-saw-cuts",
+                   nodes=_world(sawn_with="tools/example-shop"),
+                   because="a side 300 mm wide, cut by a shop that cuts nothing narrower than 350"),
+    CounterExample(rule="a-part-is-cut-by-a-saw-that-cuts-its-material",
+                   nodes=_world(sawn_with="tools/example-shop"),
+                   because="a birch side handed to a shop that does not cut birch"),
     CounterExample(rule="a-part-is-no-thicker-than-its-saw-cuts",
                    nodes=_world(side_thickness=60),
                    because="a 60 mm side cut out with a saw that cuts through 55"),
@@ -612,7 +642,7 @@ COUNTER_EXAMPLES = [
 
 PACKAGE = Package(
     name="furniture-design",
-    version="0.8.1",
+    version="0.9.0",
     description=(
         "Furniture designs and the published knowledge they are judged against. Kinds: "
         "source and clause (a publication and its verbatim, located statements, with the "
@@ -623,7 +653,7 @@ PACKAGE = Package(
         "stability cases (furniture/tipping_cases); a part bends within its longtime sag "
         "limit (Wood Handbook Eq. 9-2 to 9-4 and its creep guidance, furniture/deflection, with no shear term for a panel whose modulus was measured on the panel); a part is strong enough (Eq. 9-13 against the near-minimum modulus of rupture over the Handbook's factor for 10-year duration of load and safety); a part bends the way its material's values were measured; a seat carries the light-service sidethrust of GSA's FNAE-80-214A through a panel in the push's plane (furniture/sideways_margin); a part that swells and "
         "shrinks with the air has room to (Eq. 13-3, the moisture content of its climate from "
-        "Eq. 4-5, kind climate), and is judged only where that equation holds; a joint is cut with a tool its connector takes, at its setting, in parts thick and wide enough for it (kinds tool, connector, joint; a maker's products are data in a package of their own); a part with cuts is cut with tools that rest on clauses saying how they are used; a part is cut out of its board with saws that state, from their makers' clauses, the width they take out (which the cutting sheet leaves between parts) and that cut through each of its sheets. The rules carry no "
+        "Eq. 4-5, kind climate), and is judged only where that equation holds; a joint is cut with a tool its connector takes, at its setting, in parts thick and wide enough for it (kinds tool, connector, joint; a maker's products are data in a package of their own); a part with cuts is cut with tools that rest on clauses saying how they are used; a part is cut out of its board with saws that state, from their makers' clauses, the width they take out (which the cutting sheet leaves between parts) and that cut through each of its sheets, and no narrower than or of a material its saws refuse (a shop's cutting service's rules, furniture/narrow_margin). The rules carry no "
         "number a source states: limits and properties are read from the knowledge base. "
         "Every published shelf and beam deflection limit found is a clause a design chooses its own "
         "sag limit from; none is a requirement every part is held to."),

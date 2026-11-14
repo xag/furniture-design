@@ -290,6 +290,21 @@
     "digest": "b3354d1c4b6b"
   },
   {
+    "path": "a-shops-cutting-service-is-a-saw-with-its-rules",
+    "kind": "decision",
+    "digest": "c5eac417e676"
+  },
+  {
+    "path": "a-shops-cutting-service-is-a-saw-with-its-rules/a-service-kind",
+    "kind": "alternative",
+    "digest": "aaf41cc4c313"
+  },
+  {
+    "path": "a-shops-cutting-service-is-a-saw-with-its-rules/min-width-in-the-grammar",
+    "kind": "alternative",
+    "digest": "79d0f5ad22ab"
+  },
+  {
     "path": "a-sideways-push-goes-through-a-panel-across",
     "kind": "decision",
     "digest": "667dbc709e59"
