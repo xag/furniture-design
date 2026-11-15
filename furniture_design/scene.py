@@ -51,6 +51,7 @@ class Tool:
     say: dict                  # per language: {name, method: [sentences]}
     cites: list[tuple[str, str]]   # each clause it rests on: (its source, its locator)
     model: dict | None = None  # its solids, for the drawings (lineart.solids), when it has them
+    follows: list[str] = field(default_factory=list)  # the general tools whose method it follows
 
 
 @dataclass
@@ -342,7 +343,7 @@ def _tool(tree: Quern, path: str) -> Tool:
         short = (source.payload or {}).get("identifier") or source.name or source.id
         cites.append((short, (clause.payload or {}).get("locator", clause.id)))
     return Tool(path, node.name or node.id, (node.payload or {}).get("say", {}), cites,
-                (node.payload or {}).get("model"))
+                (node.payload or {}).get("model"), list((node.links or {}).get("follows", [])))
 
 
 def _seat_methods(tree: Quern, joint: Joint, links: dict) -> None:

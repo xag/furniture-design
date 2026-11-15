@@ -289,20 +289,20 @@ def sweep(path, section, closed=False, **kw) -> Mesh:
     k = len(sec)
     rings = []
     for i in range(m):
-        t = P[min(i + 1, m - 1)] - P[max(i - 1, 0)]
+        t = (P[(i + 1) % m] - P[i - 1]) if closed else (P[min(i + 1, m - 1)] - P[max(i - 1, 0)])
         t /= np.linalg.norm(t)
         b = np.cross(t, normal)
         b /= np.linalg.norm(b)
         rings.append(P[i] + sec[:, :1] * normal + sec[:, 1:] * b)
     v = np.vstack(rings + [[P[0]], [P[-1]]])
     f = []
-    for i in range(m - 1):
+    for i in range(m if closed else m - 1):
         for j in range(k):
             a0, a1 = i * k + j, i * k + (j + 1) % k
-            b0, b1 = (i + 1) * k + j, (i + 1) * k + (j + 1) % k
+            b0, b1 = (i + 1) % m * k + j, (i + 1) % m * k + (j + 1) % k
             f += [[a0, a1, b1], [a0, b1, b0]]
     c0, c1 = m * k, m * k + 1
-    for j in range(k):
+    for j in range(0 if closed else k):
         f += [[c0, (j + 1) % k, j], [c1, (m - 1) * k + j, (m - 1) * k + (j + 1) % k]]
     mesh = Mesh(v, np.array(f), **kw)
     vol = np.einsum("ij,ij->i", v[mesh.f[:, 0]], np.cross(v[mesh.f[:, 1]], v[mesh.f[:, 2]])).sum()
@@ -375,7 +375,7 @@ def solids(spec: list[dict]) -> list[Mesh]:
     """Meshes from a model stated as data, each item one solid: {"op": "box", "lo", "hi"}, {"op": "rbox",
     "lo", "hi", "r", "axis"}, {"op": "cyl", "r", "h", "axis", "at", "n"}, {"op": "prism", "profile":
     [[y, z], ...] (counter-clockwise seen from -X), "x": [x0, x1]} or {"op": "tube", "path": [[x, y, z],
-    ...], "w", "h", "r", "normal"}; "dark": true fills it dark (a grip, a switch, a slot), else white."""
+    ...], "w", "h", "r", "normal", "closed"} (a closed tube joins its last point to its first: a loop); "dark": true fills it dark (a grip, a switch, a slot), else white."""
     out = []
     for s in spec:
         kw = {"fill": DARK if s.get("dark") else (1, 1, 1)}
@@ -389,7 +389,7 @@ def solids(spec: list[dict]) -> list[Mesh]:
         elif op == "prism":
             out.append(prism_yz(s["profile"], s["x"][0], s["x"][1], **kw))
         elif op == "tube":
-            out.append(sweep(s["path"], rounded(s["w"], s["h"], s.get("r", 0), 8),
+            out.append(sweep(s["path"], rounded(s["w"], s["h"], s.get("r", 0), 8), closed=s.get("closed", False),
                              normal=s.get("normal", (1, 0, 0)), **kw))
         else:
             raise ValueError(f"a model's solid has no op {op!r}")

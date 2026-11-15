@@ -47,11 +47,10 @@ def test_every_step_has_a_screen_and_every_drawing_a_file(tmp_path):
     assert abs(frame[0] / frame[1] - 88 / 62) < 0.05          # a frame is cut whole, border to border
 
 
-def test_a_cut_card_is_its_drawing_and_its_words(tmp_path):
+def test_a_cut_is_its_frames_and_no_words(tmp_path):
     tree = bench_tree()
     tree.get("pieces/bench-side").payload["steps"] = [
         {"text": "Cut the notch.", "prepare": True, "add": ["side"], "cuts": ["side"]}]
     sc, data, out = _screens(tree, "pieces/bench-side", tmp_path)
     card = next(s for s in data["screens"] if s["kind"] == "block")
-    assert card["card"]["sentences"][0] == "Tracer : 25 depuis le chant arrière, 115 depuis le chant du bas."
-    assert card["card"]["methods"][0]["name"] == "Scie égoïne" and len(card["images"]) == 1
+    assert "card" not in card and len(card["images"]) == 1   # the marks' frame: the general saw has no model

@@ -177,16 +177,32 @@ def test_a_rebate_says_its_depth():
     assert plan.depth == 10.0 and [e for _, e, _, _ in plan.measures] == ["bottom"]
 
 
-def test_the_card_says_where_to_mark_the_notch_and_how_its_saw_is_used():
+# A maker's hand saw, as a saws package gives one: it follows the general saw, whose method the frames draw,
+# and carries its own model.
+MAKERS_SAW = {"parts": [{"op": "prism", "profile": [[0, 0], [500, 0], [500, 30], [0, 100]], "x": [-0.5, 0.5]}],
+              "teeth": {"from": [0, 0], "to": [500, 0]}}
+
+
+def _with_a_makers_saw(tree: Quern, follows: tuple = ("tools/crosscut-saw",)) -> Quern:
+    from quern.tree import Node
+    tree.get("tools").children.append(Node(id="makers-saw", kind="tool", name="A maker's hand saw",
+                                           links={"follows": list(follows)},
+                                           payload={"model": MAKERS_SAW, "stroke": "push"}))
+    side = tree.get("pieces/bench-side/side")
+    side.links["made_with"] = ["tools/makers-saw"]
+    return tree
+
+
+def test_the_sides_saw_is_the_crosscut_saw_its_method_resting_on_tm_9_243_and_its_model_its_makers():
     sc = scene(_tree(), "pieces/bench-side")
     side = sc.part("side")
-    said = cut_sentences(side, LABELS["fr"], "fr")
-    assert said[0] == "Tracer : 25 depuis le chant arrière, 115 depuis le chant du bas."
-    assert said[1] == LABELS["fr"]["saw_from_edge"]
+    plan = cut_plan(side, *side.cuts[0])
+    assert [(e, d) for _, e, d, _ in plan.measures] == [("back", 25.0), ("bottom", 115.0)]
     saw, = side.tools
     assert saw.say["fr"]["name"] == "Scie égoïne" and len(saw.say["fr"]["method"]) == 4
     assert ("TM 9-243, change 2, 8 April 2022",
             "46.4 Using the crosscut saw, f, p. 46-7") in saw.cites
+    assert saw.model is None  # a general method: the model drawn is a maker's saw's, which follows it
 
 
 def test_a_step_with_cuts_is_drawn_with_its_card(tmp_path):
@@ -334,16 +350,38 @@ def _written(monkeypatch, tree, piece, out_dir) -> list[str]:
     return written
 
 
-def test_short_instructions_say_where_to_mark_a_cut_and_leave_out_how_its_saw_is_used(monkeypatch, tmp_path):
+def _cut_drawn(monkeypatch, tree, out_dir) -> tuple[list[str], list[list[dict]]]:
+    """What the instructions print, and the models they draw, for the bench side with a step cutting it."""
+    from furniture_design import lineart
+    drawn, real = [], lineart.solids
+    monkeypatch.setattr(lineart, "solids", lambda spec: (drawn.append(spec), real(spec))[1])
+    return _written(monkeypatch, tree, "pieces/bench-side", out_dir), drawn
+
+
+def test_a_cut_is_drawn_with_its_marks_distances_and_no_sentence(monkeypatch, tmp_path):
+    tree = _tree()
+    tree.get("pieces/bench-side").payload["steps"] = [
+        {"text": "Cut the notch.", "prepare": True, "add": ["side"], "cuts": ["side"]}]
+    written, _ = _cut_drawn(monkeypatch, tree, tmp_path)
+    saw = scene(tree, "pieces/bench-side").part("side").tools[0]
+    said = [x for lang in saw.say.values() for x in [lang["name"], *lang["method"]]]
+    assert not [s for s in written if "Tracer" in s or "Mark out" in s or s in said or
+                any(m[:30] in s for m in said if len(m) > 30)]
+    assert "25 mm" in written and "115 mm" in written
+
+
+def test_short_instructions_draw_the_marks_and_leave_the_saw_at_work_out(monkeypatch, tmp_path):
     tree = _tree()
     side = tree.get("pieces/bench-side")
     side.payload["steps"] = [{"text": "Cut the notch.", "prepare": True, "add": ["side"], "cuts": ["side"]}]
-    full = _written(monkeypatch, tree, "pieces/bench-side", tmp_path / "full")
+    _with_a_makers_saw(tree)
+    saw_parts = MAKERS_SAW["parts"]
+    full, full_drawn = _cut_drawn(monkeypatch, tree, tmp_path / "full")
     side.payload["instructions"] = "short"
-    short = _written(monkeypatch, tree, "pieces/bench-side", tmp_path / "short")
-    mark = "Tracer : 25 depuis le chant"
-    assert any(mark in s for s in full) and any(mark in s for s in short)
-    assert "Scie égoïne" in full and "Scie égoïne" not in short
+    short, short_drawn = _cut_drawn(monkeypatch, tree, tmp_path / "short")
+    assert "25 mm" in short and "115 mm" in short
+    assert any(d[:len(saw_parts)] == saw_parts for d in full_drawn)
+    assert not any(d[:len(saw_parts)] == saw_parts for d in short_drawn)
 
 
 def test_a_pieces_instructions_are_full_or_short():
@@ -352,3 +390,17 @@ def test_a_pieces_instructions_are_full_or_short():
     tree.get("pieces/bench-side").payload["instructions"] = "brief"
     with pytest.raises(ValueError, match="full, short"):
         scene(tree, "pieces/bench-side")
+
+
+def test_a_saw_is_drawn_at_work_only_when_it_follows_the_general_saw_whose_method_the_frames_draw(monkeypatch, tmp_path):
+    tree = _tree()
+    tree.get("pieces/bench-side").payload["steps"] = [
+        {"text": "Cut the notch.", "prepare": True, "add": ["side"], "cuts": ["side"]}]
+    _with_a_makers_saw(tree, follows=())        # a saw of another kind (a pull saw): its model, no method drawn
+    written, drawn = _cut_drawn(monkeypatch, tree, tmp_path / "other")
+    assert "25 mm" in written and not any(d[:1] == MAKERS_SAW["parts"] for d in drawn)
+    tree = _with_a_makers_saw(_tree())
+    tree.get("pieces/bench-side").payload["steps"] = [
+        {"text": "Cut the notch.", "prepare": True, "add": ["side"], "cuts": ["side"]}]
+    written, drawn = _cut_drawn(monkeypatch, tree, tmp_path / "follows")
+    assert any(d[:1] == MAKERS_SAW["parts"] for d in drawn)

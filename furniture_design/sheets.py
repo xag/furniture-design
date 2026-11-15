@@ -55,12 +55,10 @@ LABELS = {
         "inbox": "Avant de commencer", "boards": "Panneaux", "hardware": "Quincaillerie",
         "tools": "Outils", "prepare": "Préparation", "assemble": "Montage",
         "overall": "Encombrement", "step": "Étape",
-        "cutting": "Découpe", "mark_out": "Tracer", "from": "depuis", "to": "à",
+        "cutting": "Découpe", "sources": "Sources", "mark_out": "Tracer", "from": "depuis", "to": "à",
         "edge": {"bottom": "le chant du bas", "top": "le chant du haut",
                  "front": "le chant avant", "back": "le chant arrière",
                  "left": "le chant gauche", "right": "le chant droit"},
-        "edge_short": {"bottom": "bas", "top": "haut", "front": "avant", "back": "arrière",
-                       "left": "gauche", "right": "droite"},
         "deep": "sur {d} de profondeur",
         "saw_from_edge": "Scier les traits dans l'ordre des numéros, chacun depuis le bord où "
                          "il commence.",
@@ -68,8 +66,7 @@ LABELS = {
                          "percé dans la chute.",
         "saw_mixed": "Scier d'abord les traits qui partent d'un bord, chacun depuis ce bord, "
                      "puis les autres en partant d'un trou percé dans la chute.",
-        "no_method": "Aucun outil de la pièce ne dit comment faire cette découpe.",
-        "waste": "chute", "sources": "Sources",
+        "sources": "Sources",
     },
     "en": {
         "general": "General arrangement", "parts": "Parts", "checks": "Checks and notes",
@@ -88,11 +85,9 @@ LABELS = {
         "inbox": "Before you start", "boards": "Boards", "hardware": "Hardware",
         "tools": "Tools", "prepare": "Preparation", "assemble": "Assembly",
         "overall": "Overall size", "step": "Step",
-        "cutting": "Cutting", "mark_out": "Mark out", "from": "from", "to": "to",
+        "cutting": "Cutting", "sources": "Sources", "mark_out": "Mark out", "from": "from", "to": "to",
         "edge": {"bottom": "the bottom edge", "top": "the top edge", "front": "the front edge",
                  "back": "the back edge", "left": "the left edge", "right": "the right edge"},
-        "edge_short": {"bottom": "bottom", "top": "top", "front": "front", "back": "back",
-                       "left": "left", "right": "right"},
         "deep": "{d} deep",
         "saw_from_edge": "Saw the lines in the order of their numbers, each from the edge "
                          "where it starts.",
@@ -100,8 +95,7 @@ LABELS = {
                          "drilled in the waste.",
         "saw_mixed": "First saw the lines that start at an edge, each from that edge, then "
                      "the others starting from a hole drilled in the waste.",
-        "no_method": "None of the part's tools says how to make this cut.",
-        "waste": "waste", "sources": "Sources",
+        "sources": "Sources",
     },
 }
 
@@ -867,120 +861,6 @@ def _prepare_picture(pen: Pen, sc: Scene, step, box):
         pen.text(c[0], c[1] + 7.7, p.mark, 3.8, INK, "middle", bold=True)
 
 
-EDGE_AXIS = {"left": 0, "right": 0, "front": 1, "back": 1, "bottom": 2, "top": 2}
-HIGH_EDGES = {"right", "back", "top"}
-
-
-def _hatch(pen: Pen, x0, y0, x1, y1, color=MARK, step=1.6):
-    c = pen.c
-    c.saveState()
-    clip = c.beginPath()
-    clip.rect(x0 * mm, y0 * mm, (x1 - x0) * mm, (y1 - y0) * mm)
-    c.clipPath(clip, stroke=0, fill=0)
-    k = -(y1 - y0)
-    while k < x1 - x0:
-        pen.line(x0 + k, y0, x0 + k + (y1 - y0), y1, 0.12, color)
-        k += step
-    c.restoreState()
-
-
-def _cut_card(pen: Pen, p: Part, qty: int, box, L: dict):
-    """One board as it is marked out, in detail: the part of its face around its cuts, as
-    it stands in the piece and at the largest scale the card allows, the board's own edges
-    drawn solid and the edges of the detail dashed; each cut hatched as waste, measured
-    from the edges it touches (named beside them), its saw lines drawn and numbered in the
-    order they are sawn, each from where it starts."""
-    x, y, w, h = box
-    plans = [cut_plan(p, lo, hi) for lo, hi in p.cuts]
-    hx, vx = plans[0].h, plans[0].v
-    clipped = [([max(a, b) for a, b in zip(lo, p.lo)], [min(a, b) for a, b in zip(hi, p.hi)])
-               for lo, hi in p.cuts]
-    # the region drawn: the cuts with room around them, grown to fill the card
-    rlo = [min(lo[a] for lo, _ in clipped) for a in (hx, vx)]
-    rhi = [max(hi[a] for _, hi in clipped) for a in (hx, vx)]
-    ext = [rhi[i] - rlo[i] for i in range(2)]
-    blo, bhi = [p.lo[hx], p.lo[vx]], [p.hi[hx], p.hi[vx]]
-    for i in range(2):
-        pad = max(0.4 * ext[i], 0.25 * min(ext), 15)
-        rlo[i], rhi[i] = max(blo[i], rlo[i] - pad), min(bhi[i], rhi[i] + pad)
-    for plan in plans:  # a cut measured from an edge it does not touch shows that edge
-        for axis, _edge, _dist, off in plan.measures:
-            if off:
-                i = 0 if axis == hx else 1
-                rlo[i] = blo[i]
-    room_w, room_h = w - 40, h - 46
-    s = min(room_w / (rhi[0] - rlo[0]), room_h / (rhi[1] - rlo[1]))
-    for i, room in ((0, room_w), (1, room_h)):
-        grow = room / s - (rhi[i] - rlo[i])
-        if grow > 0:
-            down = min(grow / 2, rlo[i] - blo[i])
-            up = min(grow - down, bhi[i] - rhi[i])
-            down = min(grow - up, rlo[i] - blo[i])
-            rlo[i], rhi[i] = rlo[i] - down, rhi[i] + up
-    rw, rv = (rhi[0] - rlo[0]) * s, (rhi[1] - rlo[1]) * s
-    ox, oy = x + 20 + (room_w - rw) / 2, y + 20 + (room_h - rv) / 2
-
-    def P(a, b):  # (h, v) in the piece frame -> paper
-        return ox + (a - rlo[0]) * s, oy + (b - rlo[1]) * s
-
-    pen.circle(x + 5, y + h - 5, 4.2, fill=white, w=0.4)
-    pen.text(x + 5, y + h - 6.6, p.mark, 4.6, INK, "middle", bold=True)
-    pen.text(x + 11, y + h - 6.6, f"× {qty}", 4.2, INK, bold=True)
-    pen.rect(ox, oy, rw, rv, fill=_wood(0.1), stroke=None)
-    sides = [((ox, oy), (ox + rw, oy), rlo[1] <= blo[1] + 0.5),
-             ((ox + rw, oy), (ox + rw, oy + rv), rhi[0] >= bhi[0] - 0.5),
-             ((ox, oy + rv), (ox + rw, oy + rv), rhi[1] >= bhi[1] - 0.5),
-             ((ox, oy), (ox, oy + rv), rlo[0] <= blo[0] + 0.5)]
-    for (a0, b0), (a1, b1), edge in sides:
-        pen.line(a0, b0, a1, b1, 0.35 if edge else 0.2, INK if edge else THIN,
-                 None if edge else [1.5, 1.2])
-    n = 0
-    named = set()
-    for (lo_c, hi_c), plan in zip(clipped, plans):
-        (x0, y0), (x1, y1) = P(lo_c[hx], lo_c[vx]), P(hi_c[hx], hi_c[vx])
-        pen.rect(x0, y0, x1 - x0, y1 - y0, fill=white, stroke=None)
-        _hatch(pen, x0, y0, x1, y1)
-        if x1 - x0 > 12 and y1 - y0 > 5:
-            pen.text((x0 + x1) / 2, (y0 + y1) / 2 - 1, L["waste"], 2.6, MARK, "middle")
-        for axis, edge, dist, off in plan.measures:
-            begin = (p.hi[axis] - dist) if edge in HIGH_EDGES else (p.lo[axis] + off)
-            if axis == hx:
-                a, b = P(begin, rlo[1])[0], P(begin + dist, rlo[1])[0]
-                up = hi_c[vx] >= p.hi[vx] - 0.5     # the cut is at the top: measure above
-                yy = oy + rv if up else oy
-                pen.dim((a, yy), (b, yy), 7 if up else -7, _fmt(dist), size=3.0)
-            else:
-                a, b = P(rlo[0], begin)[1], P(rlo[0], begin + dist)[1]
-                right = hi_c[hx] >= p.hi[hx] - 0.5  # the cut is on the right: measure there
-                xx = ox + rw if right else ox
-                pen.dim((xx, a), (xx, b), 7 if right else -7, _fmt(dist), horizontal=False,
-                        size=3.0)
-            named.add(edge)
-        for (a0, b0), (a1, b1) in plan.lines:
-            n += 1
-            (px0, py0), (px1, py1) = P(a0, b0), P(a1, b1)
-            pen.line(px0, py0, px1, py1, 0.8, MARK)
-            pen.arrowhead(px1, py1, px1 - px0, py1 - py0, 3.0, MARK)
-            dx, dy = px1 - px0, py1 - py0
-            d = (dx * dx + dy * dy) ** 0.5 or 1
-            # the number beside the line, a little in from where the saw starts, on the
-            # side away from the waste
-            mx, my = (x0 + x1) / 2, (y0 + y1) / 2
-            nx, ny = -dy / d, dx / d
-            if (px0 - mx) * nx + (py0 - my) * ny < 0:
-                nx, ny = -nx, -ny
-            along = min(8, d / 3)
-            cx, cy = px0 + dx / d * along + nx * 4.5, py0 + dy / d * along + ny * 4.5
-            pen.circle(cx, cy, 2.8, fill=MARK, stroke=MARK, w=0.2)
-            pen.text(cx, cy - 1.1, str(n), 3.2, white, "middle", bold=True)
-    for edge in named:  # the edges the measures start from, named beside them
-        word = L["edge_short"][edge]
-        high = edge in HIGH_EDGES
-        if EDGE_AXIS[edge] == vx:
-            pen.text(ox + rw / 2, oy + rv + 15 if high else oy - 17, word, 3.0, THIN, "middle")
-        else:
-            pen.text(ox + rw + 16 if high else ox - 14, oy + rv / 2, word, 3.0, THIN, "middle",
-                     angle=90)
 
 
 def cut_sentences(p: Part, L: dict, lang: str) -> list[str]:
@@ -1008,60 +888,13 @@ def cut_sentences(p: Part, L: dict, lang: str) -> list[str]:
             L["saw_from_hole"] if starts == 0 else L["saw_mixed"]]
 
 
-def _cut_method(pen: Pen, p: Part, box, L: dict, lang: str, short: bool = False):
-    """Beside the card: where to mark, the order to saw in, then how each of the part's
-    tools is used, as its clauses say, and the clauses cited; `short` leaves the tools' use out."""
-    x, y, w, h = box
-    chars = int(w / 1.62)
-    yy = y + h - 4
-    pen.text(x, yy, f"{L['cutting']} {p.mark}", 4.2, INK, bold=True)
-    yy -= 7
-    for k, sentence in enumerate(cut_sentences(p, L, lang), 1):
-        for i, line in enumerate(_wrap(sentence, chars - 4)):
-            if i == 0:
-                pen.text(x, yy, f"{k}.", 3.2, INK, bold=True)
-            pen.text(x + 4, yy, line, 3.2, INK)
-            yy -= 4.3
-        yy -= 1.2
-    said = [t for t in p.tools if (t.say or {}).get(lang)]
-    if short:
-        return
-    if not said:
-        for line in _wrap(L["no_method"], chars):
-            pen.text(x, yy, line, 3.2, MARK)
-            yy -= 4.3
-    for t in said:
-        yy -= 1
-        pen.text(x, yy, t.say[lang].get("name", t.name), 3.4, INK, bold=True)
-        yy -= 4.6
-        for sentence in t.say[lang].get("method", []):
-            for i, line in enumerate(_wrap(sentence, chars - 3)):
-                pen.text(x + (3 if i else 0), yy, ("– " if i == 0 else "") + line, 3.0, INK)
-                yy -= 4.0
-            yy -= 0.8
-    by_source: dict[str, list[str]] = {}
-    for t in said:
-        for source, locator in t.cites:
-            if locator not in by_source.setdefault(source, []):
-                by_source[source].append(locator)
-    if by_source:
-        yy -= 2
-        colon = " : " if lang == "fr" else ": "
-        pen.text(x, yy, L["sources"], 2.6, THIN, bold=True)
-        yy -= 3.4
-        for source, locators in by_source.items():
-            sep = " ; " if lang == "fr" else "; "
-            for line in _wrap(f"{source}{colon}{sep.join(locators)}", int(w / 1.15)):
-                pen.text(x, yy, line, 2.3, THIN)
-                yy -= 3.0
-
-
 def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list | None = None) -> Path:
     """Picture-first assembly instructions, A4 portrait. A piece whose payload instructions is short
-    leaves out how its tools are used: the methods beside each cut, the jointer drawn at work and
-    the test groove; what the piece needs (the cuts, the marks, the settings, the holes) stays.
+    leaves out how its tools are used: the saw and the jointer drawn at work and the test groove;
+    what the piece needs (the cuts, the marks, the settings, the holes) stays. A cut is drawn by
+    sawing.sawing_frames, a joint's grooves by grooving.grooving_pages; neither prints a sentence.
     `regions`, a list, gets where each picture is drawn (Pen.note): the cover, each board, each step's
-    picture, each block of a step drawn on its own (a cut card, the grooving settings and each kind of
+    picture, each block of a step drawn on its own (a cut's frames, the grooving settings and each kind of
     joint) and the frames and drawings in it, in the order drawn; steps.instruction_screens cuts them out."""
     L = LABELS[lang]
     short = sc.info.get("instructions") == "short"
@@ -1181,11 +1014,9 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list
                 c.showPage()
             else:
                 pen.line(15, 148, W - 15, 148, 0.2, THIN, [1.5, 1.5])
-            cx, cy, cw, ch = slots[slot % 2]
+            from .sawing import sawing_frames
             pen.note("block", slots[slot % 2], step=step.number, part=p.id, count=qty)
-            pen.note("drawing", (cx, cy, cw * 0.46, ch - 10))
-            _cut_card(pen, p, qty, (cx, cy, cw * 0.46, ch), L)
-            _cut_method(pen, p, (cx + cw * 0.5, cy, cw * 0.5, ch), L, lang, short)
+            sawing_frames(pen, slots[slot % 2], p, qty, short)
             slot += 1
         if grooved:            # the grooving step's pages, drawn to IKEA's rules, after its picture
             from .grooving import grooving_pages

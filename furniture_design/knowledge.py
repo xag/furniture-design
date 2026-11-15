@@ -2118,9 +2118,10 @@ def pinch_sticks() -> Node:
 
 def tools() -> Node:
     """Hand tools that cut a part's cuts, each saying, per language, its name and how it is
-    used, every sentence resting on the clauses it links `per`. The documents print a
-    tool's method beside the cut it makes; the order of the cuts comes from the cut's
-    shape, not from here."""
+    used, every sentence resting on the clauses it links `per`. The instructions draw a
+    maker's saw that follows one of these at work from its own model, which its maker's package gives,
+    and print none of the sentences; the order of the
+    cuts comes from the cut's shape, not from here."""
     tm, fm = f"{SOURCES}/tm-9-243", f"{SOURCES}/fm-5-426"
     saw = Node(
         id="crosscut-saw", kind="tool", name="Crosscut saw",
