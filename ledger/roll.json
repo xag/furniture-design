@@ -490,6 +490,21 @@
     "digest": "35a20818bdf9"
   },
   {
+    "path": "a-tool-is-certified-by-a-standard-that-is-a-package",
+    "kind": "decision",
+    "digest": "5704443f0651"
+  },
+  {
+    "path": "a-tool-is-certified-by-a-standard-that-is-a-package/in-the-apps-code",
+    "kind": "alternative",
+    "digest": "6f97ea947126"
+  },
+  {
+    "path": "a-tool-is-certified-by-a-standard-that-is-a-package/rules-of-furniture-design",
+    "kind": "alternative",
+    "digest": "854a36cc09cf"
+  },
+  {
     "path": "a-tool-is-drawn-as-the-lamello-is",
     "kind": "decision",
     "digest": "ff4b9ca2f1b9"

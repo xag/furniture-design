@@ -1384,6 +1384,38 @@ def entries() -> list[Node]:
                      "Not what the owner asked; the owner pointed to the Lamello's way."),
             ],
         ),
+        Node(
+            id="a-tool-is-certified-by-a-standard-that-is-a-package", kind="decision",
+            name="What a tool's entry is held to is a package of its own, furniture-standards@ "
+                 "(furniture_design/standards.py), beside furniture-design@: rules that grade and refuse nothing, "
+                 "criteria that group them (identified, drawn, drawing true to the figures, said in every "
+                 "language, a saw's cut and depth, figures consistent, each found printed, each resting on two "
+                 "observations that agree) and levels that say which criteria a use requires (shown in a "
+                 "person's tools, cuts the parts of a piece, drawn at work in instructions, taken into the "
+                 "shared packages). A tool is certified by running quern.certify on it; a better standard is a "
+                 "new version of the package, and nothing that reads certificates changes. Its rules are not "
+                 "among those every design and every node of the knowledge is held to",
+            payload={"decided_on": "2026-11-15",
+                     "the_owner": "Rething the whole certification process based on that idea, that certification "
+                                  "is based on a set of standards and rules enforced by other knowledge models. "
+                                  "This way, knowledge models can improve and certification with it, without "
+                                  "changing the code",
+                     "why": "The app had written a tool's grade in its own code. As rules of furniture-design@ "
+                            "they would have judged every tool of the knowledge and turned its own examples red "
+                            "(a hand saw has no model), so the standard is a package of its own, proved by its "
+                            "own example and counter-examples.",
+                     "not_yet": "The kinds criterion and level are declared here until certification@ is "
+                                "published; the standards for a buildable piece and for assembly instructions; "
+                                "the rules' sentences per language (messages)."},
+            links={"rests_on": ["the-rules-read-the-knowledge", "makers-products-are-in-packages-outside-furniture-design"]},
+            children=[
+                _alt("rules-of-furniture-design", "Add the grading rules to furniture-design@",
+                     "Every tool of the knowledge would be judged by them in every check, and the package's own "
+                     "examples would not pass."),
+                _alt("in-the-apps-code", "Leave the grade in the app that keeps people's tools",
+                     "Turned down by the owner: the standard must improve without the code."),
+            ],
+        ),
     ]
 
 

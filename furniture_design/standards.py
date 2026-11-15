@@ -1,0 +1,419 @@
+"""furniture-standards@: what a tool's entry is held to, for each use it may be put to.
+
+A standard is knowledge like the rest: rules, and in the tree the criteria that group them
+and the levels that say which criteria a use requires (kinds `criterion` and `level`, read by
+quern.certify.certificate, which knows nothing of tools). It is a package of its own, beside
+furniture-design@: its rules grade an entry and refuse none, so they are not among the rules
+every design and every node of the knowledge is held to. A tool is certified by running this
+package on it; a better standard is a new version of this file, and nothing that reads
+certificates changes.
+
+The figures' reliability is quern's grounding contracts (thinly_witnessed, disagreeing): a
+figure rests on the observations its lineage reaches, and is closed when two that could each
+be wrong on their own agree. The four contracts here are what needs a tool's own data: its
+model drawn, its model against its figures, its figures against each other, and the
+languages it says itself in.
+"""
+
+from __future__ import annotations
+
+import quern.grounding  # noqa: F401 - registers the grounding contracts the rules call
+from quern.certify import register_explainer
+from quern.grounding import agree
+from quern.library import CounterExample, Package
+from quern.provenance import Quantity
+from quern.solver import SolverDef
+from quern.tree import Demonstration, KindDef, Node, Quern, Rule, get_node, register_native
+
+STANDARDS = "standards"
+
+
+# --- the contracts ------------------------------------------------------------------------
+
+def _tool(tree: Quern, path: str) -> Node:
+    node = get_node(tree, path)
+    if node is None:
+        raise ValueError(f"no node at '{path}'")
+    return node
+
+
+def _solids(model) -> list[dict]:
+    if not isinstance(model, dict):
+        return []
+    return list(model.get("parts") or []) + [s for pose in (model.get("poses") or {}).values() for s in pose]
+
+
+def model_draws(tree: Quern, tool: str) -> float:
+    """1 when the tool's payload model draws as line art (its parts, and its flat pose), else 0."""
+    from . import lineart
+
+    model = _tool(tree, tool).payload.get("model")
+    if not isinstance(model, dict) or not model.get("parts"):
+        return 0.0
+    try:
+        solids = list(model["parts"]) + list((model.get("poses") or {}).get("flat") or [])
+        return 1.0 if lineart.draw(lineart.solids(solids), lineart.View.axo(), px=300).lines else 0.0
+    except Exception:  # noqa: BLE001 - a model that does not draw is one that does not draw
+        return 0.0
+
+
+def _measure(solid: dict, of: str) -> float | None:
+    op = solid.get("op")
+    try:
+        if op == "cyl":
+            return {"diameter": 2.0 * solid["r"], "height": float(solid["h"]), "length": float(solid["h"])}.get(of)
+        if op in ("box", "rbox"):
+            ext = [abs(h - lo) for lo, h in zip(solid["lo"], solid["hi"])]
+            return {"x": ext[0], "y": ext[1], "z": ext[2], "length": max(ext), "thickness": min(ext),
+                    "width": sorted(ext)[1]}.get(of)
+        if op == "prism":
+            return {"x": abs(solid["x"][1] - solid["x"][0])}.get(of)
+    except (KeyError, TypeError, IndexError):
+        return None
+    return None
+
+
+def _mismatches(tree: Quern, tool: str) -> list[str]:
+    node = _tool(tree, tool)
+    out = []
+    for s in _solids(node.payload.get("model")):
+        tag = s.get("shows") if isinstance(s, dict) else None
+        if not isinstance(tag, dict):
+            continue
+        q = node.params.get(tag.get("param"))
+        got = _measure(s, str(tag.get("of", "")))
+        if q is None or got is None:
+            out.append(f"{tag.get('param')}: a solid is tagged as showing it, and it is not a figure "
+                       f"of the tool that a {s.get('op')} measures as {tag.get('of')}")
+        elif not agree(Quantity(value=got, unit=q.unit, provenance="derived", grounded=False), q):
+            out.append(f"{tag['param']}: the model's solid measures {got:g}, the figure is {q.value:g}")
+    return out
+
+
+def model_mismatches(tree: Quern, tool: str) -> float:
+    """How many solids of the tool's model, tagged "shows": {"param", "of"}, do not measure the
+    figure they are tagged with (of: diameter, length, width, thickness, height, x, y or z)."""
+    return float(len(_mismatches(tree, tool)))
+
+
+def model_shown(tree: Quern, tool: str) -> float:
+    """How many of the tool's figures a solid of its model is tagged as showing."""
+    node = _tool(tree, tool)
+    return float(len({s["shows"].get("param") for s in _solids(node.payload.get("model"))
+                      if isinstance(s, dict) and isinstance(s.get("shows"), dict)} & set(node.params)))
+
+
+def _out_of_order(tree: Quern, tool: str) -> list[str]:
+    p = {k: q.value for k, q in _tool(tree, tool).params.items()}
+    out = [f"{k} ({p[k]:g}) is above {k[:-4]}_max ({p[k[:-4] + '_max']:g})"
+           for k in sorted(p) if k.endswith("_min") and k[:-4] + "_max" in p and p[k] > p[k[:-4] + "_max"]]
+    for low, high in (("blade_thickness", "kerf"), ("kerf", "max_kerf")):
+        if low in p and high in p and p[low] > p[high]:
+            out.append(f"{low} ({p[low]:g}) is above {high} ({p[high]:g})")
+    return out
+
+
+def figures_out_of_order(tree: Quern, tool: str) -> float:
+    """How many pairs of the tool's figures contradict each other: a minimum above its maximum
+    (<x>_min, <x>_max), a blade's body thicker than its cut, a cut wider than the widest blade."""
+    return float(len(_out_of_order(tree, tool)))
+
+
+def _languages() -> list[str]:
+    """The languages furniture-design writes its documents in."""
+    from . import drawings, report, sheets, viewer
+    return sorted(set(report.TEXT) & set(drawings.LABELS) & set(sheets.LABELS) & set(viewer.WORDS))
+
+
+def _unsaid(tree: Quern, tool: str) -> list[str]:
+    say = _tool(tree, tool).payload.get("say") or {}
+    return [lang for lang in _languages()
+            if not ((say.get(lang) or {}).get("name") and (say.get(lang) or {}).get("method"))]
+
+
+def unsaid_languages(tree: Quern, tool: str) -> float:
+    """How many of the languages the documents are written in the tool does not say its name and
+    its method in (payload say.<language>.name and .method)."""
+    return float(len(_unsaid(tree, tool)))
+
+
+NATIVES = {
+    "furniture/model_draws": model_draws,
+    "furniture/model_mismatches": model_mismatches,
+    "furniture/model_shown": model_shown,
+    "furniture/figures_out_of_order": figures_out_of_order,
+    "furniture/unsaid_languages": unsaid_languages,
+}
+
+EXPLAINERS = {
+    "furniture/model_mismatches": _mismatches,
+    "furniture/figures_out_of_order": _out_of_order,
+    "furniture/unsaid_languages": lambda tree, tool: [f"not said in {lang}" for lang in _unsaid(tree, tool)],
+}
+
+
+# --- the criteria and the levels --------------------------------------------------------------
+
+def _criterion(id_: str, name: str, measures: str, *rules: str) -> Node:
+    return Node(id=id_, kind="criterion", name=name,
+                payload={"applies_to": "tool", "measures": measures, "rules": list(rules)})
+
+
+def _level(id_: str, name: str, *criteria: str) -> Node:
+    return Node(id=id_, kind="level", name=name, payload={"of": "tool"},
+                links={"requires": [f"{STANDARDS}/{c}" for c in criteria]})
+
+
+def knowledge() -> list[Node]:
+    """The branch a tree mounts beside the knowledge: the criteria a tool is judged by and the levels
+    it may reach, most demanding last."""
+    return [Node(id=STANDARDS, kind="", children=[
+        _criterion("tool-is-identified", "The tool names its maker and the clauses it is read from", "completeness",
+                   "a-tool-names-its-maker", "a-tool-rests-on-clauses"),
+        _criterion("tool-is-drawn", "The tool has a model that draws", "presentation", "a-tool-has-a-model-that-draws"),
+        _criterion("tool-drawing-is-true", "The model shows the tool's figures", "consistency",
+                   "a-tools-model-shows-its-figures"),
+        _criterion("tool-is-said", "The tool says its name and method in every language", "completeness",
+                   "a-tool-says-itself-in-every-language"),
+        _criterion("saw-states-its-cut", "A saw states its cut and its depth", "completeness",
+                   "a-saw-states-its-cut", "a-saw-states-its-depth"),
+        _criterion("tool-figures-are-consistent", "The tool's figures do not contradict each other", "consistency",
+                   "a-tools-figures-are-in-order", "a-tools-figures-agree-with-what-they-are-read-from"),
+        _criterion("tool-figures-are-observed", "Every figure was found printed in a document", "reliability",
+                   "a-tools-figures-each-rest-on-an-observation"),
+        _criterion("tool-figures-are-closed", "Every figure rests on two observations that agree", "reliability",
+                   "a-tools-figures-each-rest-on-two-observations"),
+        _level("tool-listed", "Shown, drawn, in a person's tools", "tool-is-identified", "tool-is-drawn"),
+        _level("tool-cuts-parts", "Cuts the parts of a piece", "tool-is-identified", "saw-states-its-cut",
+               "tool-figures-are-consistent", "tool-figures-are-observed"),
+        _level("tool-in-instructions", "Drawn at work in assembly instructions", "tool-is-identified",
+               "tool-is-drawn", "tool-drawing-is-true", "tool-is-said", "tool-figures-are-consistent"),
+        _level("tool-shared", "Taken into the shared packages", "tool-is-identified", "tool-is-drawn",
+               "tool-drawing-is-true", "tool-is-said", "saw-states-its-cut", "tool-figures-are-consistent",
+               "tool-figures-are-observed", "tool-figures-are-closed"),
+    ])]
+
+
+# --- a tool that meets the standard, and the ways one does not ------------------------------
+
+def _printed(value: float, unit: str, where: str) -> Quantity:
+    return Quantity(value=value, unit=unit, provenance="published", grounded=True, source=where)
+
+
+def _read(value: float, unit: str, *refs: str) -> Quantity:
+    return Quantity(value=value, unit=unit, provenance="derived", grounded=False, derived_from=list(refs))
+
+
+def _document(id_: str, pad: float = 125.0, grounded: bool = True) -> Node:
+    q = _printed(pad, "mm", "Technical data")
+    return Node(id=id_, kind="source", name=f"An example maker's {id_}",
+                payload={"publisher": "An example maker", "authority": "maker", "licence": "copyrighted"},
+                children=[Node(id="data", kind="clause", payload={"locator": "Technical data"},
+                               params={"pad_diameter": q if grounded else q.model_copy(update={"grounded": False}),
+                                       "speed_min": _printed(6000, "1/min", "Technical data"),
+                                       "speed_max": _printed(12000, "1/min", "Technical data"),
+                                       "kerf": _printed(2.0, "mm", "Technical data"),
+                                       "max_cut_depth": _printed(50.0, "mm", "Technical data")})])
+
+
+_PAD = {"op": "cyl", "r": 62.5, "h": 10, "axis": "z", "at": [0, 0, 0],
+        "shows": {"param": "pad_diameter", "of": "diameter"}}
+_BODY = {"op": "rbox", "lo": [-40, -60, 10], "hi": [40, 60, 120], "r": 12, "axis": "z"}
+_SAY = {lang: {"name": "Example sander", "method": ["Sand."]} for lang in ("fr", "en")}
+
+
+def example_tool(*, documents: tuple[str, ...] = ("manual", "page"), pad: float = 125.0, maker: str = "An example maker",
+                 model: dict | None = None, say: dict | None = None, per: bool = True, saw: bool = False,
+                 speed_min: float = 6000, drop: tuple[str, ...] = ()) -> Node:
+    """An example sander (or, with saw, a saw) read from the documents named."""
+    def refs(name: str) -> list[str]:
+        return [f"sources/{d}/data/{name}" for d in documents]
+    params = {"pad_diameter": _read(pad, "mm", *refs("pad_diameter")),
+              "speed_min": _read(speed_min, "1/min", *refs("speed_min")),
+              "speed_max": _read(12000, "1/min", *refs("speed_max"))}
+    payload = {"maker": maker, "does": "sands wood", "say": _SAY if say is None else say,
+               "model": {"parts": [_PAD, _BODY]} if model is None else model}
+    if saw:
+        payload["saw_kind"] = "pull saw"
+        params |= {"kerf": _read(2.0, "mm", *refs("kerf")), "max_cut_depth": _read(50.0, "mm", *refs("max_cut_depth"))}
+    return Node(id="example-sander", kind="tool", name="Example sander", payload=payload,
+                params={k: v for k, v in params.items() if k not in drop},
+                links={"per": [f"sources/{d}/data" for d in documents]} if per else {})
+
+
+def _world(tool: Node | None = None, *, documents: list[Node] | None = None, standards: Node | None = None) -> list[Node]:
+    return [Node(id="sources", kind="", children=documents or [_document("manual"), _document("page")]),
+            Node(id="tools", kind="", children=[tool or example_tool(), example_tool(saw=True).model_copy(
+                update={"id": "example-saw", "name": "Example saw"})]),
+            standards or knowledge()[0]]
+
+
+SPEC = {
+    "furniture/model_draws": [
+        Demonstration(contract="furniture/model_draws", nodes=_world(), args=["tools/example-sander"], expect=1,
+                      because="a pad and a body: it draws"),
+        Demonstration(contract="furniture/model_draws", nodes=_world(example_tool(model={})),
+                      args=["tools/example-sander"], expect=0, because="a tool with no model has no drawing"),
+        Demonstration(contract="furniture/model_draws",
+                      nodes=_world(example_tool(model={"parts": [{"op": "sphere", "r": 10}]})),
+                      args=["tools/example-sander"], expect=0, because="a solid line art has no op for draws nothing"),
+    ],
+    "furniture/model_mismatches": [
+        Demonstration(contract="furniture/model_mismatches", nodes=_world(), args=["tools/example-sander"], expect=0,
+                      because="the solid tagged as the pad measures the pad's diameter"),
+        Demonstration(contract="furniture/model_mismatches", nodes=_world(example_tool(pad=150.0)),
+                      args=["tools/example-sander"], expect=1,
+                      because="the pad drawn is 125 and the figure says 150: one of them is wrong"),
+    ],
+    "furniture/model_shown": [
+        Demonstration(contract="furniture/model_shown", nodes=_world(), args=["tools/example-sander"], expect=1,
+                      because="one figure, the pad's diameter, is shown by a solid"),
+        Demonstration(contract="furniture/model_shown", nodes=_world(example_tool(model={"parts": [_BODY]})),
+                      args=["tools/example-sander"], expect=0, because="a model none of whose solids is tagged"),
+    ],
+    "furniture/figures_out_of_order": [
+        Demonstration(contract="furniture/figures_out_of_order", nodes=_world(), args=["tools/example-sander"],
+                      expect=0, because="the slowest speed is under the fastest"),
+        Demonstration(contract="furniture/figures_out_of_order", nodes=_world(example_tool(speed_min=20000)),
+                      args=["tools/example-sander"], expect=1, because="a minimum above its maximum"),
+    ],
+    "furniture/unsaid_languages": [
+        Demonstration(contract="furniture/unsaid_languages", nodes=_world(), args=["tools/example-sander"], expect=0,
+                      because="its name and method in French and in English"),
+        Demonstration(contract="furniture/unsaid_languages", nodes=_world(example_tool(say={"en": _SAY["en"]})),
+                      args=["tools/example-sander"], expect=1, because="said in English only"),
+    ],
+}
+
+
+def register() -> None:
+    for name, fn in NATIVES.items():
+        register_native(name, fn, SPEC[name])
+    for name, fn in EXPLAINERS.items():
+        register_explainer(name, fn)
+
+
+# --- the package: kinds, rules, criteria and levels ------------------------------------------
+
+VOCABULARY = [
+    KindDef(kind="criterion", description=(
+        "One thing a standard judges about a subject: payload applies_to (the kind of node it judges), "
+        "rules (the names of the rules that judge it) and measures (completeness, reliability, "
+        "consistency or presentation). Held when every rule it names holds on the subject and beneath "
+        "it. Read by quern.certify.")),
+    KindDef(kind="level", description=(
+        "A use a subject may be put to: payload of (the kind of subject), and the link requires to the "
+        "criteria that use needs. Reached when every criterion it requires is held. Read by quern.certify."),
+        links={"requires": "the criteria this use needs"}),
+]
+
+_MEASURES = ("completeness", "reliability", "consistency", "presentation")
+
+RULES = [
+    Rule(name="a-criterion-names-what-it-judges", kind="criterion",
+         expr="len(payload(self, 'rules', '')) > 0 and len(payload(self, 'applies_to', '')) > 0 and ("
+              + " or ".join(f"payload(self, 'measures', '') == '{m}'" for m in _MEASURES) + ")",
+         description="A criterion names the kind of node it judges, the rules that judge it, and which of "
+                     "completeness, reliability, consistency or presentation it measures."),
+    Rule(name="a-level-requires-criteria", kind="level",
+         expr="len(payload(self, 'of', '')) > 0 and len(linked(self, 'requires')) > 0 and "
+              "every(c, linked(self, 'requires'), some(k, nodes('criterion'), k == c))",
+         description="A level says the kind of subject it is a use of and requires criteria that exist."),
+    Rule(name="a-tool-names-its-maker", kind="tool", expr="len(payload(self, 'maker', '')) > 0",
+         description="Name the tool's maker (payload maker)."),
+    Rule(name="a-tool-rests-on-clauses", kind="tool",
+         expr="len(linked(self, 'per')) > 0 and every(c, linked(self, 'per'), some(k, nodes('clause'), k == c))",
+         description="Link the tool per to the clauses of its maker's documents it is read from."),
+    Rule(name="a-tool-says-itself-in-every-language", kind="tool",
+         expr="solve('furniture/unsaid_languages', self) == 0",
+         description="Say the tool's name and method (payload say.<language>.name and .method) in every "
+                     "language the documents are written in."),
+    Rule(name="a-tool-has-a-model-that-draws", kind="tool", expr="solve('furniture/model_draws', self) == 1",
+         description='Give the tool its model (payload model {"parts": [solid, ...]}, mm, Z up, built from the '
+                     "maker's dimensions and photos): it is drawn from it."),
+    Rule(name="a-tools-model-shows-its-figures", kind="tool",
+         expr="solve('furniture/model_mismatches', self) == 0 and solve('furniture/model_shown', self) > 0",
+         description='Tag the solids of the model that show a figure ("shows": {"param", "of"}), each measuring '
+                     "the figure it shows, so the drawing is held to the figures."),
+    Rule(name="a-tools-figures-are-in-order", kind="tool", expr="solve('furniture/figures_out_of_order', self) == 0",
+         description="A tool's figures do not contradict each other: correct the one that is wrong."),
+    Rule(name="a-tools-figures-each-rest-on-an-observation", kind="tool",
+         expr="solve('grounding/thinly_witnessed', self, 1) == 0",
+         description="Derive every figure from a clause whose value was found printed in its document: give the "
+                     "words exactly as printed (the clause's payload rows) and an address that can be fetched."),
+    Rule(name="a-tools-figures-each-rest-on-two-observations", kind="tool",
+         expr="solve('grounding/thinly_witnessed', self) == 0",
+         description="Close every figure: derive it from a second document of its maker that prints it (the "
+                     "product page, the data sheet, a parts or accessories list), or from the figure of "
+                     "another tool it must equal (the disc a sander takes, the hose a port takes)."),
+    Rule(name="a-tools-figures-agree-with-what-they-are-read-from", kind="tool",
+         expr="solve('grounding/disagreeing', self) == 0",
+         description="A figure and a value it is derived from differ: find which is right (a unit, another "
+                     "variant of the tool) and correct it."),
+    Rule(name="a-saw-states-its-cut", kind="tool",
+         expr="len(payload(self, 'saw_kind', '')) == 0 or states(self, 'kerf') or states(self, 'max_kerf')",
+         description="State the cut of the saw's blade (kerf, or max_kerf), from its maker's document."),
+    Rule(name="a-saw-states-its-depth", kind="tool",
+         expr="len(payload(self, 'saw_kind', '')) == 0 or states(self, 'max_cut_depth')",
+         description="State the thickest board the saw cuts (max_cut_depth), from its maker's document."),
+]
+
+
+register()
+
+EXAMPLES = _world()
+
+_BAD_STANDARD = Node(id=STANDARDS, kind="", children=[
+    Node(id="says-nothing", kind="criterion", payload={"applies_to": "tool", "measures": "completeness"}),
+    Node(id="needs-nothing", kind="level", payload={"of": "tool"}, links={"requires": ["standards/ghost"]})])
+
+COUNTER_EXAMPLES = [
+    CounterExample(rule="a-criterion-names-what-it-judges", nodes=_world(standards=_BAD_STANDARD),
+                   because="a criterion that names no rule judges nothing"),
+    CounterExample(rule="a-level-requires-criteria", nodes=_world(standards=_BAD_STANDARD),
+                   because="a level requiring a criterion that does not exist"),
+    CounterExample(rule="a-tool-names-its-maker", nodes=_world(example_tool(maker="")),
+                   because="a tool whose maker nobody named"),
+    CounterExample(rule="a-tool-rests-on-clauses", nodes=_world(example_tool(per=False)),
+                   because="a tool linked to no clause"),
+    CounterExample(rule="a-tool-says-itself-in-every-language", nodes=_world(example_tool(say={"en": _SAY["en"]})),
+                   because="a tool said in English only"),
+    CounterExample(rule="a-tool-has-a-model-that-draws", nodes=_world(example_tool(model={})),
+                   because="a tool with figures, sources and a method, and no model: a name with no drawing"),
+    CounterExample(rule="a-tools-model-shows-its-figures", nodes=_world(example_tool(pad=150.0),
+                   documents=[_document("manual", 150.0), _document("page", 150.0)]),
+                   because="the pad drawn is 125 where both documents print 150"),
+    CounterExample(rule="a-tools-figures-are-in-order", nodes=_world(example_tool(speed_min=20000)),
+                   because="a slowest speed above the fastest"),
+    CounterExample(rule="a-tools-figures-each-rest-on-an-observation",
+                   nodes=_world(documents=[_document("manual", grounded=False), _document("page", grounded=False)]),
+                   because="a pad diameter nobody found printed in either document"),
+    CounterExample(rule="a-tools-figures-each-rest-on-two-observations", nodes=_world(example_tool(documents=("manual",))),
+                   because="every figure read from one manual: one reading each"),
+    CounterExample(rule="a-tools-figures-agree-with-what-they-are-read-from",
+                   nodes=_world(documents=[_document("manual"), _document("page", 150.0)]),
+                   because="the manual prints 125 and the product page 150"),
+    CounterExample(rule="a-saw-states-its-cut", nodes=_world(example_tool(saw=True, drop=("kerf",))),
+                   because="a saw whose cut nobody stated"),
+    CounterExample(rule="a-saw-states-its-depth", nodes=_world(example_tool(saw=True, drop=("max_cut_depth",))),
+                   because="a saw whose depth nobody stated"),
+]
+
+PACKAGE = Package(
+    name="furniture-standards",
+    version="0.1.0",
+    description=(
+        "What a tool's entry is held to for each use it may be put to, as criteria and levels a certificate "
+        "is run from (quern.certify). Criteria: the tool is identified, drawn, its drawing true to its "
+        "figures, said in every language, a saw's cut and depth stated, its figures consistent, each found "
+        "printed in a document, each resting on two observations that agree. Levels: shown in a person's "
+        "tools, cuts the parts of a piece, drawn at work in assembly instructions, taken into the shared "
+        "packages. The rules grade and refuse nothing."),
+    publisher="xag/furniture-design",
+    vocabulary=VOCABULARY,
+    rules=RULES,
+    solvers=[SolverDef(name=name, native=True, reads=[""], description=(fn.__doc__ or "").strip().split("\n\n")[0])
+             for name, fn in NATIVES.items()],
+    examples=EXAMPLES,
+    counter_examples=COUNTER_EXAMPLES,
+)

@@ -195,7 +195,7 @@ requires-dist = [
     { name = "numpy", specifier = ">=2.0" },
     { name = "pillow", specifier = ">=10.0" },
     { name = "pymupdf", specifier = ">=1.24" },
-    { name = "quern", git = "https://github.com/xag/quern?rev=07eff6efc0625ee0613a083095db4e6b75be7284" },
+    { name = "quern", git = "https://github.com/xag/quern?rev=5af149e9272b730ad5b4fe03cdb1a63b18c18950" },
     { name = "reportlab", specifier = ">=5.1.0" },
     { name = "shapely", specifier = ">=2.2.0" },
 ]
@@ -710,7 +710,7 @@ wheels = [
 [[package]]
 name = "quern"
 version = "0.1.5"
-source = { git = "https://github.com/xag/quern?rev=07eff6efc0625ee0613a083095db4e6b75be7284#07eff6efc0625ee0613a083095db4e6b75be7284" }
+source = { git = "https://github.com/xag/quern?rev=5af149e9272b730ad5b4fe03cdb1a63b18c18950#5af149e9272b730ad5b4fe03cdb1a63b18c18950" }
 dependencies = [
     { name = "fluent-syntax" },
     { name = "pydantic" },
