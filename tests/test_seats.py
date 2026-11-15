@@ -163,3 +163,33 @@ def test_short_instructions_draw_only_the_marks_and_the_holes_of_each_kind_of_jo
     short = assembly_instructions(scene(tree, "pieces/cabinet"), tmp_path / "short.pdf", "fr")
     pages = [p.read_bytes().count(b"/Type /Page\n") or p.read_bytes().count(b"/Type /Page") for p in (full, short)]
     assert pages[0] - pages[1] == 1   # two frames a kind of joint: the corners and the shelves on one page
+
+
+def test_no_drawing_is_painted_inside_a_frame_after_its_border(tmp_path, monkeypatch):
+    """A part that reaches a frame's edge would paint over its border: each frame's border comes after
+    every fill drawn inside it."""
+    from furniture_design import grooving
+    events, real_frame, real_image, real_page = [], grooving.frame, Canvas.drawImage, Canvas.showPage
+    monkeypatch.setattr(grooving, "frame", lambda pen, b, n: (events.append(("frame", b)), real_frame(pen, b, n)))
+    monkeypatch.setattr(Canvas, "drawImage", lambda self, img, x, y, *a, **k: (
+        events.append(("fill", x / grooving.mm, y / grooving.mm)), real_image(self, img, x, y, *a, **k))[1])
+    monkeypatch.setattr(Canvas, "showPage", lambda self: (events.append(("page",)), real_page(self))[1])
+    tree = _tree()
+    tree.get("tools/jointer").payload["model"] = {
+        "parts": [{"op": "box", "lo": [-60, 0, 0], "hi": [60, 150, 30]}],
+        "poses": {"flat": [{"op": "box", "lo": [-60, -70, 20], "hi": [60, 0, 23]}], "standing": []},
+        "dials": [{"at": [50, 10, 40], "shows": "max"}]}
+    sc = scene(tree, "pieces/cabinet")
+    c = Canvas(str(tmp_path / "grooving.pdf"))
+    grooving_pages(c, Pen(c), sc, sc.steps[0], LABELS["fr"])
+    framed = []
+    for kind, *at in events:
+        if kind == "page":
+            framed = []
+        elif kind == "frame":
+            framed.append(at[0])
+        else:
+            x, y = at
+            assert not any(bx <= x + 0.01 and x < bx + bw and by <= y + 0.01 and y < by + bh
+                           for bx, by, bw, bh in framed), (x, y)
+    assert any(kind == "frame" for kind, *_ in events) and any(kind == "fill" for kind, *_ in events)

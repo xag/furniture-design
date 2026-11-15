@@ -532,19 +532,19 @@ def grooving_pages(c, pen, sc: Scene, step, L: dict, W_: float = 210, H_: float 
         if g["n"] > 1:
             pen.text(15, y_top - 6, f"{g['n']} ×", 5, INK, bold=True)
         boxes = [(15 + (i % 2) * (fw + 4), y_top - 8 - (i // 2 + 1) * fh - (i // 2) * 4, fw, fh) for i in range(4)]
+        # each frame's border and number are drawn after what it shows, so a part that reaches the
+        # frame's edge does not paint over its border
         if short:
-            frame(pen, boxes[0], 1)
             if f.line is not None:
                 f_shelf(pen, boxes[0], e, f, sc, "mark", mach_model, offset)
             else:
                 f_mark(pen, boxes[0], sc, e, f)
+            frame(pen, boxes[0], 1)
             if e.hole:
-                frame(pen, boxes[1], 2)
                 f_drill(pen, boxes[1], e, thickness(pe), len(e.points), pe.mark, jig_model)
+                frame(pen, boxes[1], 2)
             y_top -= need
             continue
-        for i, bx in enumerate(boxes):
-            frame(pen, bx, i + 1)
         if f.line is not None:
             f_shelf(pen, boxes[0], e, f, sc, "mark", mach_model, offset)
             f_shelf(pen, boxes[1], e, f, sc, "shelf", mach_model, offset)
@@ -555,4 +555,6 @@ def grooving_pages(c, pen, sc: Scene, step, L: dict, W_: float = 210, H_: float 
             f_face(pen, boxes[2], f, thickness(pf), pf.mark, mach_model)
         if e.hole:
             f_drill(pen, boxes[3], e, thickness(pe), len(e.points), pe.mark, jig_model)
+        for i, bx in enumerate(boxes):
+            frame(pen, bx, i + 1)
         y_top -= need
