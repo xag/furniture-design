@@ -1049,6 +1049,9 @@ def entries() -> list[Node]:
         ),
         Node(
             id="a-joints-grooves-are-cut-from-one-reference-the-card-names", kind="decision",
+            meta={"expected:what-a-decision-rests-on-still-stands":
+                  "superseded by the-grooving-step-is-drawn-to-ikeas-rules, and the cut decision it rests on "
+                  "by a-cut-is-drawn-to-ikeas-rules; each restates what of the two still binds"},
             name="A preparation step that cuts the grooves of joints gives, after its picture, the "
                  "method of the joints' tools on a page and a card per part: the part's face drawn square to "
                  "it with every groove and access hole, and sentences saying for each joint the surface "
@@ -1242,6 +1245,43 @@ def entries() -> list[Node]:
                      "The owner: not clear at all; IKEA and Lamello draw the real tool in perspective."),
                 _alt("one-page", "All the frames of all the joints on one page",
                      "Sixteen frames on an A4 page leave each too small to read the machine."),
+            ],
+        ),
+        Node(
+            id="a-cut-is-drawn-to-ikeas-rules", kind="decision",
+            name="A part's cut is drawn, not written, by the rules the grooving step is drawn to: frames of "
+                 "its own after its step's picture, the board with the marks drawn where they go and their "
+                 "distances from the edges they start at, the saw lines numbered in the order they are sawn, "
+                 "and the saw drawn at work from a model of it, one action per frame, no sentence. Still "
+                 "binding from the decision it replaces: how a cut is made is never typed into a piece; where "
+                 "to mark it, the edges it is measured from and the saw lines and their order are read from "
+                 "the cut's box against its board; the kind of cut is stored nowhere; the tools' methods stay "
+                 "knowledge, sentences resting on clauses, which the frames draw and the instructions do not "
+                 "print",
+            links={"rests_on": ["the-documents-are-for-the-people-who-build",
+                                "the-grooving-step-is-drawn-to-ikeas-rules"],
+                   "supersedes": ["a-cut-is-explained-from-its-shape-and-its-tools-clauses"]},
+            payload={"decided_on": "2026-11-15",
+                     "the_owner": "We have another case of assembly intructions that break the rules and still "
+                                  "pass: [the cut card of the bench's side, 'Tracer : 25 depuis le chant "
+                                  "arrière, 115 depuis le chant du bas' and the hand saw's four sentences] I "
+                                  "need Ikea style instructions for these too. Why wheren't they made this way?",
+                     "why": "The owner's complaint that made the grooving pages drawn was about the "
+                            "instructions as a whole ('tu as dumpé toutes tes connaissances dans les "
+                            "instructions ... je te demande des instructions à la Ikea'), but the decision "
+                            "was written for the grooving step only, so the cut card kept the form it had "
+                            "rejected there (a card per part with sentences and a method page), and the "
+                            "tests asserted those sentences. The same reasons hold for a cut: IKEA tests its "
+                            "instructions on people who use no text, and one action diagram per step cuts "
+                            "time and errors (Heiser 2004).",
+                     "falsified_by": "a builder who cannot mark and saw a part's cut from the frames without "
+                                     "reading anything else"},
+            children=[
+                _alt("sentences-per-cut", "Keep the cut card's sentences and the saw's method beside it",
+                     "The owner: assembly instructions that break the rules; the grooving step already turned "
+                     "this form down."),
+                _alt("short-only", "Leave the sentences to the full instructions and draw only in short ones",
+                     "Short still prints where to mark as a sentence, and full is the default most people get."),
             ],
         ),
     ]

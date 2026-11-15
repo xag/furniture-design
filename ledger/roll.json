@@ -50,6 +50,21 @@
     "digest": "cbbb602450a1"
   },
   {
+    "path": "a-cut-is-drawn-to-ikeas-rules",
+    "kind": "decision",
+    "digest": "18bac07ced71"
+  },
+  {
+    "path": "a-cut-is-drawn-to-ikeas-rules/sentences-per-cut",
+    "kind": "alternative",
+    "digest": "fa71a8c94f77"
+  },
+  {
+    "path": "a-cut-is-drawn-to-ikeas-rules/short-only",
+    "kind": "alternative",
+    "digest": "910b0488695b"
+  },
+  {
     "path": "a-cut-is-explained-from-its-shape-and-its-tools-clauses",
     "kind": "decision",
     "digest": "b7cc716da27b"
