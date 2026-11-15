@@ -162,7 +162,8 @@ def checks(tree: Quern, piece: str, lang: str = "fr") -> list[dict]:
         req = get_node(tree, case)
         src = ", ".join(t.rsplit("/", 2)[-2].upper().replace("GSA-", "GSA ")
                         for t in (req.links or {}).get("per", [])[:1])
-        row = {"requirement": T["sideways"].format(f=_fmt(force, 0), src=src)}
+        # `case` names the requirement the row is about, so a reader finds a case's row by it, not by its wording
+        row = {"requirement": T["sideways"].format(f=_fmt(force, 0), src=src), "case": case}
         try:
             m = sideways_margin(tree, prefix, case)
             if not (root.links or {}).get("braced_by"):
