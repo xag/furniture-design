@@ -1113,6 +1113,39 @@ def entries() -> list[Node]:
                      "A maker's settings are its own, and the general method names no maker."),
             ],
         ),
+        Node(
+            id="a-source-says-who-stands-behind-it", kind="decision",
+            name="Every source says its authority: maker (on its own product or service), standard, "
+                 "research, editorial (an edited publication) or none (a person's video, page or post). "
+                 "A clause of a source with no authority is in the knowledge only verified: a check the "
+                 "knowledge already holds, run on a case, confirms it, and the clause says which check, "
+                 "the clauses with authority it reads, the case, the result and the date (payload "
+                 "verified). Rules a-source-says-its-authority and a-clause-with-no-authority-is-verified",
+            links={"rests_on": ["the-rules-read-the-knowledge"]},
+            payload={"decided_on": "2026-11-15",
+                     "the_owner": "Et on source notre modèle de connaissances sur les tutos. Mais il faut "
+                                  "des tutos authoritatifs. En tout cas il faut conserver une notion "
+                                  "d'autorité. Si on a un moyen de vérifier des approches proposées par "
+                                  "des tutos non authoritatifs, cad qu'on teste l'idée sur les règles "
+                                  "qu'on a par ailleurs et ça nous confirme que ça marche, c'est bien, "
+                                  "et il faut le loguer sur le modèle",
+                     "why": "Tutorials show how a machine is used better than a manual's text, but anyone "
+                            "can publish one; the knowledge grounds instructions people follow at the "
+                            "machine, so what it says has to be weighed by who says it, and what no one "
+                            "stands behind has to be shown to work by what someone does.",
+                     "falsified_by": "a clause with authority none whose verification, run again, no "
+                                     "longer gives its result"},
+            children=[
+                _alt("authoritative-only", "Take nothing from a source with no authority",
+                     "The owner asked that an approach from such a tutorial be kept when a check "
+                     "confirms it."),
+                _alt("a-score", "Grade each source on a scale of trust",
+                     "A number between two sources says nothing a reader can check; who published "
+                     "it can be."),
+                _alt("authority-by-default", "Count a source that says nothing as authoritative",
+                     "A tutorial added without the field would pass as a maker's word."),
+            ],
+        ),
     ]
 
 

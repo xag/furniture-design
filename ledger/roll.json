@@ -355,6 +355,26 @@
     "digest": "978c23dfe4e7"
   },
   {
+    "path": "a-source-says-who-stands-behind-it",
+    "kind": "decision",
+    "digest": "b187494c658b"
+  },
+  {
+    "path": "a-source-says-who-stands-behind-it/a-score",
+    "kind": "alternative",
+    "digest": "065aae47a207"
+  },
+  {
+    "path": "a-source-says-who-stands-behind-it/authoritative-only",
+    "kind": "alternative",
+    "digest": "2180acc34b91"
+  },
+  {
+    "path": "a-source-says-who-stands-behind-it/authority-by-default",
+    "kind": "alternative",
+    "digest": "87cf1adf218d"
+  },
+  {
     "path": "a-species-mean-modulus-is-taken-as-apparent",
     "kind": "decision",
     "digest": "07a20cad6505"

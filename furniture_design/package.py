@@ -27,8 +27,13 @@ VOCABULARY = [
         "A publication the knowledge base quotes: payload title-like name, publisher, year, "
         "identifier, url, sha256 of what was fetched, licence (public-domain, cc-by-4.0, "
         "copyrighted, or unstated when it could not be established) and, when the licence "
-        "allows (public-domain, cc-by-4.0), capture (the path of the text kept in the repo). Its "
-        "children are the clauses quoted from it.")),
+        "allows (public-domain, cc-by-4.0), capture (the path of the text kept in the repo), and "
+        "authority, who stands behind what it says: maker (the maker of the product or provider of "
+        "the service it describes, on its own product), standard (a standards body or public "
+        "authority), research (a peer-reviewed paper, a research institute or testing laboratory), "
+        "editorial (an edited publication: a handbook, a training manual, a trade body's guide, a "
+        "magazine) or none (anyone else: a person's video, page or post). Its children are the "
+        "clauses quoted from it.")),
     KindDef(kind="clause", description=(
         "A located statement of its parent source: payload locator (chapter, table, page) "
         "and quote (verbatim); transcribed when the statement is an equation or a table row "
@@ -40,7 +45,10 @@ VOCABULARY = [
         "printed, the number, how it becomes SI]. A deflection limit states share_of_span (the "
         "deflection over the span), max_deflection (mm), surface_load (kg/m2), load_duration (h) "
         "or creep_factor (final over initial deflection), and in payload what it applies_to, when "
-        "the deflection is measured and under which load."),
+        "the deflection is measured and under which load. A clause of a source with no authority "
+        "carries payload verified: the check this knowledge already holds that confirms what it "
+        "says (by: a rule or calculation; with: the clauses of sources with authority that check "
+        "reads; case: the node it was run on; result: what it gave; on: the date)."),
         params={"(any)": "a quantity the clause states, in SI, its original wording in note"}),
     KindDef(kind="material", description=(
         "A material a part is made of. Its params are its properties, each derived_from the "
@@ -217,6 +225,18 @@ RULES = [
                      "quotes it, unless the source is copyrighted, or its licence could not "
                      "be established (unstated): then it carries the values and the locator, "
                      "and the words stay with their publisher."),
+    Rule(name="a-source-says-its-authority", kind="source",
+         expr="payload(self, 'authority', '') == 'maker' or payload(self, 'authority', '') == 'standard' "
+              "or payload(self, 'authority', '') == 'research' "
+              "or payload(self, 'authority', '') == 'editorial' or payload(self, 'authority', '') == 'none'",
+         description="A source says who stands behind what it says: its maker, a standards body, "
+                     "research, an edited publication, or no one."),
+    Rule(name="a-clause-with-no-authority-is-verified", kind="clause",
+         expr="payload(parent(self), 'authority', '') != 'none' "
+              "or len(payload(self, 'verified', '')) > 0",
+         description="What a source with no authority says (a person's tutorial) enters the "
+                     "knowledge only confirmed by a check this knowledge already holds, and the "
+                     "clause says which check, on what, with what result and when."),
     Rule(name="a-connector-rests-on-clauses", kind="connector",
          expr="len(linked(self, 'per')) > 0 and "
               "every(c, linked(self, 'per'), some(k, nodes('clause'), k == c))",
@@ -437,6 +457,7 @@ def _joinery(*, thickness: float = 18, width: float = 300, tool: str = "tools/gr
     tool it describes, and a box whose two sides it joins at the corner, surface cut."""
     catalogue = Node(id="example-catalogue", kind="source", name="An example maker's catalogue",
                      payload={"publisher": "an example maker", "licence": "copyrighted",
+                              "authority": "maker",
                               "url": "https://example.com/connector"},
                      children=[Node(id="technical-data", kind="clause",
                                     payload={"locator": "technical data table"},
@@ -598,7 +619,19 @@ _UNQUOTED = Node(id="sources", kind="", children=[
     Node(id="somewhere", kind="source", children=[
         Node(id="said", kind="clause", payload={"locator": "p. 1"})])])
 
+_UNSAID = Node(id="sources", kind="", children=[
+    Node(id="somewhere", kind="source", payload={"licence": "copyrighted"})])
+
+_UNVERIFIED = Node(id="sources", kind="", children=[
+    Node(id="a-video", kind="source", payload={"licence": "copyrighted", "authority": "none"}, children=[
+        Node(id="trick", kind="clause", payload={"locator": "at 2:10"})])])
+
 COUNTER_EXAMPLES = [
+    CounterExample(rule="a-source-says-its-authority", nodes=[_UNSAID],
+                   because="a source that does not say who stands behind it cannot be weighed"),
+    CounterExample(rule="a-clause-with-no-authority-is-verified", nodes=[_UNVERIFIED],
+                   because="a trick from a person's video, taken in unchecked, would be followed "
+                           "as if its maker had said it"),
     CounterExample(rule="a-clause-quotes-its-source", nodes=[_UNQUOTED],
                    because="a clause with no quote states nothing anyone can check"),
     CounterExample(rule="a-part-with-cuts-is-cut-with-tools-that-rest-on-clauses",
@@ -688,7 +721,7 @@ COUNTER_EXAMPLES = [
 
 PACKAGE = Package(
     name="furniture-design",
-    version="0.11.0",
+    version="0.12.0",
     description=(
         "Furniture designs and the published knowledge they are judged against. Kinds: "
         "source and clause (a publication and its verbatim, located statements, with the "

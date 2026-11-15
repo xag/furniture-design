@@ -1935,13 +1935,56 @@ def requirements() -> Node:
     return Node(id="requirements", kind="", children=[clothing, carpet, sideways])
 
 
+AUTHORITIES = {
+    "maker": "the maker of the product or the provider of the service it describes, saying how its "
+             "own product is made or used (a manual, a declaration of performance, a data sheet, a "
+             "product page, a shop's own page or what its staff said)",
+    "standard": "a standards body or a public authority's rule, specification or test method",
+    "research": "a peer-reviewed paper, a research institute or a testing laboratory's report",
+    "editorial": "an edited publication that is none of the above: a handbook, a training manual, "
+                 "a trade body's guide, a woodworking magazine",
+    "none": "anyone else: a person's video, page or post. What it says enters the knowledge only "
+            "verified by a check this knowledge already holds, the verification stated on the clause",
+}
+
+AUTHORITY = {
+    "wood-handbook": "research", "federal-register-2023-08997": "standard",
+    "gsa-fnae-80-214a": "standard", "tm-9-243": "editorial", "fm-5-426": "editorial",
+    **{f"tropix-{s}": "research" for s in (
+        "oak-european", "beech-european", "fir-silver", "spruce-norway", "pine-scots", "pine-maritime",
+        "ash-european", "robinia", "acacia-mangium", "teak", "okoume", "poplar", "eucalyptus-grandis")},
+    "lwf-wissen-42": "research", "schmidtova-2026": "research", "boruvka-2018": "research",
+    "dti-report-804821-1": "research", "iso-7170-2021-preview": "standard",
+    "catas-warped-shelves-2023": "research", "catas-comparison-table-storage": "research",
+    "catas-en-16121-2023": "research", "kcma-a161-1-2022": "standard", "aws-2009-section-10": "standard",
+    "sefa-8-pl-2026": "standard", "icc-300-2017-public-comment-draft": "standard",
+    "swedish-wood-design-vol-2-2022": "editorial", "cpa-shelving-bulletin": "editorial",
+    "ewpaa-shelving-design-manual": "editorial", "epf-mdf-shelves": "editorial",
+    "gsa-3fne-00-589a": "standard", "nih-drm-news-to-use-2016-02": "standard",
+    "en-12520-2015-preview": "standard", "dti-report-190534-9-en-16139": "research",
+    "kimball-ansi-bifma-tests": "maker", "tuv-report-68-190-18-0976-01": "research",
+    "makita-pj7000-manual": "maker", "dewalt-dw682-manual": "maker", "festool-df500-manual": "maker",
+    "woodsmith-aligning-edge-joints": "editorial", "woodsmith-biscuit-essentials": "editorial",
+    "popular-woodworking-plate-joiner-tips": "editorial", "fine-woodworking-biscuit-basics": "editorial",
+}
+
+
+def with_authority(sources: list[Node], authority: dict[str, str]) -> list[Node]:
+    """The sources, each saying in payload `authority` who stands behind it, from `authority`
+    (source id: one of AUTHORITIES). A source the table does not name is left without it, and
+    the rule a-source-says-its-authority refuses it."""
+    for s in sources:
+        if s.id in authority:
+            s.payload = {**s.payload, "authority": authority[s.id]}
+    return sources
+
+
 def knowledge() -> list[Node]:
     """The top-level branches a design tree mounts: sources, materials, requirements, and
     the hand tools that cut a part's cuts."""
-    return [Node(id="sources", kind="", children=[wood_handbook(), federal_register(), gsa_fnae(),
-                                                  tm_9_243(), fm_5_426(), *tropix(), schmidtova(),
-                                                  boruvka(), *sag_limits(), *seating_tests(),
-                                                  *jointer_sources()]),
+    sources = [wood_handbook(), federal_register(), gsa_fnae(), tm_9_243(), fm_5_426(), *tropix(),
+               schmidtova(), boruvka(), *sag_limits(), *seating_tests(), *jointer_sources()]
+    return [Node(id="sources", kind="", children=with_authority(sources, AUTHORITY)),
             materials(), requirements(), tools()]
 
 
