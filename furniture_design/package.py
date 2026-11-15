@@ -137,6 +137,14 @@ VOCABULARY = [
                "moves_per": "the clause of the movement equation it is judged by",
                "made_with": "the tools that cut its cuts",
                "sawn_with": "the saws that cut it out of its board"}),
+    KindDef(kind="assembly", description=(
+        "Parts that go together as one thing inside a piece (a door, a rail, a drawer), beneath "
+        "the piece or another assembly, to any depth. It places nothing and weighs nothing: each "
+        "part under it is placed as if the assembly were not there, and reads the params of the "
+        "nodes holding it as before. A link that names a part under it (a joint's joins, a load's "
+        "on) names it by its whole path, through its assemblies. The 3D view lists a piece by its assemblies: picking one "
+        "shows it alone, and a line leads back up to the piece."),
+        params={}, links={}),
     KindDef(kind="tool", description=(
         "A machine, jig or hand tool that cuts or drills what a part or a joint needs: payload "
         "maker, what it does (does) and, for a saw, saw_kind (hand saw, pull saw, jigsaw, "
@@ -461,7 +469,8 @@ def _cabinet(clearance_mm: float, rh_max: float) -> list[Node]:
                         "moves_in": ["climates/living-room"],
                         "moves_per": [f"{WOOD_HANDBOOK}/dimensional-change-13-3"]})
     return [Node(id="climates", kind="", children=[room]),
-            Node(id="cabinet", kind="piece", children=[panel])]
+            Node(id="cabinet", kind="piece", children=[
+                Node(id="back", kind="assembly", name="Back", children=[panel])])]
 
 
 def _joinery(*, thickness: float = 18, width: float = 300, tool: str = "tools/groove-cutter",
@@ -734,12 +743,12 @@ COUNTER_EXAMPLES = [
 
 PACKAGE = Package(
     name="furniture-design",
-    version="0.16.0",
+    version="0.17.0",
     description=(
         "Furniture designs and the published knowledge they are judged against. Kinds: "
         "source and clause (a publication and its verbatim, located statements, with the "
         "quantities they state), material (properties derived from clauses), requirement "
-        "(a demand resting on clauses, with its limits and test conditions), piece, part and "
+        "(a demand resting on clauses, with its limits and test conditions), piece, assembly, part and "
         "load. Rules: every clause quotes its source; requirements and materials rest on "
         "clauses; a piece in a requirement's scope is held to it; a piece stands in its "
         "stability cases (furniture/tipping_cases); a part bends within its longtime sag "

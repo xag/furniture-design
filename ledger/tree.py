@@ -1416,6 +1416,34 @@ def entries() -> list[Node]:
                      "Turned down by the owner: the standard must improve without the code."),
             ],
         ),
+        Node(
+            id="a-piece-is-walked-by-its-assemblies", kind="decision",
+            name="A piece groups its parts in assemblies (kind assembly: a door, a rail, a drawer), to any depth; an "
+                 "assembly places and weighs nothing, so the checks and the other documents read the parts as before. "
+                 "The 3D view's parts list is the assembly shown: its assemblies, then its own parts; picking an "
+                 "assembly shows it alone, fitted, with a line leading back up to the piece. One whose longest side is "
+                 "over eight times its next is shown from its end, close enough to read its section. A double tap on "
+                 "the piece turns the view around the point touched and brings it close; beside the piece it shows the "
+                 "whole of what is shown again",
+            links={"rests_on": ["the-documents-are-for-the-people-who-build"]},
+            payload={"decided_on": "2026-11-15",
+                     "the_owner": "In the 3D view we need to be able to navigate through the design tree in order to "
+                                  "get a closer look at smaller elements. For instance in the portes des penderies, "
+                                  "to view just one rail. Also this wont suffice to look closely at a specific part, "
+                                  "so find something for that too.",
+                     "why": "A rail 1156 mm long and 20 mm across, fitted by its length, is a line: a first blind "
+                            "tester said it could not be examined. The double tap is Sketchfab's (Navigation and "
+                            "Controls: double-click on the model sets the camera pivot there and zooms on it, on the "
+                            "background re-centres); showing a group alone is Onshape's Hide other instances."},
+            children=[
+                _alt("a-section-view", "A control that cuts the shown assembly across its length",
+                     "A profile is the same all along: its end already shows its section."),
+                _alt("groups-read-from-the-parts-ids", "Groups worked out from a shared prefix of the parts' ids",
+                     "A name is not structure; the tree holds it."),
+                _alt("the-others-left-faint", "The parts outside the assembly left faint (Onshape's Isolate)",
+                     "The owner asked to view just one rail; a door standing in a rail hides its section."),
+            ],
+        ),
     ]
 
 

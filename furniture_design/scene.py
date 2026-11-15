@@ -69,6 +69,7 @@ class Part:
     cuts: list[tuple[tuple, tuple]] = field(default_factory=list)  # (lo, hi) in the piece frame
     tools: list[Tool] = field(default_factory=list)                # what cuts its cuts
     saws: list[tuple[str, float | None]] = field(default_factory=list)  # what cuts it out: (name, kerf)
+    within: list[tuple[str, str]] = field(default_factory=list)   # the groups holding it, outermost first: (id, name)
 
     @property
     def size(self) -> tuple[float, float, float]:
@@ -384,6 +385,7 @@ def scene(tree: Quern, piece: str) -> Scene:
     marks = {p: r.mark for r in rows for p in r.paths}
     names = (get_node(tree, piece).payload or {}).get("material_names", {})
     parts = []
+    root_path = "/".join(_segs(piece))
     for b in bodies(tree, piece):
         node = get_node(tree, b.path)
         uses = (node.links or {}).get("uses", [])
@@ -401,10 +403,15 @@ def scene(tree: Quern, piece: str) -> Scene:
         material = uses[0].rsplit("/", 1)[-1] if uses else ""
         label = (names.get(material) or ((mat.payload or {}).get("label") if mat else "")
                  or ((mat.name if mat else "") or "").split(",")[0])
+        segs, within = b.path[len(root_path) + 1:].split("/")[:-1], []
+        for i in range(len(segs)):
+            holder = get_node(tree, "/".join([root_path, *segs[:i + 1]]))
+            if holder.kind != "part":
+                within.append((holder.id, holder.name or holder.id))
         parts.append(Part(b.path, node.id, node.name or node.id, marks.get(b.path, ""),
                           tuple(b.lo), tuple(b.hi), material, label,
                           payload.get("span_along", ""),
-                          int(payload.get("sheets", 1)), cuts, tools, saws))
+                          int(payload.get("sheets", 1)), cuts, tools, saws, within))
     by_path = {p.path: p for p in parts}
     joints = []
     prefix = piece.rstrip("/") + "/"

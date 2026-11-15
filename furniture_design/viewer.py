@@ -43,6 +43,10 @@ li:hover, li.on { background:var(--line); }
 .mark { width:24px; height:24px; border-radius:50%; border:1.5px solid var(--ink); display:grid;
   place-items:center; font-weight:700; font-size:12px; flex:none; }
 .dims { color:var(--muted); font-size:12px; }
+#path { font-size:13px; margin:6px 0 0; line-height:1.5; }
+#path a { color:inherit; }
+li .into { margin-left:auto; color:var(--muted); font-size:18px; }
+li .group { width:24px; flex:none; }
 #tip { position:absolute; left:12px; top:12px; background:var(--panel); border:1px solid var(--line);
   border-radius:8px; padding:8px 10px; font-size:13px; display:none; max-width:70%; }
 .row { display:flex; gap:8px; align-items:center; margin-top:10px; font-size:13px; }
@@ -66,6 +70,7 @@ button { font:inherit; font-size:13px; padding:6px 10px; border-radius:6px; bord
     <div class="row"><input id="showc" type="checkbox" checked><span>__L_CONNECTORS__</span>
       <span style="flex:1"></span><button id="reset">__L_RESET__</button></div>
     <label>__L_PARTS__</label>
+    <nav id="path" hidden></nav>
     <ul id="parts"></ul>
   </aside>
 </div>
@@ -81,6 +86,7 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(35, 1, 10, 100000);
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
+controls.minDistance = 4;
 scene.add(new THREE.HemisphereLight(0xffffff, 0x8a7f70, 0.55));
 const sun = new THREE.DirectionalLight(0xffffff, 0.6); sun.position.set(-1.2, 1.6, 1.8); scene.add(sun);
 
@@ -91,7 +97,8 @@ const mid = T((lo[0]+hi[0])/2, (lo[1]+hi[1])/2, (lo[2]+hi[2])/2);
 const size = Math.max(hi[0]-lo[0], hi[1]-lo[1], hi[2]-lo[2]);
 const woodColor = new THREE.Color(0xe6cfa4), newColor = new THREE.Color(0xb07a3c), pick = new THREE.Color(0xf0b45a);
 
-const meshes = [];
+const meshes = [], tip = document.getElementById('tip'), byId = {};
+DATA.parts.forEach(p => byId[p.id] = p);
 // a piece-frame axis as a three.js direction
 const E = [new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, 1, 0)];
 DATA.parts.forEach((p, i) => {
@@ -127,10 +134,33 @@ function fit() {
   const w = stage.clientWidth, h = stage.clientHeight;
   renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix();
 }
+// the group shown: the ids from the piece down to it, none for the whole piece
+let here = [];
+const under = p => here.every((id, i) => p.within[i] && p.within[i][0] === id);
+// the middle and the largest side of what is shown
+function shown() {
+  const ps = DATA.parts.filter(under), a = [0, 1, 2].map(i => Math.min(...ps.map(p => p.lo[i]))),
+    b = [0, 1, 2].map(i => Math.max(...ps.map(p => p.hi[i])));
+  return {mid: T((a[0]+b[0])/2, (a[1]+b[1])/2, (a[2]+b[2])/2), size: Math.max(b[0]-a[0], b[1]-a[1], b[2]-a[2]), lo: a, hi: b};
+}
+let view = shown();
 function home() {
-  const d = size * 2.4;
-  camera.position.set(mid.x - d*0.55, mid.y + d*0.45, mid.z + d*0.75);
-  controls.target.copy(mid); controls.update();
+  const s = [0, 1, 2].map(i => view.hi[i] - view.lo[i]), long = s.indexOf(Math.max(...s)),
+    across = Math.max(...s.filter((_, i) => i !== long));
+  if (s[long] > 8 * across) {
+    // a bar (a rail, a profile) fitted by its length is a line: it is shown from its end, close
+    // enough to read its section, its length running away from the eye
+    const end = [0, 1, 2].map(i => (view.lo[i] + view.hi[i]) / 2), off = [0.35, -0.45, 0.35];
+    end[long] = long === 2 ? view.hi[2] : view.lo[long];
+    off[long] = long === 2 ? 1 : -1;
+    const at = T(end[0], end[1], end[2]);
+    camera.position.copy(at).add(T(off[0], off[1], off[2]).setLength(across * 5));
+    controls.target.copy(at); controls.update();
+    return;
+  }
+  const d = view.size * 2.4;
+  camera.position.set(view.mid.x - d*0.55, view.mid.y + d*0.45, view.mid.z + d*0.75);
+  controls.target.copy(view.mid); controls.update();
 }
 window.addEventListener('resize', fit); fit(); home();
 
@@ -147,35 +177,70 @@ function apply() {
   document.getElementById('steptext').textContent = k ? steps[k-1].text : DATA.finished;
   meshes.forEach(m => {
     const p = m.userData.part, at = placedAt[p.id] || 0;
-    const visible = !k || at <= k;
+    const visible = (!k || at <= k) && under(p);
     m.visible = visible;
     const isNew = k && at === k;
     m.material.color.copy(m.userData.selected ? pick : (isNew ? newColor : woodColor));
-    const dir = m.userData.centre.clone().sub(mid);
+    const dir = m.userData.centre.clone().sub(view.mid);
     m.position.copy(dir.multiplyScalar(e * 0.9));
   });
   connectors.forEach(c => {
     const ids = c.userData.joint.parts;
-    const shown = document.getElementById('showc').checked &&
-      ids.every(id => !k || (placedAt[id] || 0) <= k);
-    c.visible = shown;
-    const dir = c.userData.home.clone().sub(mid);
+    const on = document.getElementById('showc').checked &&
+      ids.every(id => (!k || (placedAt[id] || 0) <= k) && under(byId[id]));
+    c.visible = on;
+    const dir = c.userData.home.clone().sub(view.mid);
     c.position.copy(c.userData.home).add(dir.multiplyScalar(e * 0.9));
   });
 }
 ['steps', 'explode', 'showc'].forEach(id => document.getElementById(id).addEventListener('input', apply));
-document.getElementById('reset').onclick = () => { stepIn.value = 0; document.getElementById('explode').value = 0; select(null); home(); apply(); };
+document.getElementById('reset').onclick = () => { stepIn.value = 0; document.getElementById('explode').value = 0; go([]); document.querySelector('aside').scrollTop = 0; };
 
-const list = document.getElementById('parts');
-const seen = {};
-DATA.parts.forEach(p => {
-  if (seen[p.mark]) { seen[p.mark].n += p.sheets; seen[p.mark].li.querySelector('.n').textContent = '× ' + seen[p.mark].n; return; }
-  const li = document.createElement('li');
-  const s = [p.hi[0]-p.lo[0], p.hi[1]-p.lo[1], p.hi[2]-p.lo[2]].sort((a,b)=>b-a);
-  li.innerHTML = `<span class="mark">${p.mark}</span><span><b>${p.name}</b> <span class="n">× ${p.sheets}</span><br><span class="dims">${s[0]} × ${s[1]} × ${s[2]/p.sheets} mm</span></span>`;
-  li.onclick = () => select(p.mark);
-  list.appendChild(li); seen[p.mark] = {li, n:p.sheets};
-});
+const list = document.getElementById('parts'), trail = document.getElementById('path');
+const fmt = n => String(Math.round(n * 10) / 10);
+let seen = {};
+// the list is the group shown: the groups in it first, then its own parts, one row per letter
+function listing() {
+  list.innerHTML = ''; seen = {};
+  const groups = new Map();
+  DATA.parts.filter(under).forEach(p => {
+    const g = p.within[here.length];
+    if (g) { if (!groups.has(g[0])) groups.set(g[0], {name: g[1], parts: []}); groups.get(g[0]).parts.push(p); return; }
+    if (seen[p.mark]) { seen[p.mark].n += p.sheets; seen[p.mark].li.querySelector('.n').textContent = '× ' + seen[p.mark].n; return; }
+    const li = document.createElement('li');
+    const s = [p.hi[0]-p.lo[0], p.hi[1]-p.lo[1], p.hi[2]-p.lo[2]].sort((a,b)=>b-a);
+    li.innerHTML = `<span class="mark">${p.mark}</span><span><b>${p.name}</b> <span class="n">× ${p.sheets}</span><br><span class="dims">${s[0]} × ${s[1]} × ${s[2]/p.sheets} mm</span></span>`;
+    li.onclick = () => select(p.mark);
+    list.appendChild(li); seen[p.mark] = {li, n:p.sheets};
+  });
+  [...groups].reverse().forEach(([id, g]) => {
+    const li = document.createElement('li');
+    const s = [0, 1, 2].map(i => Math.max(...g.parts.map(p => p.hi[i])) - Math.min(...g.parts.map(p => p.lo[i]))).sort((a,b)=>b-a);
+    li.innerHTML = `<span class="group"></span><span><b>${g.name}</b><br><span class="dims">${fmt(s[0])} × ${fmt(s[1])} × ${fmt(s[2])} mm</span></span><span class="into" aria-hidden="true">›</span>`;
+    li.onclick = () => go([...here, id]);
+    list.prepend(li);
+  });
+  // the way back up: the piece, then each group down to the one shown
+  trail.hidden = !here.length;
+  trail.innerHTML = '';
+  if (!here.length) return;
+  const first = DATA.parts.find(under);
+  [[null, DATA.title], ...first.within.slice(0, here.length)].forEach(([id, name], i) => {
+    if (i) trail.append(' › ');
+    if (i === here.length) { const b = document.createElement('b'); b.textContent = name; trail.append(b); return; }
+    const a = document.createElement('a'); a.href = '#'; a.textContent = name;
+    a.onclick = ev => { ev.preventDefault(); go(here.slice(0, i)); };
+    trail.append(a);
+  });
+}
+function go(to) {
+  here = to; view = shown(); selected = null;
+  meshes.forEach(m => m.userData.selected = false);
+  tip.style.display = 'none';
+  listing(); home(); apply();
+  // the list that was tapped stays where it is seen, under the view
+  trail.previousElementSibling.scrollIntoView();
+}
 document.getElementById('sub').textContent = DATA.subtitle;
 
 let selected = null;
@@ -185,12 +250,31 @@ function select(mark) {
   Object.entries(seen).forEach(([k, v]) => v.li.classList.toggle('on', k === selected));
   apply();
 }
-const ray = new THREE.Raycaster(), ptr = new THREE.Vector2(), tip = document.getElementById('tip');
-renderer.domElement.addEventListener('pointerup', ev => {
+const ray = new THREE.Raycaster(), ptr = new THREE.Vector2();
+const strike = ev => {
   const r = renderer.domElement.getBoundingClientRect();
   ptr.set(((ev.clientX - r.left) / r.width) * 2 - 1, -((ev.clientY - r.top) / r.height) * 2 + 1);
   ray.setFromCamera(ptr, camera);
-  const hit = ray.intersectObjects(meshes.filter(m => m.visible), false)[0];
+  return ray.intersectObjects(meshes.filter(m => m.visible), false)[0];
+};
+// a second tap at the same place within 0.35 s: on the piece, the view turns around that point and
+// comes close to it; beside the piece, it shows the whole of what is shown again
+let down = null, last = null;
+function closer(hit) {
+  if (!hit) { home(); return; }
+  const from = camera.position.clone().sub(controls.target), d = Math.max(from.length() * 0.3, 25);
+  controls.target.copy(hit.point);
+  camera.position.copy(hit.point).add(from.setLength(d));
+  controls.update();
+}
+renderer.domElement.addEventListener('pointerdown', ev => down = [ev.clientX, ev.clientY]);
+renderer.domElement.addEventListener('pointerup', ev => {
+  const moved = down && Math.hypot(ev.clientX - down[0], ev.clientY - down[1]) > 6;
+  const hit = strike(ev);
+  if (!moved && last && ev.timeStamp - last.t < 350 && Math.hypot(ev.clientX - last.x, ev.clientY - last.y) < 30) {
+    last = null; closer(hit); return;
+  }
+  last = moved ? null : {t: ev.timeStamp, x: ev.clientX, y: ev.clientY};
   if (!hit) { tip.style.display = 'none'; return; }
   const p = hit.object.userData.part;
   const s = [p.hi[0]-p.lo[0], p.hi[1]-p.lo[1], p.hi[2]-p.lo[2]].sort((a,b)=>b-a);
@@ -198,8 +282,15 @@ renderer.domElement.addEventListener('pointerup', ev => {
   tip.style.display = 'block';
   select(p.mark);
 });
+listing();
 apply();
-(function loop() { requestAnimationFrame(loop); controls.update(); renderer.render(scene, camera); })();
+(function loop() {
+  requestAnimationFrame(loop); controls.update();
+  // the nearest thing drawn follows the distance, so the view can come right up to a part
+  const near = Math.max(0.2, camera.position.distanceTo(controls.target) / 200);
+  if (near !== camera.near) { camera.near = near; camera.updateProjectionMatrix(); }
+  renderer.render(scene, camera);
+})();
 </script>
 </body>
 </html>
@@ -207,7 +298,7 @@ apply();
 
 WORDS = {
     "fr": {"steps": "Étape de montage", "explode": "Écarter les pièces", "connectors": "Connecteurs",
-           "reset": "Revenir", "parts": "Pièces", "finished": "Meuble monté. Glisser pour suivre "
+           "reset": "Réinitialiser", "parts": "Pièces", "finished": "Meuble monté. Glisser pour suivre "
            "le montage étape par étape."},
     "en": {"steps": "Assembly step", "explode": "Pull the parts apart", "connectors": "Connectors",
            "reset": "Reset", "parts": "Parts", "finished": "Finished piece. Slide to follow the "
@@ -224,11 +315,11 @@ def viewer_html(sc: Scene, path: Path, lang: str = "fr") -> Path:
     W = WORDS[lang]
     size = [h - l for l, h in zip(sc.lo, sc.hi)]
     data = {
-        "lo": sc.lo, "hi": sc.hi, "finished": W["finished"],
+        "lo": sc.lo, "hi": sc.hi, "finished": W["finished"], "title": sc.title,
         "subtitle": f"{sc.info.get('version', '')} · {round(size[0])} × {round(size[1])} × "
                     f"{round(size[2])} mm",
         "parts": [{"id": p.id, "mark": p.mark, "name": p.name, "lo": p.lo, "hi": p.hi,
-                   "sheets": p.sheets, "material": p.material_name,
+                   "sheets": p.sheets, "material": p.material_name, "within": p.within,
                    "profile": _profile(p)} for p in sc.parts],
         "joints": [{"id": j.id, "parts": j.parts, "along": j.along_axis, "normal": j.normal_axis,
                     "positions": j.positions, "size": j.size} for j in sc.joints],

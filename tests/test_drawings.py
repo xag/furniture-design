@@ -128,6 +128,29 @@ def test_the_three_documents_are_written(tmp_path):
     assert "three.min.js" in page and '"mark": "A"' in page
 
 
+def test_a_part_says_the_assemblies_holding_it_and_stays_where_it_was(tmp_path):
+    from quern import Node
+
+    from furniture_design.scene import scene
+    flat = {p.id: (p.lo, p.hi, p.within) for p in scene(_tree(), BENCH).parts}
+    assert all(within == [] for _, _, within in flat.values())
+    tree = _tree()
+    bench = tree.get(BENCH)
+    sides = [c for c in bench.children if c.id in ("left", "right")]
+    bench.children = [c for c in bench.children if c not in sides] + [
+        Node(id="frame", kind="assembly", name="Frame", children=[
+            Node(id="sides", kind="assembly", name="Sides", children=sides)])]
+    for _, node in tree.walk(""):   # what names a side by its path names it where it now is
+        for name, targets in (node.links or {}).items():
+            node.links[name] = [t.replace(f"{BENCH}/left", f"{BENCH}/frame/sides/left")
+                                .replace(f"{BENCH}/right", f"{BENCH}/frame/sides/right") for t in targets]
+    grouped = {p.id: (p.lo, p.hi, p.within) for p in scene(tree, BENCH).parts}
+    assert grouped["left"][2] == [("frame", "Frame"), ("sides", "Sides")] and grouped["top"][2] == []
+    assert {k: v[:2] for k, v in grouped.items()} == {k: v[:2] for k, v in flat.items()}
+    page = drawings.documents(tree, BENCH, tmp_path)["viewer"].read_text(encoding="utf-8")
+    assert '"within": [["frame", "Frame"], ["sides", "Sides"]]' in page
+
+
 # --- a part's cuts: read from their shape, said with their tools' words ---------------------
 
 import itertools

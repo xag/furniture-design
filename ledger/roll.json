@@ -305,6 +305,26 @@
     "digest": "b993c35297b9"
   },
   {
+    "path": "a-piece-is-walked-by-its-assemblies",
+    "kind": "decision",
+    "digest": "638641307f72"
+  },
+  {
+    "path": "a-piece-is-walked-by-its-assemblies/a-section-view",
+    "kind": "alternative",
+    "digest": "e80016d48f07"
+  },
+  {
+    "path": "a-piece-is-walked-by-its-assemblies/groups-read-from-the-parts-ids",
+    "kind": "alternative",
+    "digest": "c7ad84698125"
+  },
+  {
+    "path": "a-piece-is-walked-by-its-assemblies/the-others-left-faint",
+    "kind": "alternative",
+    "digest": "44c17367b490"
+  },
+  {
     "path": "a-pieces-checks-are-the-rules-under-it",
     "kind": "decision",
     "digest": "52442afeb128"
