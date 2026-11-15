@@ -207,9 +207,8 @@ function apply() {
     m.visible = visible;
     const isNew = k && at === k;
     m.material.color.copy(m.userData.selected ? pick : (isNew ? newColor : woodColor));
-    const out = m.userData.out, from = (out ? out.host : m).userData.centre.clone().sub(view.mid);
-    m.position.copy(from.multiplyScalar(e * view.pull));
-    if (out) m.position.add(out.way.clone().multiplyScalar(e * 1.2 * out.far));
+    const host = m.userData.host, from = (host || m).userData.centre.clone().sub(view.mid);
+    m.position.copy(from.multiplyScalar(e * view.pull)).add(m.userData.split.clone().multiplyScalar(Math.sqrt(e)));
   });
   connectors.forEach(c => {
     const ids = c.userData.joint.parts;
@@ -263,12 +262,26 @@ function listing() {
     title.append(a);
   });
 }
-// A part that sits inside another's box (a channel in the angle that holds it) cannot be pulled
-// apart from it by their middles: that would push it through the other. It leaves the way it is
-// free to go, across its length, found by casting rays from its corners at the part holding it.
+// A part that sits inside another's box (a channel in the angle that holds it, a frame's bar
+// along its panel) is pulled apart from it the way the holder opens: from the middle of the
+// holder's material to the middle of its box, which for an angle points out of its corner, away
+// from both its faces, and for a channel out of its mouth. A holder that is solid (a panel)
+// opens nowhere, and the two part along the line between their middles. They move away from
+// each other, half each, fast at first: at a tenth of the slider they are nearly clear, and at
+// its end apart by six tenths of what it takes to clear, beyond clearing. A part holding several moves by
+// the mean of what they push it, so a panel framed on four sides stays where it is.
+function middle(p) {   // the middle of a part's section, in the piece's frame
+  const f = p.profile, o = f.outline;
+  let a = 0, x = 0, y = 0;
+  o.forEach(([x0, y0], i) => { const [x1, y1] = o[(i + 1) % o.length], c = x0 * y1 - x1 * y0;
+    a += c; x += (x0 + x1) * c; y += (y0 + y1) * c; });
+  const m = [0, 0, 0];
+  m[f.u] = x / (3 * a); m[f.v] = y / (3 * a); m[f.t] = (f.t0 + f.t1) / 2;
+  return m;
+}
 function nested() {
-  meshes.forEach(m => { m.position.set(0, 0, 0); m.updateMatrixWorld(); m.userData.out = null; });
-  const ps = meshes.filter(m => under(m.userData.part)), caster = new THREE.Raycaster();
+  meshes.forEach(m => { m.userData.host = null; m.userData.split = new THREE.Vector3(); m.userData.pushed = []; });
+  const ps = meshes.filter(m => under(m.userData.part));
   const vol = p => (p.hi[0]-p.lo[0]) * (p.hi[1]-p.lo[1]) * (p.hi[2]-p.lo[2]);
   ps.forEach(m => {
     const p = m.userData.part;
@@ -276,23 +289,26 @@ function nested() {
       [0, 1, 2].every(i => Math.min(p.hi[i], o.userData.part.hi[i]) - Math.max(p.lo[i], o.userData.part.lo[i]) > 0.5))
       .sort((a, b) => vol(a.userData.part) - vol(b.userData.part))[0];
     if (!host) return;
+    const q = host.userData.part, h = middle(q), box = [0, 1, 2].map(i => (q.lo[i] + q.hi[i]) / 2);
+    let d = [0, 1, 2].map(i => box[i] - h[i]);
+    if (Math.hypot(...d) < 0.05 * Math.min(...[0, 1, 2].map(i => q.hi[i] - q.lo[i]))) {
+      const g = middle(p); d = [0, 1, 2].map(i => g[i] - h[i]);
+    }
     const s = [0, 1, 2].map(i => p.hi[i] - p.lo[i]), long = s.indexOf(Math.max(...s));
-    const slender = s[long] > 4 * Math.max(...s.filter((_, i) => i !== long));
-    const at = m.geometry.attributes.position, radial = m.userData.centre.clone().sub(view.mid);
-    let best = null;
-    [2, 1, 0].filter(i => !(slender && i === long)).forEach(i => [1, -1].forEach(sign => {
-      const way = E[i].clone().multiplyScalar(sign), q = host.userData.part, far = q.hi[i] - q.lo[i];
-      for (let k = 0; k < at.count; k++) {
-        const o = new THREE.Vector3().fromBufferAttribute(at, k);
-        o.add(m.userData.centre.clone().sub(o).setLength(0.05));
-        caster.set(o, way); caster.far = far + 1;
-        if (caster.intersectObject(host, false).some(h => h.distance > 0.01)) return;
-      }
-      const score = way.dot(radial);
-      if (!best || score > best.score + 1e-9) best = {way, far, score, host};
-    }));
-    m.userData.out = best;
+    if (s[long] > 4 * Math.max(...s.filter((_, i) => i !== long))) d[long] = 0;   // across a bar's length
+    const n = Math.hypot(...d);
+    if (n < 1e-6) return;
+    const w = d.map(x => x / n);
+    // how far along that line the held part goes before the two boxes no longer overlap
+    const clear = Math.max(2, Math.min(...[0, 1, 2].filter(i => Math.abs(w[i]) > 1e-6).map(i =>
+      w[i] > 0 ? (q.hi[i] - p.lo[i]) / w[i] : (q.lo[i] - p.hi[i]) / w[i])));
+    const half = T(w[0], w[1], w[2]).multiplyScalar(1.6 * clear / 2);
+    m.userData.host = host;
+    m.userData.split.add(half);
+    host.userData.pushed.push(half.clone().negate());
   });
+  ps.forEach(m => { const v = m.userData.pushed;
+    if (v.length) m.userData.split.add(v.reduce((a, b) => a.add(b), new THREE.Vector3()).divideScalar(v.length)); });
 }
 function go(to) {
   here = to; view = shown(); selected = null; nested(); follow();

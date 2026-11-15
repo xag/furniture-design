@@ -1606,6 +1606,29 @@ def entries() -> list[Node]:
                      "What the owner found: the reader's copy goes stale and no rule sees it."),
             ],
         ),
+        Node(
+            id="a-held-part-is-pulled-apart-the-way-its-holder-opens", kind="decision",
+            name="In the 3D view, pulling the parts apart separates a part that sits in another's box (a channel "
+                 "in its angle, a frame's bar along its panel) from that holder the way the holder opens: from the "
+                 "middle of the holder's section to the middle of its box, out of an angle's corner or a channel's "
+                 "mouth; a solid holder parts along the line between the two middles. The two move away from each "
+                 "other half each, nearly clear at a tenth of the slider, and a holder of several moves by the mean "
+                 "of what they push it",
+            links={"rests_on": ["a-profile-is-one-part-with-its-section"]},
+            payload={"decided_on": "2026-11-15",
+                     "the_owner": "L'écartement des deux pièces U et angle est pesant. Lent, et dans la direction "
+                                  "d'une face de l'angle. On s'attend à ce que ça s'écarte dans le deux directions. "
+                                  "Trouve un meilleur algo",
+                     "why": "The channel alone slid out along one face of the angle, found by casting rays, while "
+                            "the angle stayed, and needed most of the slider to clear it."},
+            children=[
+                _alt("rays-along-the-axes", "The held part alone leaves along the first axis whose rays meet "
+                     "nothing of its holder", "Turned down by the owner: slow, along one face, one part moving."),
+                _alt("between-the-two-middles", "The two part along the line between their sections' middles",
+                     "For a channel set in an angle's corner the middles are nearly level, so it slides along a "
+                     "face again."),
+            ],
+        ),
     ]
 
 
