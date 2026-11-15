@@ -1257,9 +1257,7 @@ def entries() -> list[Node]:
                  "to mark it, the edges it is measured from and the saw lines and their order are read from "
                  "the cut's box against its board; the kind of cut is stored nowhere; the tools' methods stay "
                  "knowledge, sentences resting on clauses, which the frames draw and the instructions do not "
-                 "print. The same rules reach every page of the instructions; still written, and owed: each "
-                 "step's sentence under its picture, and the hardware and tools named in words on the page of "
-                 "what is needed",
+                 "print",
             links={"rests_on": ["the-documents-are-for-the-people-who-build",
                                 "the-grooving-step-is-drawn-to-ikeas-rules"],
                    "supersedes": ["a-cut-is-explained-from-its-shape-and-its-tools-clauses"]},
@@ -1284,6 +1282,28 @@ def entries() -> list[Node]:
                      "this form down."),
                 _alt("short-only", "Leave the sentences to the full instructions and draw only in short ones",
                      "Short still prints where to mark as a sentence, and full is the default most people get."),
+            ],
+        ),
+        Node(
+            id="every-page-of-the-instructions-is-drawn-to-ikeas-rules", kind="decision",
+            name="IKEA's rules reach every page of the assembly instructions, not only the grooving step and "
+                 "the cuts: what a page says in words it draws instead. Still written, and owed: each step's "
+                 "sentence under its picture, and the hardware and tools named in words on the page of what is "
+                 "needed",
+            links={"rests_on": ["the-grooving-step-is-drawn-to-ikeas-rules", "a-cut-is-drawn-to-ikeas-rules"]},
+            payload={"decided_on": "2026-11-15",
+                     "the_owner": "C'est horrible à lire tu as dumpé toutes tes connaissances dans les "
+                                  "instructions ... je te demande des instructions à la Ikea; then: We have "
+                                  "another case of assembly intructions that break the rules and still pass",
+                     "why": "The owner's correction was about the instructions as a whole and was recorded for "
+                            "one step, so the next written part was found by the owner, not by the ledger. "
+                            "IKEA tests its instructions on people who use no text (the grooving decision's "
+                            "source); the parts still written are named here so the next change finds them.",
+                     "falsified_by": "a builder who cannot build the piece from the instructions' drawings "
+                                     "without reading a word"},
+            children=[
+                _alt("one-part-at-a-time", "Record each part when the owner finds it",
+                     "That is how the cut card was missed: the owner found it, the ledger did not."),
             ],
         ),
     ]

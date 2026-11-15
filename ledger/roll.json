@@ -530,6 +530,16 @@
     "digest": "2e0ada388c38"
   },
   {
+    "path": "every-page-of-the-instructions-is-drawn-to-ikeas-rules",
+    "kind": "decision",
+    "digest": "efa3ff1dea5a"
+  },
+  {
+    "path": "every-page-of-the-instructions-is-drawn-to-ikeas-rules/one-part-at-a-time",
+    "kind": "alternative",
+    "digest": "a418ab48314d"
+  },
+  {
     "path": "makers-products-are-in-packages-outside-furniture-design",
     "kind": "decision",
     "digest": "ca83521e11af"
