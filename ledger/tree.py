@@ -1554,6 +1554,23 @@ def entries() -> list[Node]:
                      "Its steps that bring nothing of what is shown leave the view empty or unchanged."),
             ],
         ),
+        Node(
+            id="on-a-narrow-screen-the-tree-stands-above-the-model", kind="decision",
+            name="On a narrow screen (a phone) the 3D view reads from the top: the tree (the title that leads back "
+                 "up, the size of what is shown, the list), then the model, then the tools (the assembly steps, "
+                 "pulling apart, the connectors, reset). The tree takes at most 38% of the height; a list longer "
+                 "than its place scrolls and fades at its foot. On a wide screen the tree stands over the tools, "
+                 "beside the model",
+            links={"rests_on": ["the-tree-leads-the-3d-views-panel"]},
+            payload={"decided_on": "2026-11-15",
+                     "the_owner": "J'attendais la navigation dans les pièces au dessus de la vue 3D",
+                     "why": "With the list at the head of the panel, a phone still showed it under the model: one "
+                            "looks at the model, then down for the list, then up again."},
+            children=[
+                _alt("the-whole-panel-under-the-model", "The tree at the head of one panel under the model",
+                     "Built first and turned down by the owner, who expected it above the model."),
+            ],
+        ),
     ]
 
 

@@ -675,6 +675,16 @@
     "digest": "3c96125b9bb5"
   },
   {
+    "path": "on-a-narrow-screen-the-tree-stands-above-the-model",
+    "kind": "decision",
+    "digest": "c95c1bc51ce1"
+  },
+  {
+    "path": "on-a-narrow-screen-the-tree-stands-above-the-model/the-whole-panel-under-the-model",
+    "kind": "alternative",
+    "digest": "d456e582df60"
+  },
+  {
     "path": "only-the-owner-earns-from-the-knowledge",
     "kind": "decision",
     "digest": "ed2b6fa732e8"

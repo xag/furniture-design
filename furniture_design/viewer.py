@@ -26,11 +26,15 @@ PAGE = r"""<!doctype html>
 * { box-sizing:border-box; }
 html, body { margin:0; height:100%; background:var(--bg); color:var(--ink);
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-#app { display:flex; height:100%; }
-#stage { flex:1; position:relative; min-width:0; }
+/* wide: the model, and beside it the tree over the tools; narrow: the tree, the model, the tools */
+#app { display:grid; height:100%; grid-template-columns:1fr 300px; grid-template-rows:auto 1fr; }
+#stage { grid-column:1; grid-row:1 / span 2; position:relative; min-width:0; min-height:0; overflow:hidden; }
 canvas { display:block; width:100%; height:100%; touch-action:none; }
-aside { width:300px; background:var(--panel); border-left:1px solid var(--line); padding:16px;
-  overflow:auto; }
+#nav, #tools { grid-column:2; background:var(--panel); border-left:1px solid var(--line); overflow:auto; }
+#nav { grid-row:1; padding:16px 16px 0; max-height:60vh; }
+#tools { grid-row:2; padding:0 16px 16px; }
+#nav.more { -webkit-mask-image:linear-gradient(to bottom, #000 calc(100% - 40px), transparent);
+  mask-image:linear-gradient(to bottom, #000 calc(100% - 40px), transparent); }
 h1 { font-size:18px; margin:0 0 2px; }
 .sub { color:var(--muted); font-size:13px; margin-bottom:14px; }
 [hidden] { display:none; }
@@ -52,18 +56,24 @@ li .group { width:24px; flex:none; }
 .row { display:flex; gap:8px; align-items:center; margin-top:10px; font-size:13px; }
 button { font:inherit; font-size:13px; padding:6px 10px; border-radius:6px; border:1px solid var(--line);
   background:var(--bg); color:var(--ink); cursor:pointer; }
-@media (max-width: 720px) { #app { flex-direction:column; } aside { width:auto; height:42%;
-  border-left:none; border-top:1px solid var(--line); } }
+@media (max-width: 720px) {
+  #app { display:flex; flex-direction:column; }
+  #nav { max-height:38%; padding:12px 16px 4px; border-left:none; border-bottom:1px solid var(--line); }
+  #stage { flex:1; min-height:34%; }
+  #tools { max-height:30%; padding:0 16px 12px; border-left:none; border-top:1px solid var(--line); }
+}
 </style>
 </head>
 <body>
 <div id="app">
-  <div id="stage"><div id="tip"></div></div>
-  <aside>
+  <div id="nav">
     <h1 id="title">__TITLE__</h1>
     <div class="sub" id="sub"></div>
     <label>__L_PARTS__</label>
     <ul id="parts"></ul>
+  </div>
+  <div id="stage"><div id="tip"></div></div>
+  <div id="tools">
     <div id="assembly">
       <label for="steps">__L_STEPS__ <span id="stepn"></span></label>
       <input id="steps" type="range" min="0" value="0">
@@ -73,7 +83,7 @@ button { font:inherit; font-size:13px; padding:6px 10px; border-radius:6px; bord
     <input id="explode" type="range" min="0" max="100" value="0">
     <div class="row"><input id="showc" type="checkbox" checked><span>__L_CONNECTORS__</span>
       <span style="flex:1"></span><button id="reset">__L_RESET__</button></div>
-  </aside>
+  </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -167,7 +177,11 @@ function home() {
   camera.position.set(view.mid.x - d*0.55, view.mid.y + d*0.45, view.mid.z + d*0.75);
   controls.target.copy(view.mid); controls.update();
 }
-window.addEventListener('resize', fit); fit(); home();
+new ResizeObserver(fit).observe(stage); fit(); home();
+// a list longer than its place fades at its foot until it is drawn to its end
+const nav = document.getElementById('nav');
+const more = () => nav.classList.toggle('more', nav.scrollTop + nav.clientHeight < nav.scrollHeight - 4);
+nav.addEventListener('scroll', more);
 
 // steps: 0 shows the finished piece; k shows the state after assembly step k
 const steps = DATA.steps.filter(s => !s.prepare);
@@ -285,7 +299,7 @@ function go(to) {
   meshes.forEach(m => m.userData.selected = false);
   tip.style.display = 'none';
   listing(); home(); apply();
-  document.querySelector('aside').scrollTop = 0;
+  nav.scrollTop = 0; more();
 }
 
 let selected = null;
@@ -327,7 +341,7 @@ renderer.domElement.addEventListener('pointerup', ev => {
   tip.style.display = 'block';
   select(p.mark);
 });
-nested(); follow(); listing();
+nested(); follow(); listing(); more();
 apply();
 (function loop() {
   requestAnimationFrame(loop); controls.update();
