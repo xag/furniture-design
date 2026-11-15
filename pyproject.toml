@@ -22,14 +22,16 @@ build-backend = "hatchling.build"
 packages = ["furniture_design"]
 
 [dependency-groups]
-dev = ["pytest>=8.0.0", "pytest-testmon>=2.1"]
+dev = ["pytest>=8.0.0", "testplan"]
 
 [tool.uv.sources]
+testplan = { git = "https://github.com/xag/testplan", rev = "9913bbb00f3de6bc89d9360f8a2be722bf56e8a7" }
 # Pinned by rev, always: quern is pre-1.0 and the doctrine is fork-or-republish.
 quern = { git = "https://github.com/xag/quern", rev = "07eff6efc0625ee0613a083095db4e6b75be7284" }
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
-# Fail fast: stop at the first failure, run last time's failures first.
-# First pass `pytest --testmon` (failed and changed tests), then the whole suite with `pytest`.
-addopts = "-x --ff"
+# Fail fast: stop at the first failure. testplan runs the tests whose code, data or packages
+# changed since they passed, last failures first then the fastest, under a time budget, and
+# keeps every run's times; `pytest --all` runs them all, once a day.
+addopts = "-x"

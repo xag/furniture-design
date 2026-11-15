@@ -91,4 +91,4 @@ A commercial licence for the data, or other terms for the code, can be granted b
 
 ## Tests
 
-`uv run pytest --testmon` runs the tests that failed last time or whose code changed, then `uv run pytest` runs the whole suite. Both stop at the first failure. `tests/test_captures.py` checks every value taken from a copyrighted source against the copy it was read from; those copies are private, found by sha256 under `$FURNITURE_DESIGN_CAPTURES`, and without them that test fails, saying where it looked.
+`uv run pytest` runs the tests whose code, data or packages changed since they passed, last failures first then the fastest, under a time budget (testplan); `uv run pytest --all` runs them all, once a day. Both stop at the first failure. `tests/test_captures.py` checks every value taken from a copyrighted source against the copy it was read from; those copies are private, found by sha256 under `$FURNITURE_DESIGN_CAPTURES`, and without them that test fails, saying where it looked.
