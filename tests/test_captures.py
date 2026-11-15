@@ -15,7 +15,7 @@ from pathlib import Path
 
 from quern import Quern, run_rules
 
-from furniture_design.knowledge import (JOINTER_SOURCES, OPEN_LICENCES, TROPIX_ROWS, TROPIX_SHEETS, boruvka, design_stress,
+from furniture_design.knowledge import (JOINTER_SOURCES, JOINTER_VIDEOS, OPEN_LICENCES, TROPIX_ROWS, TROPIX_SHEETS, boruvka, design_stress,
                                         european_species, knowledge, sag_limits, schmidtova, seating_tests, thermo_beech,
                                         tropix)
 from furniture_design.package import PACKAGE
@@ -153,3 +153,16 @@ def test_every_passage_the_jointer_method_rests_on_is_in_the_copy_fetched():
         text = _text(sha)
         for words in JOINTER_WORDS[sid]:
             assert words in text, (sid, words)
+
+
+def test_every_passage_of_a_video_the_jointer_method_rests_on_is_in_the_account_kept():
+    """A video is cited from the account Gemini gave of it, kept privately under videos/ by its YouTube
+    id: the copy has the sha256 the source states, and the words each clause rests on are in it."""
+    for sid, _name, _publisher, url, _authority, sha, clauses in JOINTER_VIDEOS:
+        copy = CAPTURES / "videos" / f"{url.rsplit('=', 1)[1]}.md"
+        assert copy.exists(), f"the account {copy} is missing"
+        assert hashlib.sha256(copy.read_bytes()).hexdigest() == sha, sid
+        text = copy.read_text(encoding="utf-8")
+        for cid, _locator, words in clauses:
+            for w in words:
+                assert w in text, (sid, cid, w)

@@ -1756,6 +1756,39 @@ JOINTER_SOURCES = [
 ]
 
 
+GEMINI = ("Gemini (gemini.google.com, the model it calls Quick answers, 3.5 Flash-Lite), asked on 2026-11-15 "
+          "for the transcript and what is shown, with timestamps: nobody here watched the video, and YouTube's "
+          "robots.txt forbids robots its frames")
+
+# Tutorial videos the general method rests on: (id, name, publisher, url, authority, sha256 of the account
+# Gemini gave of it, kept privately under videos/<YouTube id>.md, [(clause id, locator, the words of the
+# account it rests on)]).
+JOINTER_VIDEOS = [
+    ("family-handyman-biscuit-joint-video", "Family Handyman: How to Make a Biscuit Joint (video)",
+     "Family Handyman", "https://www.youtube.com/watch?v=nTAUV5hUU8A", "editorial",
+     "e4ddfba69cb1144feee25f99e06780a1a07b9a871922eaf8de65aec6c5aa97ce",
+     [("mark-and-line-up", "01:15 to 01:25: a pencil line across the two pieces, the machine's centre notch on it",
+       ["first draw a pencil line across the two pieces",
+        "The center alignment notch of the biscuit joiner's base plate is lined up directly with the pencil mark"])]),
+    ("wood-magazine-biscuit-joiner-video", "WOOD magazine: What to Look for in a Biscuit Joiner (video)",
+     "WOOD magazine", "https://www.youtube.com/watch?v=niQjGdutucQ", "editorial",
+     "f8e99bbc2c21c9858cfa4d1931aee66cd1694a7c3627f466275c0deae5f36703",
+     [("reference-the-base", "00:16 to 00:47: referencing from the base, never the base and the fence at once",
+       ["referencing from the base of the tool", "you never use both at the same time"]),
+      ("fence-out-of-parallel", "08:14 to 08:41: a fence out of parallel leaves mating pieces out of line",
+       ["if you're using it in mating pieces which you should be it's they're not going to line up"])]),
+]
+
+
+def jointer_videos() -> list[Node]:
+    return [Node(id=id_, kind="source", name=name,
+                 payload={"publisher": publisher, "url": url, "fetched": "2026-11-15", "sha256": sha,
+                          "licence": "copyrighted", "authority": authority, "read_by": GEMINI,
+                          "capture": "private copy of the account Gemini gave, identified by its sha256"},
+                 children=[Node(id=cid, kind="clause", payload={"locator": loc}) for cid, loc, _w in clauses])
+            for id_, name, publisher, url, authority, sha, clauses in JOINTER_VIDEOS]
+
+
 def jointer_sources() -> list[Node]:
     return [Node(id=id_, kind="source", name=name,
                  payload={"publisher": publisher, "url": url, "fetched": "2026-11-15", "sha256": sha,
@@ -1809,6 +1842,9 @@ def plate_jointer() -> Node:
                          "the machine on end, its base against the shelf's end, without unclamping.",
                          "First make a test cut in an offcut of the same thickness."]}}},
         links={"per": [f"{S}/woodsmith-biscuit-essentials/layout",
+                       f"{S}/family-handyman-biscuit-joint-video/mark-and-line-up",
+                       f"{S}/wood-magazine-biscuit-joiner-video/reference-the-base",
+                       f"{S}/wood-magazine-biscuit-joiner-video/fence-out-of-parallel",
                        f"{S}/makita-pj7000-manual/making-joints", f"{S}/dewalt-dw682-manual/layout",
                        f"{S}/woodsmith-aligning-edge-joints/same-face",
                        f"{S}/woodsmith-biscuit-essentials/cutting",
@@ -1983,7 +2019,8 @@ def knowledge() -> list[Node]:
     """The top-level branches a design tree mounts: sources, materials, requirements, and
     the hand tools that cut a part's cuts."""
     sources = [wood_handbook(), federal_register(), gsa_fnae(), tm_9_243(), fm_5_426(), *tropix(),
-               schmidtova(), boruvka(), *sag_limits(), *seating_tests(), *jointer_sources()]
+               schmidtova(), boruvka(), *sag_limits(), *seating_tests(), *jointer_sources(),
+               *jointer_videos()]
     return [Node(id="sources", kind="", children=with_authority(sources, AUTHORITY)),
             materials(), requirements(), tools()]
 
