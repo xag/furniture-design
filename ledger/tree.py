@@ -1452,7 +1452,7 @@ def entries() -> list[Node]:
                  "its mass, when not stated, is its density times the section's area times its length. One profile "
                  "is one part, never one part per face. In the 3D view, parts whose middles are close are pulled "
                  "apart by at least most of the second side of what is shown",
-            links={"rests_on": ["a-piece-is-walked-by-its-assemblies", "a-dimension-is-stated-once-and-parts-follow-it"]},
+            links={"rests_on": ["the-tree-leads-the-3d-views-panel", "a-dimension-is-stated-once-and-parts-follow-it"]},
             payload={"decided_on": "2026-11-15",
                      "the_owner": "Ecarter les pièces est incorrect. Il y a deux pièces sur le rail, pas cinq.",
                      "why": "Only boxes were modelled, so a piece's rails were written as five flat strips, two for "
@@ -1490,7 +1490,7 @@ def entries() -> list[Node]:
                                 "has; hardware counted; the surroundings as parts; the assembly instructions' own "
                                 "standard."},
             links={"rests_on": ["a-tool-is-certified-by-a-standard-that-is-a-package", "a-profile-is-one-part-with-its-section",
-                                "a-piece-is-walked-by-its-assemblies"]},
+                                "the-tree-leads-the-3d-views-panel"]},
             children=[
                 _alt("rules-of-furniture-design", "Make them rules every piece must pass to be built",
                      "A draft is built to be looked at before it is settled; these grade it and say what is left."),
@@ -1524,6 +1524,34 @@ def entries() -> list[Node]:
                 _alt("no-sentence-now", "Require now that no step carries a sentence",
                      "The drawing code still owes the pictures that replace them (every-page-of-the-instructions-"
                      "is-drawn-to-ikeas-rules): no piece could reach the level, and it would say nothing."),
+            ],
+        ),
+        Node(
+            id="the-tree-leads-the-3d-views-panel", kind="decision",
+            name="A piece groups its parts in assemblies (kind assembly: a door, a rail, a drawer), to any depth; an "
+                 "assembly places and weighs nothing, so the checks and the other documents read the parts as before. "
+                 "In the 3D view the parts list stands at the head of the panel and is the assembly shown: its "
+                 "assemblies, then its own parts; picking an assembly shows it alone, fitted. The panel's title is the "
+                 "way back up (the piece, then each assembly down to the one shown), over the size of what is shown. "
+                 "The assembly steps followed are those that bring a part of what is shown; with fewer than two the "
+                 "slider is not drawn. An assembly whose longest side is over eight times its next is shown from its "
+                 "end, close enough to read its section. A double tap on the piece turns the view around the point "
+                 "touched and brings it close; beside the piece it shows the whole of what is shown again",
+            links={"rests_on": ["the-documents-are-for-the-people-who-build"],
+                   "supersedes": ["a-piece-is-walked-by-its-assemblies"]},
+            payload={"decided_on": "2026-11-15",
+                     "the_owner": "Maintenant qu'on navigue dans l'arbre, il faudrait le mettre un peu plus en avant; "
+                                  "Sur le téléphone, l'expérience utilisateur n'est pas terrible. [...] B. Et l'étape "
+                                  "de montage doit soit avoir du sens soit être enlevé.",
+                     "why": "On a phone the list sat under the sliders, out of sight, and the line leading back up "
+                            "with it. Inside a rail the step slider emptied the view until the rail's own step. The "
+                            "owner chose the list at the head of the panel (B) over a bar of buttons under the model "
+                            "(A), both tried on a playable prototype."},
+            children=[
+                _alt("a-bar-under-the-model", "A bar between the model and the panel: the way back up and a button "
+                     "per assembly in what is shown", "Shown as A and turned down by the owner for B."),
+                _alt("the-steps-of-the-whole-piece-everywhere", "The step slider kept as it was inside an assembly",
+                     "Its steps that bring nothing of what is shown leave the view empty or unchanged."),
             ],
         ),
     ]

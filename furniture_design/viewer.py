@@ -33,6 +33,7 @@ aside { width:300px; background:var(--panel); border-left:1px solid var(--line);
   overflow:auto; }
 h1 { font-size:18px; margin:0 0 2px; }
 .sub { color:var(--muted); font-size:13px; margin-bottom:14px; }
+[hidden] { display:none; }
 label { font-size:13px; color:var(--muted); display:block; margin:14px 0 4px; }
 input[type=range] { width:100%; }
 .step { font-size:14px; line-height:1.35; min-height:3.5em; margin-top:6px; }
@@ -43,8 +44,7 @@ li:hover, li.on { background:var(--line); }
 .mark { width:24px; height:24px; border-radius:50%; border:1.5px solid var(--ink); display:grid;
   place-items:center; font-weight:700; font-size:12px; flex:none; }
 .dims { color:var(--muted); font-size:12px; }
-#path { font-size:13px; margin:6px 0 0; line-height:1.5; }
-#path a { color:inherit; }
+h1 a { color:inherit; }
 li .into { margin-left:auto; color:var(--muted); font-size:18px; }
 li .group { width:24px; flex:none; }
 #tip { position:absolute; left:12px; top:12px; background:var(--panel); border:1px solid var(--line);
@@ -60,18 +60,19 @@ button { font:inherit; font-size:13px; padding:6px 10px; border-radius:6px; bord
 <div id="app">
   <div id="stage"><div id="tip"></div></div>
   <aside>
-    <h1>__TITLE__</h1>
+    <h1 id="title">__TITLE__</h1>
     <div class="sub" id="sub"></div>
-    <label for="steps">__L_STEPS__ <span id="stepn"></span></label>
-    <input id="steps" type="range" min="0" value="0">
-    <div class="step" id="steptext"></div>
+    <label>__L_PARTS__</label>
+    <ul id="parts"></ul>
+    <div id="assembly">
+      <label for="steps">__L_STEPS__ <span id="stepn"></span></label>
+      <input id="steps" type="range" min="0" value="0">
+      <div class="step" id="steptext"></div>
+    </div>
     <label for="explode">__L_EXPLODE__</label>
     <input id="explode" type="range" min="0" max="100" value="0">
     <div class="row"><input id="showc" type="checkbox" checked><span>__L_CONNECTORS__</span>
       <span style="flex:1"></span><button id="reset">__L_RESET__</button></div>
-    <label>__L_PARTS__</label>
-    <nav id="path" hidden></nav>
-    <ul id="parts"></ul>
   </aside>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -171,13 +172,20 @@ window.addEventListener('resize', fit); fit(); home();
 // steps: 0 shows the finished piece; k shows the state after assembly step k
 const steps = DATA.steps.filter(s => !s.prepare);
 const stepIn = document.getElementById('steps');
-stepIn.max = steps.length;
 const placedAt = {};
 steps.forEach((s, i) => s.add.forEach(id => placedAt[id] = i + 1));
+// the steps followed are those that bring a part of what is shown; with fewer than two there is
+// nothing to follow, and the slider is not drawn
+let mine = [];
+function follow() {
+  mine = steps.map((s, i) => i + 1).filter(n => steps[n-1].add.some(id => byId[id] && under(byId[id])));
+  stepIn.max = mine.length; stepIn.value = 0;
+  document.getElementById('assembly').hidden = mine.length < 2;
+}
 
 function apply() {
-  const k = +stepIn.value, e = +document.getElementById('explode').value / 100;
-  document.getElementById('stepn').textContent = k ? `${k} / ${steps.length}` : '';
+  const n = +stepIn.value, k = n ? mine[n-1] : 0, e = +document.getElementById('explode').value / 100;
+  document.getElementById('stepn').textContent = n ? `${n} / ${mine.length}` : '';
   document.getElementById('steptext').textContent = k ? steps[k-1].text : DATA.finished;
   meshes.forEach(m => {
     const p = m.userData.part, at = placedAt[p.id] || 0;
@@ -199,12 +207,14 @@ function apply() {
   });
 }
 ['steps', 'explode', 'showc'].forEach(id => document.getElementById(id).addEventListener('input', apply));
-document.getElementById('reset').onclick = () => { stepIn.value = 0; document.getElementById('explode').value = 0; go([]); document.querySelector('aside').scrollTop = 0; };
+document.getElementById('reset').onclick = () => { stepIn.value = 0; document.getElementById('explode').value = 0; go([]); };
 
-const list = document.getElementById('parts'), trail = document.getElementById('path');
+const list = document.getElementById('parts'), title = document.getElementById('title');
 const fmt = n => String(Math.round(n * 10) / 10);
 let seen = {};
-// the list is the group shown: the groups in it first, then its own parts, one row per letter
+// the list is the group shown: the groups in it first, then its own parts, one row per letter.
+// The title is the way back up, the piece then each group down to the one shown, and the line
+// under it gives the size of what is shown.
 function listing() {
   list.innerHTML = ''; seen = {};
   const groups = new Map();
@@ -225,17 +235,18 @@ function listing() {
     li.onclick = () => go([...here, id]);
     list.prepend(li);
   });
-  // the way back up: the piece, then each group down to the one shown
-  trail.hidden = !here.length;
-  trail.innerHTML = '';
+  const [version] = DATA.subtitle.split(' · '), d = [0, 1, 2].map(i => Math.round(view.hi[i] - view.lo[i]));
+  document.getElementById('sub').textContent = `${version} · ${d[0]} × ${d[1]} × ${d[2]} mm`;
+  title.textContent = DATA.title;
   if (!here.length) return;
+  title.innerHTML = '';
   const first = DATA.parts.find(under);
   [[null, DATA.title], ...first.within.slice(0, here.length)].forEach(([id, name], i) => {
-    if (i) trail.append(' › ');
-    if (i === here.length) { const b = document.createElement('b'); b.textContent = name; trail.append(b); return; }
+    if (i) title.append(' › ');
+    if (i === here.length) { title.append(name); return; }
     const a = document.createElement('a'); a.href = '#'; a.textContent = name;
     a.onclick = ev => { ev.preventDefault(); go(here.slice(0, i)); };
-    trail.append(a);
+    title.append(a);
   });
 }
 // A part that sits inside another's box (a channel in the angle that holds it) cannot be pulled
@@ -270,14 +281,12 @@ function nested() {
   });
 }
 function go(to) {
-  here = to; view = shown(); selected = null; nested();
+  here = to; view = shown(); selected = null; nested(); follow();
   meshes.forEach(m => m.userData.selected = false);
   tip.style.display = 'none';
   listing(); home(); apply();
-  // the list that was tapped stays where it is seen, under the view
-  trail.previousElementSibling.scrollIntoView();
+  document.querySelector('aside').scrollTop = 0;
 }
-document.getElementById('sub').textContent = DATA.subtitle;
 
 let selected = null;
 function select(mark) {
@@ -318,7 +327,7 @@ renderer.domElement.addEventListener('pointerup', ev => {
   tip.style.display = 'block';
   select(p.mark);
 });
-nested(); listing();
+nested(); follow(); listing();
 apply();
 (function loop() {
   requestAnimationFrame(loop); controls.update();

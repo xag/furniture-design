@@ -150,7 +150,7 @@ VOCABULARY = [
         "part under it is placed as if the assembly were not there, and reads the params of the "
         "nodes holding it as before. A link that names a part under it (a joint's joins, a load's "
         "on) names it by its whole path, through its assemblies. The 3D view lists a piece by its assemblies: picking one "
-        "shows it alone, and a line leads back up to the piece."),
+        "shows it alone, and its title leads back up to the piece."),
         params={}, links={}),
     KindDef(kind="tool", description=(
         "A machine, jig or hand tool that cuts or drills what a part or a joint needs: payload "
@@ -750,7 +750,7 @@ COUNTER_EXAMPLES = [
 
 PACKAGE = Package(
     name="furniture-design",
-    version="0.18.1",
+    version="0.19.0",
     description=(
         "Furniture designs and the published knowledge they are judged against. Kinds: "
         "source and clause (a publication and its verbatim, located statements, with the "

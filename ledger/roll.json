@@ -895,6 +895,21 @@
     "digest": "1b6308b4d867"
   },
   {
+    "path": "the-tree-leads-the-3d-views-panel",
+    "kind": "decision",
+    "digest": "0fcec097c90b"
+  },
+  {
+    "path": "the-tree-leads-the-3d-views-panel/a-bar-under-the-model",
+    "kind": "alternative",
+    "digest": "85b5d15e2fad"
+  },
+  {
+    "path": "the-tree-leads-the-3d-views-panel/the-steps-of-the-whole-piece-everywhere",
+    "kind": "alternative",
+    "digest": "7e776a9acafd"
+  },
+  {
     "path": "this-repos-own-work-is-agpl",
     "kind": "decision",
     "digest": "4558c8339054"
