@@ -1180,6 +1180,31 @@ def entries() -> list[Node]:
             ],
         ),
         Node(
+            id="a-screen-takes-its-drawing-from-the-instructions-and-its-words-from-the-piece", kind="decision",
+            name="The assembly instructions come as screens for an app, one step or one block of a step at a time: "
+                 "each screen's drawing is cut from the instructions' PDF where they drew it (the drawing notes each "
+                 "picture's place: the cover, each board, each step's picture, each block drawn on its own and its "
+                 "frames), and its words (the step's text, tools and connectors, the boards' letters, counts and "
+                 "sizes, the hardware, a cut card's sentences and method) are read from the piece and set by the app. "
+                 "A frame or block added to the instructions reaches the screens by noting its place, never by a "
+                 "second drawing of it",
+            links={"rests_on": ["the-grooving-step-is-drawn-to-ikeas-rules",
+                                "the-documents-are-for-the-people-who-build"]},
+            payload={"decided_on": "2026-11-15",
+                     "the_owner": "I think we should have a new card with user friendly display of the assembly "
+                                  "instructions; Right now they're only in a pdf. That's fine, but since we're in an "
+                                  "app... Prototype; then, of the prototype: deploy",
+                     "why": "A whole A4 page on a phone draws a step at about 2 px per mm, its words 5 to 7 px high. "
+                            "Cutting the drawings from the PDF keeps one drawing of each; the prototype "
+                            "(furniture's prototypes/assembly-card) read well at 320 and 390 px and on a desktop."},
+            children=[
+                _alt("pages-as-images", "Show the PDF's pages as images, one a screen",
+                     "On a phone the words are 5 to 7 px high and half pages are empty."),
+                _alt("a-second-drawing", "Draw each screen again from the scene, apart from the PDF",
+                     "Two drawings of each step drift apart."),
+            ],
+        ),
+        Node(
             id="a-pieces-instructions-are-full-or-short", kind="decision",
             name="A piece says in its payload instructions how much its assembly instructions show of the tools "
                  "in use: full, when it says nothing, or short, for someone who knows their tools. Short leaves "

@@ -215,7 +215,8 @@ def documents(tree: Quern, piece: str, out_dir: Path, *, lang: str = "fr",
               stock: dict[str, list[dict]] | None = None) -> dict[str, Path]:
     """The four things a piece is built from, written into `out_dir`: the interactive 3D
     view (HTML), the design document (PDF, A3), the assembly instructions (PDF, A4) and the
-    cutting sheet for a shop's cutting service (PDF, A4).
+    cutting sheet for a shop's cutting service (PDF, A4); and the instructions as screens for an
+    app (steps.instruction_screens), in a folder named as their PDF, `steps` its screens.json.
     `notes` are the design document's notes, sections of a heading and its paragraphs, a
     paragraph being a text or (text, [lines under it]) (the piece's payload description when none
     are given). `stock` is what can be bought of each material, the sheets the cutting sheet lays
@@ -224,16 +225,19 @@ def documents(tree: Quern, piece: str, out_dir: Path, *, lang: str = "fr",
     from .report import checks as plain_checks
     from .scene import scene
     from .sheets import assembly_instructions, design_document
+    from .steps import instruction_screens
     from .viewer import viewer_html
 
     out_dir.mkdir(parents=True, exist_ok=True)
     sc = scene(tree, piece)
     stem = stem or piece.rsplit("/", 1)[-1]
     words = {"fr": ("3d", "plans", "montage", "decoupe"), "en": ("3d", "design", "assembly", "cutting")}[lang]
+    regions: list[dict] = []     # where the assembly instructions draw each picture, for their screens
     return {
         "viewer": viewer_html(sc, out_dir / f"{stem}-{words[0]}.html", lang),
         "design": design_document(sc, out_dir / f"{stem}-{words[1]}.pdf",
                                   plain_checks(tree, piece, lang), lang, notes),
-        "assembly": assembly_instructions(sc, out_dir / f"{stem}-{words[2]}.pdf", lang),
+        "assembly": assembly_instructions(sc, out_dir / f"{stem}-{words[2]}.pdf", lang, regions),
+        "steps": instruction_screens(sc, out_dir / f"{stem}-{words[2]}.pdf", regions, out_dir / f"{stem}-{words[2]}", lang),
         "cutting": cutting_sheet(sc, out_dir / f"{stem}-{words[3]}.pdf", lang, stock),
     }

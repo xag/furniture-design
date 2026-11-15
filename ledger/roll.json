@@ -355,6 +355,21 @@
     "digest": "b3354d1c4b6b"
   },
   {
+    "path": "a-screen-takes-its-drawing-from-the-instructions-and-its-words-from-the-piece",
+    "kind": "decision",
+    "digest": "da0fcf309132"
+  },
+  {
+    "path": "a-screen-takes-its-drawing-from-the-instructions-and-its-words-from-the-piece/a-second-drawing",
+    "kind": "alternative",
+    "digest": "26dcc45fcb74"
+  },
+  {
+    "path": "a-screen-takes-its-drawing-from-the-instructions-and-its-words-from-the-piece/pages-as-images",
+    "kind": "alternative",
+    "digest": "d32c3564dd26"
+  },
+  {
     "path": "a-shops-cutting-service-is-a-saw-with-its-rules",
     "kind": "decision",
     "digest": "c5eac417e676"

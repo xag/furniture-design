@@ -120,6 +120,18 @@ class Pen:
 
     def __init__(self, c: Canvas):
         self.c = c
+        self.regions = None   # a list to note where each picture is drawn in (note()), or None
+
+    def note(self, kind: str, box, blank=None, **info):
+        """When regions are kept, note that a picture of `kind` is drawn in `box` (x, y, w, h in mm from the
+        page's bottom left) on the current page, as [x0, y0, x1, y1] from the page's top left, the way a
+        page is cut; `blank` an area within it to leave out (a letter the screen sets as text)."""
+        if self.regions is None:
+            return
+        top = self.c._pagesize[1] / mm
+        flip = lambda x, y, w, h: [round(x, 2), round(top - (y + h), 2), round(x + w, 2), round(top - y, 2)]
+        self.regions.append({"kind": kind, "page": self.c.getPageNumber() - 1, "box": flip(*box),
+                             **({"blank": flip(*blank)} if blank else {}), **info})
 
     def line(self, x1, y1, x2, y2, w=0.25, color=INK, dash=None):
         c = self.c
@@ -1044,21 +1056,26 @@ def _cut_method(pen: Pen, p: Part, box, L: dict, lang: str, short: bool = False)
                 yy -= 3.0
 
 
-def assembly_instructions(sc: Scene, path: Path, lang: str = "fr") -> Path:
+def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list | None = None) -> Path:
     """Picture-first assembly instructions, A4 portrait. A piece whose payload instructions is short
     leaves out how its tools are used: the methods beside each cut, the jointer drawn at work and
-    the test groove; what the piece needs (the cuts, the marks, the settings, the holes) stays."""
+    the test groove; what the piece needs (the cuts, the marks, the settings, the holes) stays.
+    `regions`, a list, gets where each picture is drawn (Pen.note): the cover, each board, each step's
+    picture, each block of a step drawn on its own (a cut card, the grooving settings and each kind of
+    joint) and the frames and drawings in it, in the order drawn; steps.instruction_screens cuts them out."""
     L = LABELS[lang]
     short = sc.info.get("instructions") == "short"
     W, H = 210, 297
     c = Canvas(str(path), pagesize=A4)
     c.setTitle(f"{sc.title} - {L['assemble']}")
     pen = Pen(c)
+    pen.regions = regions
     view = lw.axonometric()
     boxes = _boxes(sc.parts)
     # cover
     pen.text(W / 2, H - 40, sc.title, 11, INK, "middle", bold=True)
     pen.text(W / 2, H - 50, f"{L['version']} {sc.info.get('version', '')}", 4, THIN, "middle")
+    pen.note("cover", (20, 70, W - 40, 150))
     placed = _fit(boxes, view, 20, 70, W - 40, 150, pad=10)
     draw_parts(pen, placed, sc.parts, fill_for=lambda k, sh: _wood(sh), line=0.4)
     size = [h - l for l, h in zip(sc.lo, sc.hi)]
@@ -1084,6 +1101,7 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr") -> Path:
             shift = (0, 0, 0)
         else:             # as it stands in the piece, with its cuts
             board, shift = p, tuple(-a for a in p.lo)
+        pen.note("board", (x, y + 10, cw - 6, ch - 14), blank=(x + 1.2, y + ch - 13, 10, 10), mark=p.mark)
         shown = _boxes([board], {board.id: shift})
         bplaced = _fit(shown, view, x, y + 10, cw - 6, ch - 14, pad=4)
         draw_parts(pen, bplaced, [board], fill_for=lambda k, sh: _wood(sh), offsets={board.id: shift},
@@ -1149,6 +1167,7 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr") -> Path:
         for t in step.tools:
             tx += _tool_badge(pen, tx, y + h - 13, t) + 3
         pic = (x, y + 14, w, h - 32)
+        pen.note("step", pic, step=step.number)
         if step.prepare:
             _prepare_picture(pen, sc, step, pic)
         else:
@@ -1163,6 +1182,8 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr") -> Path:
             else:
                 pen.line(15, 148, W - 15, 148, 0.2, THIN, [1.5, 1.5])
             cx, cy, cw, ch = slots[slot % 2]
+            pen.note("block", slots[slot % 2], step=step.number, part=p.id, count=qty)
+            pen.note("drawing", (cx, cy, cw * 0.46, ch - 10))
             _cut_card(pen, p, qty, (cx, cy, cw * 0.46, ch), L)
             _cut_method(pen, p, (cx + cw * 0.5, cy, cw * 0.5, ch), L, lang, short)
             slot += 1

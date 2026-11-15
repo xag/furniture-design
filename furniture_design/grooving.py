@@ -95,6 +95,7 @@ def proj(p):
 
 
 def frame(pen, b, n):
+    pen.note("frame", b, n=n)
     x, y, w, h = b
     pen.c.setStrokeColor(THIN)
     pen.c.setLineWidth(0.25 * mm)
@@ -448,6 +449,7 @@ def settings(pen, b, model, setting, spacer, spacers, recess):
     pen.c.setLineWidth(0.25 * mm)
     pen.c.roundRect(x * mm, y * mm, w * mm, h * mm, 2 * mm, stroke=1, fill=0)
     cx = x + 6
+    inner = (x + 1, y + 1, w - 2, h - 2)
     dials = (model or {}).get("dials", [])
     if model:
         W = scene3d(pen, (x, y - 4, 64 + SIDE, h + 8), machine(model, "standing", np.eye(3), (0, 0, 0)),
@@ -466,6 +468,11 @@ def settings(pen, b, model, setting, spacer, spacers, recess):
                 pen.arrowhead(cx_ + r * 0.55, cy_ + r * 0.62, -1, 0.2, 2.0)
             closeup(pen, (cx, y + h / 2), 9.5, sp, inside)
             cx += 22
+        split = cx - 22 + 11 if dials else x + 64 + SIDE   # the machine and its dials, then the rest
+        pen.note("drawing", (inner[0], inner[1], split - inner[0], inner[3]))
+        inner = (split, inner[1], x + w - 1 - split, inner[3])
+    if spacers or recess is not None:
+        pen.note("drawing", inner)
     if spacers:
         sx = cx + 2
         shown = spacer or min(spacers)
@@ -512,6 +519,7 @@ def grooving_pages(c, pen, sc: Scene, step, L: dict, W_: float = 210, H_: float 
     tx = 37
     for t in step.tools:
         tx += _tool_badge(pen, tx, H_ - 31, t) + 3
+    pen.note("block", (15, H_ - 78, 180, 38), step=step.number, head=True)
     settings(pen, (15, H_ - 78, 180, 38), mach_model, j0.setting, gs[0]["e"].spacer, j0.spacers,
              None if short else j0.test_recess)
     fw, fh = (W_ - 30 - 4) / 2, 62.0
@@ -529,6 +537,8 @@ def grooving_pages(c, pen, sc: Scene, step, L: dict, W_: float = 210, H_: float 
         pe, pf = sc.part(e.part), sc.part(f.part)
         j = jt(sc, e.joint)
         offset = j.groove_offset or e.offset
+        pen.note("block", (15, y_top - 8 - 2 * fh - 4, 180, 2 * fh + 4), step=step.number,
+                 **({"count": g["n"]} if g["n"] > 1 else {}))
         if g["n"] > 1:
             pen.text(15, y_top - 6, f"{g['n']} ×", 5, INK, bold=True)
         boxes = [(15 + (i % 2) * (fw + 4), y_top - 8 - (i // 2 + 1) * fh - (i // 2) * 4, fw, fh) for i in range(4)]
