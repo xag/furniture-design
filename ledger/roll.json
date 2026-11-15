@@ -340,6 +340,21 @@
     "digest": "4f57914b8509"
   },
   {
+    "path": "a-pieces-design-is-certified-against-its-ledger-and-its-mechanisms",
+    "kind": "decision",
+    "digest": "1f3e2614fd32"
+  },
+  {
+    "path": "a-pieces-design-is-certified-against-its-ledger-and-its-mechanisms/free-text-coverage",
+    "kind": "alternative",
+    "digest": "5b9b211f0afc"
+  },
+  {
+    "path": "a-pieces-design-is-certified-against-its-ledger-and-its-mechanisms/rules-of-furniture-design",
+    "kind": "alternative",
+    "digest": "782787972571"
+  },
+  {
     "path": "a-pieces-instructions-are-full-or-short",
     "kind": "decision",
     "digest": "b90a52709434"

@@ -65,3 +65,51 @@ def test_the_levels_are_data_a_tree_may_replace():
         if node.id == "tool-listed":
             node.links["requires"].append("standards/tool-figures-are-closed")
     assert "tool-listed" not in reached(cert(example_tool(documents=("manual",)), standards=branch))
+
+
+# --- a piece's design -------------------------------------------------------------------------
+
+from furniture_design import standards_piece as sp  # noqa: E402
+
+PIECE = "pieces/doors"
+
+
+def piece_cert(**kw) -> dict:
+    t = Quern(vocabulary=PACKAGE.vocabulary, rules=PACKAGE.rules, solvers=PACKAGE.solvers)
+    t.root.children = _world() + sp.piece_world(**kw)
+    return certificate(t, PIECE)
+
+
+def whys(c: dict) -> str:
+    return " | ".join(w for k in c["criteria"] for r in k["reds"] for w in r["why"])
+
+
+def test_two_doors_in_one_rail_as_designed_reach_both_levels():
+    assert reached(piece_cert()) == ["piece-settled", "piece-works"]
+
+
+def test_a_channel_glued_in_the_angle_leaves_the_back_door_no_room():
+    """The owner: the channel a panel slides in is glued in the angle, so that there is no room for the other
+    panel to slide between the channel and the angle. The design still says what was asked; it does not work."""
+    c = piece_cert(piece=sp.example_piece(channel_at=7.0))
+    assert reached(c) == ["piece-settled"]
+    assert "pieces/doors/back-slides: along its travel it crosses pieces/doors/channel" in whys(c)
+
+
+def test_a_piece_whose_ledger_says_only_its_purpose_is_not_settled():
+    """Doors modelled with no decision on how they slide: every sentence of the purpose is unanswered."""
+    bare = sp.example_ledger()
+    bare.children[0].children = bare.children[0].children[:1]
+    c = piece_cert(ledger=bare)
+    assert reached(c) == [] and "no decision answers: “Two doors slide in one rail, one behind the other.”" in whys(c)
+
+
+def test_a_number_the_ledger_states_is_compared_with_the_model():
+    c = piece_cert(piece=sp.example_piece(overlap=47.0))
+    assert reached(c) == [] and "“overlap by 50 mm” is 50 in the ledger and 47 in the model (2 * 600 - width)" in whys(c)
+
+
+def test_parts_nothing_holds_and_doors_nothing_moves_are_named():
+    c = piece_cert(piece=sp.example_piece(joints=False, motions=False))
+    assert "pieces/doors/angle: no joint joins it, and no motion moves it" in whys(c)
+    assert "pieces/doors/front-door/panel: no joint joins it, and no motion moves it" in whys(c)

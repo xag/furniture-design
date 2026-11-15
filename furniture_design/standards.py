@@ -25,6 +25,8 @@ from quern.provenance import Quantity
 from quern.solver import SolverDef
 from quern.tree import Demonstration, KindDef, Node, Quern, Rule, get_node, register_native
 
+from . import standards_piece as piece
+
 STANDARDS = "standards"
 
 
@@ -154,13 +156,13 @@ EXPLAINERS = {
 
 # --- the criteria and the levels --------------------------------------------------------------
 
-def _criterion(id_: str, name: str, measures: str, *rules: str) -> Node:
+def _criterion(id_: str, name: str, measures: str, *rules: str, of: str = "tool") -> Node:
     return Node(id=id_, kind="criterion", name=name,
-                payload={"applies_to": "tool", "measures": measures, "rules": list(rules)})
+                payload={"applies_to": of, "measures": measures, "rules": list(rules)})
 
 
-def _level(id_: str, name: str, *criteria: str) -> Node:
-    return Node(id=id_, kind="level", name=name, payload={"of": "tool"},
+def _level(id_: str, name: str, *criteria: str, of: str = "tool") -> Node:
+    return Node(id=id_, kind="level", name=name, payload={"of": of},
                 links={"requires": [f"{STANDARDS}/{c}" for c in criteria]})
 
 
@@ -191,6 +193,21 @@ def knowledge() -> list[Node]:
         _level("tool-shared", "Taken into the shared packages", "tool-is-identified", "tool-is-drawn",
                "tool-drawing-is-true", "tool-is-said", "saw-states-its-cut", "tool-figures-are-consistent",
                "tool-figures-are-observed", "tool-figures-are-closed"),
+        _criterion("piece-is-explained", "Every sentence of the piece's purpose is answered by a decision that names "
+                   "what realises it", "completeness", "a-pieces-purpose-is-answered",
+                   "a-pieces-decisions-name-what-realises-them", of="piece"),
+        _criterion("piece-agrees-with-its-ledger", "The model gives the numbers the piece's ledger states",
+                   "consistency", "a-pieces-stated-numbers-are-checked", "a-pieces-figures-are-those-of-its-model",
+                   of="piece"),
+        _criterion("piece-holds-together", "Every part is fixed by a joint or moved by a motion", "completeness",
+                   "a-pieces-parts-are-fixed-or-guided", of="piece"),
+        _criterion("piece-mechanisms-work", "What slides is held on both sides and has room along its travel",
+                   "consistency", "a-pieces-motions-are-stated", "a-pieces-sliding-parts-are-held",
+                   "a-pieces-sliding-parts-have-room", of="piece"),
+        _level("piece-settled", "Its design says what the person asked for", "piece-is-explained",
+               "piece-agrees-with-its-ledger", of="piece"),
+        _level("piece-works", "It holds together and what moves in it works", "piece-is-explained",
+               "piece-agrees-with-its-ledger", "piece-holds-together", "piece-mechanisms-work", of="piece"),
     ])]
 
 
@@ -286,6 +303,11 @@ SPEC = {
 }
 
 
+NATIVES |= piece.NATIVES
+EXPLAINERS |= piece.EXPLAINERS
+SPEC |= piece.SPEC
+
+
 def register() -> None:
     for name, fn in NATIVES.items():
         register_native(name, fn, SPEC[name])
@@ -305,6 +327,12 @@ VOCABULARY = [
         "A use a subject may be put to: payload of (the kind of subject), and the link requires to the "
         "criteria that use needs. Reached when every criterion it requires is held. Read by quern.certify."),
         links={"requires": "the criteria this use needs"}),
+    KindDef(kind="motion", description=(
+        "Something of a piece that moves, beneath the piece: payload type (slide), axis (x, y or z) and travel "
+        "([from, to] in mm from where the parts are modelled, numbers or expressions over the piece's params); "
+        "the link moves to the parts or assemblies that move, and guided_by to the parts that guide them. It "
+        "places and weighs nothing."),
+        links={"moves": "the parts or assemblies that move", "guided_by": "the parts that guide them"}),
 ]
 
 _MEASURES = ("completeness", "reliability", "consistency", "presentation")
@@ -353,6 +381,31 @@ RULES = [
     Rule(name="a-saw-states-its-cut", kind="tool",
          expr="len(payload(self, 'saw_kind', '')) == 0 or states(self, 'kerf') or states(self, 'max_kerf')",
          description="State the cut of the saw's blade (kerf, or max_kerf), from its maker's document."),
+    Rule(name="a-pieces-purpose-is-answered", kind="piece", expr="solve('furniture/purpose_uncovered', self) == 0",
+         description="Answer every sentence of the piece's purpose with a decision in its ledger whose payload "
+                     "answers quotes the words it answers; ask the person what you do not know, and do not "
+                     "decide for them how the piece works."),
+    Rule(name="a-pieces-decisions-name-what-realises-them", kind="piece",
+         expr="solve('furniture/unrealised_decisions', self) == 0",
+         description="Link each decision of the piece's ledger realised_by to the parts, assemblies, joints or "
+                     "motions of the piece that realise it."),
+    Rule(name="a-pieces-stated-numbers-are-checked", kind="piece", expr="solve('furniture/unchecked_numbers', self) == 0",
+         description='Hold the model to every quantity the ledger states in words: a figure of the decision '
+                     '(payload figures: {"says", "value", "is": an expression over the piece\'s params}).'),
+    Rule(name="a-pieces-figures-are-those-of-its-model", kind="piece", expr="solve('furniture/figures_off', self) == 0",
+         description="The model does not give a number the ledger states: change the model, or ask the person "
+                     "and change the decision."),
+    Rule(name="a-pieces-parts-are-fixed-or-guided", kind="piece", expr="solve('furniture/loose_parts', self) == 0",
+         description="Say what holds every part: a joint that joins it (to another part, or payload to: what it "
+                     "is fixed to outside the piece), or a motion that moves it."),
+    Rule(name="a-pieces-motions-are-stated", kind="piece", expr="solve('furniture/motions_unstated', self) == 0",
+         description="State each motion whole: type slide, its axis, its travel [from, to], what moves and what "
+                     "it is guided by."),
+    Rule(name="a-pieces-sliding-parts-are-held", kind="piece", expr="solve('furniture/unheld_slides', self) == 0",
+         description="A sliding part needs a wall on both sides, of the parts its motion says guide it: place a "
+                     "guide there, or name the part that is."),
+    Rule(name="a-pieces-sliding-parts-have-room", kind="piece", expr="solve('furniture/slide_crossings', self) == 0",
+         description="A sliding part crosses another part along its travel: move one of them, so it runs clear."),
     Rule(name="a-saw-states-its-depth", kind="tool",
          expr="len(payload(self, 'saw_kind', '')) == 0 or states(self, 'max_cut_depth')",
          description="State the thickest board the saw cuts (max_cut_depth), from its maker's document."),
@@ -361,7 +414,12 @@ RULES = [
 
 register()
 
-EXAMPLES = _world()
+EXAMPLES = _world() + piece.piece_world()
+
+
+def _piece_case(**kw) -> list[Node]:
+    return _world() + piece.piece_world(**kw)
+
 
 _BAD_STANDARD = Node(id=STANDARDS, kind="", children=[
     Node(id="says-nothing", kind="criterion", payload={"applies_to": "tool", "measures": "completeness"}),
@@ -397,18 +455,41 @@ COUNTER_EXAMPLES = [
                    because="a saw whose cut nobody stated"),
     CounterExample(rule="a-saw-states-its-depth", nodes=_world(example_tool(saw=True, drop=("max_cut_depth",))),
                    because="a saw whose depth nobody stated"),
+    CounterExample(rule="a-pieces-purpose-is-answered", nodes=_piece_case(ledger=piece.example_ledger(answers=False)),
+                   because="doors said to slide in one rail, and no decision on how"),
+    CounterExample(rule="a-pieces-decisions-name-what-realises-them",
+                   nodes=_piece_case(ledger=piece.example_ledger(realised=False)),
+                   because="a decision about the rail that names no part, joint or motion"),
+    CounterExample(rule="a-pieces-stated-numbers-are-checked", nodes=_piece_case(ledger=piece.example_ledger(figure=None)),
+                   because="an overlap of 50 mm stated in words, that nothing compares with the model"),
+    CounterExample(rule="a-pieces-figures-are-those-of-its-model", nodes=_piece_case(piece=piece.example_piece(overlap=47.0)),
+                   because="the ledger says the doors overlap by 50 mm, and the model gives 47"),
+    CounterExample(rule="a-pieces-parts-are-fixed-or-guided", nodes=_piece_case(piece=piece.example_piece(joints=False)),
+                   because="an angle and a channel that nothing fixes"),
+    CounterExample(rule="a-pieces-motions-are-stated", nodes=_piece_case(piece=piece.example_piece(travel=[600])),
+                   because="a slide whose travel is one number"),
+    CounterExample(rule="a-pieces-sliding-parts-are-held",
+                   nodes=_piece_case(piece=piece.example_piece(back_guides=("channel",))),
+                   because="a back door with the channel in front of it and nothing behind"),
+    CounterExample(rule="a-pieces-sliding-parts-have-room", nodes=_piece_case(piece=piece.example_piece(channel_at=7.0)),
+                   because="the channel glued in the angle, where the back door was to run between the channel "
+                           "and the angle's leg: no room is left for it"),
 ]
 
 PACKAGE = Package(
     name="furniture-standards",
-    version="0.1.0",
+    version="0.2.0",
     description=(
         "What a tool's entry is held to for each use it may be put to, as criteria and levels a certificate "
         "is run from (quern.certify). Criteria: the tool is identified, drawn, its drawing true to its "
         "figures, said in every language, a saw's cut and depth stated, its figures consistent, each found "
         "printed in a document, each resting on two observations that agree. Levels: shown in a person's "
         "tools, cuts the parts of a piece, drawn at work in assembly instructions, taken into the shared "
-        "packages. The rules grade and refuse nothing."),
+        "packages. And what a piece's design is held to: every sentence of its purpose answered by a decision "
+        "of its ledger that names what realises it, the numbers the ledger states given by the model, every part "
+        "fixed by a joint or moved by a motion (kind motion: a slide's axis, travel, what moves and what guides "
+        "it), and what slides held on both sides with room along its travel; levels: its design says what the "
+        "person asked for, it holds together and what moves in it works. The rules grade and refuse nothing."),
     publisher="xag/furniture-design",
     vocabulary=VOCABULARY,
     rules=RULES,

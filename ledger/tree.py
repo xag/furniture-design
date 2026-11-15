@@ -1466,6 +1466,38 @@ def entries() -> list[Node]:
                      "An outline says any section and its way round at once, with nothing to learn per shape."),
             ],
         ),
+        Node(
+            id="a-pieces-design-is-certified-against-its-ledger-and-its-mechanisms", kind="decision",
+            name="furniture-standards@ also says what a piece's design is held to (furniture_design/standards_piece.py): "
+                 "every sentence of its purpose is answered by a decision of its ledger that quotes it and names "
+                 "what in the piece realises it; every quantity the ledger states in words is a figure the model "
+                 "is held to; every part is fixed by a joint or moved by a motion; and what slides (a new kind, "
+                 "motion: axis, travel, what moves, what guides) is held on both sides by its guides and crosses "
+                 "nothing along its travel, judged on the parts' outlines across the axis. Two levels: the design "
+                 "says what the person asked for; it holds together and what moves in it works. The piece's ledger "
+                 "is read at ledgers/<piece id>, where whoever certifies mounts it",
+            payload={"decided_on": "2026-11-15",
+                     "the_owner": "tous les rails sont faux: le U dans lequel glisse un panneau est coll\u00e9 dans "
+                                  "l'angle de sorte qu'il n'y a pas de place pour que l'autre panneau glisse entre "
+                                  "le U et l'angle \u2014 donc, il faut aussi un process de certification costaud "
+                                  "pour le design des meubles \u2014 consistence entre le ledger et le design "
+                                  "peut-\u00eatre, et s'assurer que les r\u00e8gles du ledger sont couvrantes",
+                     "why": "A piece of sliding doors passed every rule with rails that could not work: its ledger "
+                            "held its purpose and no decision, its doors were boxes that nothing said moved, no "
+                            "part was joined to anything, and the 5 cm of overlap its purpose states was 47 and "
+                            "52 mm in the model with nothing comparing them.",
+                     "not_yet": "Motions other than a slide; a part cut from what was bought, by a tool the person "
+                                "has; hardware counted; the surroundings as parts; the assembly instructions' own "
+                                "standard."},
+            links={"rests_on": ["a-tool-is-certified-by-a-standard-that-is-a-package", "a-profile-is-one-part-with-its-section",
+                                "a-piece-is-walked-by-its-assemblies"]},
+            children=[
+                _alt("rules-of-furniture-design", "Make them rules every piece must pass to be built",
+                     "A draft is built to be looked at before it is settled; these grade it and say what is left."),
+                _alt("free-text-coverage", "Leave it to the assistant to judge whether the ledger covers the purpose",
+                     "The party graded would grade itself; a quoted sentence and a named part are checked."),
+            ],
+        ),
     ]
 
 
