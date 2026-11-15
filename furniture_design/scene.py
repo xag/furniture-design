@@ -424,8 +424,8 @@ def scene(tree: Quern, piece: str) -> Scene:
     by_path = {p.path: p for p in parts}
     joints = []
     prefix = piece.rstrip("/") + "/"
-    for path, node in tree.walk(""):
-        if node.kind != "joint" or not path.startswith(prefix):
+    for path, node in tree.walk(piece, kind="joint"):
+        if not path.startswith(prefix):
             continue
         links = node.links or {}
         lay = joint_layout(tree, path, node, by_path)

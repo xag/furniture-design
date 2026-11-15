@@ -326,7 +326,7 @@ def unheld(tree: Quern, piece: str) -> float:
     if node is None:
         raise ValueError(f"no node at '{piece}'")
     linked = {t for targets in node.links.values() for t in targets}
-    reqs = [p for p, n in tree.walk("") if n.kind == "requirement"]
+    reqs = [p for p, _ in tree.walk("", kind="requirement")]
     return float(sum(1 for r in reqs if r not in linked and in_scope(tree, piece, r)))
 
 
@@ -384,8 +384,8 @@ def deflection(tree: Quern, part: str) -> float:
     material = get_node(tree, uses[0]) if uses else None
     apparent = material is not None and (material.payload or {}).get("modulus") == "apparent"
     here = "/".join(_segs(part))
-    loads = sum(_param(tree, p, "mass") or 0.0 for p, n in tree.walk("")
-                if n.kind == "load" and here in [("/".join(_segs(t))) for t in n.links.get("on", [])])
+    loads = sum(_param(tree, p, "mass") or 0.0 for p, n in tree.walk("", kind="load")
+                if here in [("/".join(_segs(t))) for t in n.links.get("on", [])])
     w = STANDARD_GRAVITY * (mass(tree, part) + loads)
     span, b, h, e = need["span"], need["depth"], need["thickness"], need["modulus_of_elasticity"]
     bending = need["kb"] * w * span ** 3 * 12 / (e * b * h ** 3)
@@ -557,9 +557,7 @@ def _frame_margin(tree: Quern, piece: str, force: float) -> float:
         return size[0] < min(size[1], size[2])
 
     total, found = 0.0, False
-    for jpath, j in tree.walk(""):
-        if j.kind != "joint":
-            continue
+    for jpath, j in tree.walk("", kind="joint"):
         joined = ["/".join(_segs(t)) for t in j.links.get("joins", [])]
         if len(joined) != 2 or not all(p in box for p in joined):
             continue
@@ -612,7 +610,7 @@ def _brace_margin(tree: Quern, piece: str, force: float) -> float:
     bs = bodies(tree, piece)
     box = {b.path: b for b in bs}
     floor = min(b.lo[2] for b in bs)
-    joints = [(p, n) for p, n in tree.walk("") if n.kind == "joint"]
+    joints = list(tree.walk("", kind="joint"))
     nodes = dict(joints)
 
     def rated(jpath: str, mode: str, parts: tuple[str, str]) -> float:

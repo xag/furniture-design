@@ -106,8 +106,8 @@ def joints(tree: Quern, piece: str) -> list[dict]:
     machine setting and the tools."""
     out = []
     prefix = piece.rstrip("/") + "/"
-    for path, node in tree.walk(""):
-        if node.kind != "joint" or not path.startswith(prefix):
+    for path, node in tree.walk(piece, kind="joint"):
+        if not path.startswith(prefix):
             continue
         links = node.links or {}
         out.append({

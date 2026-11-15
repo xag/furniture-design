@@ -118,12 +118,12 @@ def checks(tree: Quern, piece: str, lang: str = "fr") -> list[dict]:
     results = [r for r in run_rules(tree, prefix)
                if r.node == prefix or r.node.startswith(prefix + "/")]
     rows = []
-    for path, node in tree.walk(prefix):
-        if node.kind != "part" or not (node.links or {}).get("bends_as"):
+    for path, node in tree.walk(prefix, kind="part"):
+        if not (node.links or {}).get("bends_as"):
             continue
         name = node.name or node.id
-        loads = [(p, n) for p, n in tree.walk("") if n.kind == "load"
-                 and path in (n.links or {}).get("on", [])]
+        loads = [(p, n) for p, n in tree.walk("", kind="load")
+                 if path in (n.links or {}).get("on", [])]
         kg = sum(_param(tree, p, "mass") or 0 for p, _ in loads)
         load = T["load_point"].format(kg=_fmt(kg, 0))
         case = node.links["bends_as"][0]

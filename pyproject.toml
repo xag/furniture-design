@@ -27,7 +27,7 @@ dev = ["pytest>=8.0.0", "testplan"]
 [tool.uv.sources]
 testplan = { git = "https://github.com/xag/testplan", rev = "9d45f80cd57eee30fe402d5ee8f8b06ed3ee8ca8" }
 # Pinned by rev, always: quern is pre-1.0 and the doctrine is fork-or-republish.
-quern = { git = "https://github.com/xag/quern", rev = "5af149e9272b730ad5b4fe03cdb1a63b18c18950" }
+quern = { git = "https://github.com/xag/quern", rev = "c2f3c8b870f0ca5c7056fe669877837c46714bae" }
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
