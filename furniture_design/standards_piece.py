@@ -275,6 +275,46 @@ def loose_parts(tree: Quern, piece: str) -> float:
     return float(len(_loose(tree, piece)))
 
 
+# --- what it is cut from, cut with and fastened by ------------------------------------------------
+
+def _parts(tree: Quern, piece: str) -> list[tuple[str, Node]]:
+    return [(b.path, get_node(tree, b.path)) for b in natives.bodies(tree, piece)]
+
+
+def _uncut(tree: Quern, piece: str) -> list[str]:
+    out = []
+    for path, node in _parts(tree, piece):
+        if not node.links.get("uses"):
+            out.append(f"{path}: it does not say what it is cut from (uses)")
+        if not node.links.get("sawn_with"):
+            out.append(f"{path}: it does not say what cuts it out (sawn_with)")
+    return out
+
+
+def parts_uncut(tree: Quern, piece: str) -> float:
+    """How many things the piece's parts leave unsaid about how they are made: a part that names no
+    material it is cut from (the link uses), a part that names no saw or service that cuts it out
+    (the link sawn_with)."""
+    return float(len(_uncut(tree, piece)))
+
+
+def _unfastened(tree: Quern, piece: str) -> list[str]:
+    out = []
+    for path, joint in _nodes(_piece(tree, piece), piece, "joint"):
+        count = joint.params.get("count")
+        if not joint.links.get("uses"):
+            out.append(f"{path}: it does not say what fastens it (uses: a connector, screws, a glue)")
+        elif count is None or count.value < 1:
+            out.append(f"{path}: it does not say how many of its connector it takes (param count)")
+    return out
+
+
+def joints_unfastened(tree: Quern, piece: str) -> float:
+    """How many joints of the piece do not say what fastens them: no connector named (the link uses),
+    or no count of it (param count, at least 1)."""
+    return float(len(_unfastened(tree, piece)))
+
+
 # --- the piece's ledger ------------------------------------------------------------------------
 
 def _ledger(tree: Quern, piece: str) -> tuple[list[Node], list[Node]]:
@@ -426,6 +466,8 @@ def joints_misclosed(tree: Quern, piece: str) -> float:
 
 
 NATIVES = {
+    "furniture/parts_uncut": parts_uncut,
+    "furniture/joints_unfastened": joints_unfastened,
     "furniture/unheld_turns": unheld_turns,
     "furniture/turn_crossings": turn_crossings,
     "furniture/steps_unplaced": steps_unplaced,
@@ -441,6 +483,8 @@ NATIVES = {
 }
 
 EXPLAINERS = {
+    "furniture/parts_uncut": _uncut,
+    "furniture/joints_unfastened": _unfastened,
     "furniture/unheld_turns": _uncarried,
     "furniture/turn_crossings": _swept,
     "furniture/steps_unplaced": _unplaced,
@@ -467,31 +511,37 @@ _PIECE = "pieces/doors"
 _ANGLE = [[0, 19], [20, 19], [20, 20], [0, 20]], [[19, 0], [20, 0], [20, 20], [19, 20]]   # flange, leg
 
 
-def _part(id_: str, size: list, at: list, section: list | None = None) -> Node:
+def _part(id_: str, size: list, at: list, section: list | None = None, made: bool = True) -> Node:
     payload = {"shape": {"op": "box", "size": size}, "transform": {"translate": at}}
     if section:
         payload["section"] = section
     return Node(id=id_, kind="part", payload=payload,
+                links={"uses": ["materials/example-profile"], "sawn_with": ["tools/example-saw"]} if made else {},
                 params={"mass": Quantity(value=1.0, unit="kg", provenance="design-target", grounded=False)})
 
 
 def example_piece(*, channel_at: float = 0.0, joints: bool = True, back_guides: tuple[str, ...] = ("channel", "angle"),
                   overlap: float = 50.0, travel: list | None = None, motions: bool = True,
-                  steps: list | None = None, flap: dict | None = None) -> Node:
+                  steps: list | None = None, flap: dict | None = None, made: bool = True,
+                  fastened: bool = True) -> Node:
     """Two doors, 600 wide, in an opening `2 * 600 - overlap` wide; the channel `channel_at` mm from the
     flange's front edge (0: at the edge, as designed; 7: glued in the angle)."""
     angle = _part("angle", ["width", 20, 20], [0, 0, 1180],
                   [[0, 19], [19, 19], [19, 0], [20, 0], [20, 20], [0, 20]])
     channel = _part("channel", ["width", 12, 12], [0, channel_at, 1187],
-                    [[0, 0], [1, 0], [1, 11], [11, 11], [11, 0], [12, 0], [12, 12], [0, 12]])
+                    [[0, 0], [1, 0], [1, 11], [11, 11], [11, 0], [12, 0], [12, 12], [0, 12]], made=made)
+    held = {"links": {"uses": ["connectors/example-screw"]},
+            "params": {"count": Quantity(value=4, unit="", provenance="design-target", grounded=False)}} if fastened else {}
     front = Node(id="front-door", kind="assembly", children=[_part("front-panel", [600, 8, 1190], [0, channel_at + 2, 5])])
     back = Node(id="back-door", kind="assembly",
                 children=[_part("back-panel", [600, 6, 1190], ["width - 600", 12.5, 5])])
     children = [angle, channel, front, back]
     if joints:
-        children += [Node(id="angle-to-lintel", kind="joint", links={"joins": [f"{_PIECE}/angle"]},
-                          payload={"to": "the lintel"}),
-                     Node(id="channel-to-angle", kind="joint", links={"joins": [f"{_PIECE}/channel", f"{_PIECE}/angle"]})]
+        children += [Node(id="angle-to-lintel", kind="joint", payload={"to": "the lintel"},
+                          links={"joins": [f"{_PIECE}/angle"]} | held.get("links", {}), params=held.get("params", {})),
+                     Node(id="channel-to-angle", kind="joint",
+                          links={"joins": [f"{_PIECE}/channel", f"{_PIECE}/angle"]} | held.get("links", {}),
+                          params=held.get("params", {}))]
     if motions:
         children += [
             Node(id="front-slides", kind="motion", payload={"type": "slide", "axis": "x", "travel": travel or [0, "width - 600"]},
@@ -542,6 +592,16 @@ def _demo(contract: str, expect: float, because: str, **kw):
 
 
 SPEC = {
+    "furniture/parts_uncut": [
+        _demo("furniture/parts_uncut", 0, "each part names the profile or board it is cut from and the saw"),
+        _demo("furniture/parts_uncut", 2, "a channel that says neither what it is cut from nor with what",
+              piece=example_piece(made=False)),
+    ],
+    "furniture/joints_unfastened": [
+        _demo("furniture/joints_unfastened", 0, "each joint names its screws and how many"),
+        _demo("furniture/joints_unfastened", 2, "an angle fixed to a lintel, a channel to the angle, and nothing "
+              "said of what holds either", piece=example_piece(fastened=False)),
+    ],
     "furniture/unheld_turns": [
         _demo("furniture/unheld_turns", 0, "a flap hinged on the angle's top front edge, which it touches",
               piece=example_piece(flap={})),

@@ -87,7 +87,7 @@ def whys(c: dict) -> str:
 
 
 def test_two_doors_in_one_rail_as_designed_reach_both_levels():
-    assert reached(piece_cert()) == ["piece-settled", "piece-works", "piece-instructions"]
+    assert reached(piece_cert()) == ["piece-settled", "piece-works", "piece-buildable", "piece-instructions"]
 
 
 def test_a_channel_glued_in_the_angle_leaves_the_back_door_no_room():
@@ -121,7 +121,7 @@ def test_instructions_are_not_at_the_level_until_the_steps_build_the_piece():
     """The design works, and its steps say nothing of what fixes the rail: the piece holds together and its
     assembly instructions are not to be shown."""
     c = piece_cert(piece=sp.example_piece(steps=[{"add": ["angle", "channel", "back-panel", "front-panel"]}]))
-    assert reached(c) == ["piece-settled", "piece-works"]
+    assert reached(c) == ["piece-settled", "piece-works", "piece-buildable"]
     assert "angle-to-lintel: no assembly step closes it" in whys(c)
 
 
@@ -145,11 +145,11 @@ def test_instructions_are_judged_on_the_pages_as_drawn():
     level while a page says in a sentence what it should draw, or a step shows a rail arriving and nothing
     that fixes it; instructions that were not drawn are not at the level either, and say so."""
     c = piece_cert(pages={"sentence": "Glue the channel to the angle.", "fastened": ()})
-    assert reached(c) == ["piece-settled", "piece-works"]
+    assert reached(c) == ["piece-settled", "piece-works", "piece-buildable"]
     assert 'page 3: "Glue the channel to the angle."' in whys(c)
     assert "step 1 closes angle-to-lintel and draws nothing of what fastens it" in whys(c)
     undrawn = piece_cert(pages={"drawn": False})
-    assert reached(undrawn) == ["piece-settled", "piece-works"] and "were not drawn in this build" in whys(undrawn)
+    assert reached(undrawn) == ["piece-settled", "piece-works", "piece-buildable"] and "were not drawn in this build" in whys(undrawn)
 
 
 def test_how_much_of_a_part_must_show_is_read_from_the_paper():
@@ -194,3 +194,12 @@ def test_a_hinged_part_is_carried_where_it_turns_and_swings_clear():
     assert "it crosses pieces/doors/front-door/front-panel" in whys(inwards)
     adrift = piece_cert(piece=sp.example_piece(flap={"pivot": [-108, 1200]}))
     assert "piece-works" not in reached(adrift) and "from what carries it" in whys(adrift)
+
+
+def test_a_piece_is_buildable_once_it_says_what_cuts_and_fastens_it():
+    """A design that works is not yet one that can be made: a rail fixed by nothing anyone named, a
+    channel nobody said what to cut from, keep it from the level, and from its instructions."""
+    c = piece_cert(piece=sp.example_piece(fastened=False, made=False))
+    assert reached(c) == ["piece-settled", "piece-works"]
+    assert "angle-to-lintel: it does not say what fastens it" in whys(c)
+    assert "channel: it does not say what cuts it out (sawn_with)" in whys(c)

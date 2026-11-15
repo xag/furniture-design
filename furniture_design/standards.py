@@ -251,6 +251,9 @@ def knowledge() -> list[Node]:
         _criterion("piece-steps-build-it", "The assembly steps bring in every part and close every joint, each "
                    "once its parts are in", "completeness", "a-pieces-steps-bring-in-every-part",
                    "a-pieces-steps-close-every-joint", of="piece"),
+        _criterion("piece-can-be-made", "Every part says what it is cut from and with, and every joint what "
+                   "fastens it and how many", "completeness", "a-pieces-parts-say-how-they-are-cut",
+                   "a-pieces-joints-say-what-fastens-them", of="piece"),
         _criterion("pages-are-drawn-not-written", "No page of the instructions carries a sentence",
                    "presentation", "a-pieces-pages-carry-no-sentence", of="piece",
                    per=("sources/ikea-why-only-pictures/pictures-not-words",)),
@@ -268,9 +271,12 @@ def knowledge() -> list[Node]:
                "piece-agrees-with-its-ledger", of="piece"),
         _level("piece-works", "It holds together and what moves in it works", "piece-is-explained",
                "piece-agrees-with-its-ledger", "piece-holds-together", "piece-mechanisms-work", of="piece"),
+        _level("piece-buildable", "It can be cut and fastened from what it states", "piece-is-explained",
+               "piece-agrees-with-its-ledger", "piece-holds-together", "piece-mechanisms-work", "piece-can-be-made",
+               of="piece"),
         _level("piece-instructions", "Its assembly instructions are shown", "piece-is-explained",
                "piece-agrees-with-its-ledger", "piece-holds-together", "piece-mechanisms-work",
-               "piece-steps-build-it", "pages-are-drawn-not-written", "steps-show-how-parts-attach",
+               "piece-can-be-made", "piece-steps-build-it", "pages-are-drawn-not-written", "steps-show-how-parts-attach",
                "steps-show-their-parts", of="piece", allows=("assembly",)),
     ])]
 
@@ -490,6 +496,13 @@ RULES = [
     Rule(name="a-pieces-steps-close-every-joint", kind="piece", expr="solve('furniture/joints_misclosed', self) == 0",
          description="Close every joint in an assembly step (a step's joints), no sooner than the step that "
                      "brings in the last part it joins."),
+    Rule(name="a-pieces-parts-say-how-they-are-cut", kind="piece", expr="solve('furniture/parts_uncut', self) == 0",
+         description="Link every part uses to the material it is cut from and sawn_with to the saw, or the shop's "
+                     "cutting service, that cuts it out: ask the person what they buy and what they cut with."),
+    Rule(name="a-pieces-joints-say-what-fastens-them", kind="piece",
+         expr="solve('furniture/joints_unfastened', self) == 0",
+         description="Link every joint uses to what fastens it (a connector, screws, a glue: a node of the "
+                     "knowledge, or of the person's own package) and state how many it takes (param count)."),
     Rule(name="a-pieces-pages-carry-no-sentence", kind="piece", expr="solve('furniture/pages_worded', self) == 0",
          description="Draw what each text on the instructions' pages says, and take the text off: a count, a "
                      "size, a part's letter and the piece's name stay (IKEA: pictures, because the instructions "
@@ -585,6 +598,11 @@ COUNTER_EXAMPLES = [
                    because="a back door four fifths hidden behind the front one"),
     CounterExample(rule="a-pieces-steps-keep-their-context", nodes=_piece_case(pages={"context": 0.02}),
                    because="doors drawn over the whole rail they go in"),
+    CounterExample(rule="a-pieces-parts-say-how-they-are-cut", nodes=_piece_case(piece=piece.example_piece(made=False)),
+                   because="a channel nobody said what to cut from, or with what"),
+    CounterExample(rule="a-pieces-joints-say-what-fastens-them",
+                   nodes=_piece_case(piece=piece.example_piece(fastened=False)),
+                   because="a rail fixed to a lintel by nothing anyone named or counted"),
     CounterExample(rule="a-pieces-turning-parts-are-carried",
                    nodes=_piece_case(piece=piece.example_piece(flap={"pivot": [-108, 1200]})),
                    because="a flap said to turn about a line in mid-air, where no hinge can be"),
@@ -614,7 +632,7 @@ COUNTER_EXAMPLES = [
 
 PACKAGE = Package(
     name="furniture-standards",
-    version="0.7.0",
+    version="0.8.0",
     description=(
         "What a tool's entry is held to for each use it may be put to, as criteria and levels a certificate "
         "is run from (quern.certify). Criteria: the tool is identified, drawn, its drawing true to its "

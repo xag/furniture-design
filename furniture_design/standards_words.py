@@ -46,6 +46,12 @@ SAY = {
                                    "parts are in",
                              "fr": "Les étapes de montage amènent chaque pièce et ferment chaque assemblage, une "
                                    "fois ses pièces en place"},
+    "piece-can-be-made": {"en": "Every part says what it is cut from and with, and every joint what fastens it and "
+                                "how many",
+                          "fr": "Chaque pièce dit dans quoi et avec quoi elle est coupée, et chaque assemblage ce "
+                                "qui le fixe et en quel nombre"},
+    "piece-buildable": {"en": "It can be cut and fastened from what it states",
+                        "fr": "Il peut être coupé et fixé d'après ce qu'il énonce"},
     "pages-are-drawn-not-written": {"en": "No page of the instructions carries a sentence",
                                     "fr": "Aucune page de la notice ne porte de phrase"},
     "steps-show-how-parts-attach": {"en": "Each step attaches one kind of part, drawn apart with a line to where it "
@@ -136,6 +142,12 @@ RED = {
     "a-pieces-steps-close-every-joint": {
         "en": "A joint is closed by no step, or before the parts it joins are in.",
         "fr": "Un assemblage n'est fermé par aucune étape, ou avant que ses pièces soient en place."},
+    "a-pieces-parts-say-how-they-are-cut": {
+        "en": "A part does not say what it is cut from, or what cuts it out.",
+        "fr": "Une pièce ne dit pas dans quoi elle est coupée, ou avec quoi."},
+    "a-pieces-joints-say-what-fastens-them": {
+        "en": "A joint does not say what fastens it, or how many it takes.",
+        "fr": "Un assemblage ne dit pas ce qui le fixe, ou combien il en faut."},
     "a-pieces-pages-carry-no-sentence": {
         "en": "A page of the instructions says in words what it should draw.",
         "fr": "Une page de la notice dit en mots ce qu'elle devrait dessiner."},
