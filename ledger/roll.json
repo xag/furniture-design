@@ -305,6 +305,21 @@
     "digest": "4f57914b8509"
   },
   {
+    "path": "a-pieces-instructions-are-full-or-short",
+    "kind": "decision",
+    "digest": "b90a52709434"
+  },
+  {
+    "path": "a-pieces-instructions-are-full-or-short/per-tool",
+    "kind": "alternative",
+    "digest": "faeb586b9301"
+  },
+  {
+    "path": "a-pieces-instructions-are-full-or-short/short-by-default",
+    "kind": "alternative",
+    "digest": "2fc8d8fd53a5"
+  },
+  {
     "path": "a-published-sag-limit-is-a-source-a-piece-chooses-from",
     "kind": "decision",
     "digest": "400c53a9d5a5"

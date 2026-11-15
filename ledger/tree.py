@@ -1177,6 +1177,31 @@ def entries() -> list[Node]:
             ],
         ),
         Node(
+            id="a-pieces-instructions-are-full-or-short", kind="decision",
+            name="A piece says in its payload instructions how much its assembly instructions show of the tools "
+                 "in use: full, when it says nothing, or short, for someone who knows their tools. Short leaves "
+                 "out the tools' methods beside each cut, the jointer drawn at work and its test groove, and "
+                 "keeps what the piece needs: the cuts and where to mark them, the joints' marks and positions, "
+                 "the machine's settings, the holes. The choice is the piece's, made for each design, never a "
+                 "tool's or a person's",
+            links={"rests_on": ["the-grooving-step-is-drawn-to-ikeas-rules",
+                                "the-documents-are-for-the-people-who-build"]},
+            payload={"decided_on": "2026-11-15",
+                     "the_owner": "some people are so used to their tools that they won't need to include "
+                                  "detailed instructions. How do we make this optional?; then: \"I know this "
+                                  "tool\" is naive. The choice should be per design",
+                     "why": "Full is the default because the costs are uneven: a page someone does not need "
+                            "costs a page turn, a page missing costs a wrong groove in a part already cut; and "
+                            "the documents are read by whoever builds the piece, not only by who designed it. "
+                            "What a person knows of a tool does not settle what one design asks of it."},
+            children=[
+                _alt("per-tool", "A mark 'I know this tool' on each tool of the person's list",
+                     "The owner: naive; the choice is per design."),
+                _alt("short-by-default", "Short unless the piece asks for full",
+                     "A missing page costs more than an extra one, and others build from the same documents."),
+            ],
+        ),
+        Node(
             id="the-grooving-step-is-drawn-to-ikeas-rules", kind="decision",
             name="A preparation step that cuts the grooves of joints is drawn, not written: after its picture, "
                  "pages of their own with the settings drawn on the machine (its depth adjusters, the spacer, "

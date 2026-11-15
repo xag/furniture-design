@@ -324,3 +324,31 @@ def test_the_checks_name_the_step_that_slides_a_part_onto_its_connectors():
             assert row["verdict"] == verdict
             if verdict == "fail":
                 assert "2" in row["result"] and "back-left, back-right, back-top" in row["result"]
+
+
+def _written(monkeypatch, tree, piece, out_dir) -> list[str]:
+    from furniture_design.sheets import Pen
+    written, real = [], Pen.text
+    monkeypatch.setattr(Pen, "text", lambda self, x, y, s, *a, **k: (written.append(s), real(self, x, y, s, *a, **k)))
+    drawings.documents(tree, piece, out_dir)
+    return written
+
+
+def test_short_instructions_say_where_to_mark_a_cut_and_leave_out_how_its_saw_is_used(monkeypatch, tmp_path):
+    tree = _tree()
+    side = tree.get("pieces/bench-side")
+    side.payload["steps"] = [{"text": "Cut the notch.", "prepare": True, "add": ["side"], "cuts": ["side"]}]
+    full = _written(monkeypatch, tree, "pieces/bench-side", tmp_path / "full")
+    side.payload["instructions"] = "short"
+    short = _written(monkeypatch, tree, "pieces/bench-side", tmp_path / "short")
+    mark = "Tracer : 25 depuis le chant"
+    assert any(mark in s for s in full) and any(mark in s for s in short)
+    assert "Scie égoïne" in full and "Scie égoïne" not in short
+
+
+def test_a_pieces_instructions_are_full_or_short():
+    tree = _tree()
+    assert scene(tree, "pieces/bench-side").info["instructions"] == "full"
+    tree.get("pieces/bench-side").payload["instructions"] = "brief"
+    with pytest.raises(ValueError, match="full, short"):
+        scene(tree, "pieces/bench-side")

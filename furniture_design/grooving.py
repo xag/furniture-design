@@ -493,9 +493,12 @@ def _tool_model(sc: Scene, path: str):
     return None
 
 
-def grooving_pages(c, pen, sc: Scene, step, L: dict, W_: float = 210, H_: float = 297) -> None:
+def grooving_pages(c, pen, sc: Scene, step, L: dict, W_: float = 210, H_: float = 297,
+                   short: bool = False) -> None:
     """The pages of a step that cuts joints' grooves, on new pages of the canvas: the step's number and
-    tools, the settings, then a block of four frames per kind of joint. Leaves the last page open."""
+    tools, the settings, then a block of four frames per kind of joint. Leaves the last page open.
+    `short`, for someone who knows the machine: the settings without the test groove, and per kind of
+    joint only the frames of what the piece needs, the marks and the holes."""
     joints = [j for j in sc.joints if j.id in step.joints]
     if not joints:
         return
@@ -509,11 +512,13 @@ def grooving_pages(c, pen, sc: Scene, step, L: dict, W_: float = 210, H_: float 
     tx = 37
     for t in step.tools:
         tx += _tool_badge(pen, tx, H_ - 31, t) + 3
-    settings(pen, (15, H_ - 78, 180, 38), mach_model, j0.setting, gs[0]["e"].spacer, j0.spacers, j0.test_recess)
+    settings(pen, (15, H_ - 78, 180, 38), mach_model, j0.setting, gs[0]["e"].spacer, j0.spacers,
+             None if short else j0.test_recess)
     fw, fh = (W_ - 30 - 4) / 2, 62.0
     y_top = H_ - 84
+    rows = 1 if short else 2
     for g in gs:
-        need = 2 * fh + 6 + 8
+        need = rows * fh + 2 + 8 + (4 if rows > 1 else 0)
         if y_top - need < 10:
             c.showPage()
             pen.text(15, H_ - 12, L["prepare"], 3.4, THIN)
@@ -527,6 +532,17 @@ def grooving_pages(c, pen, sc: Scene, step, L: dict, W_: float = 210, H_: float 
         if g["n"] > 1:
             pen.text(15, y_top - 6, f"{g['n']} ×", 5, INK, bold=True)
         boxes = [(15 + (i % 2) * (fw + 4), y_top - 8 - (i // 2 + 1) * fh - (i // 2) * 4, fw, fh) for i in range(4)]
+        if short:
+            frame(pen, boxes[0], 1)
+            if f.line is not None:
+                f_shelf(pen, boxes[0], e, f, sc, "mark", mach_model, offset)
+            else:
+                f_mark(pen, boxes[0], sc, e, f)
+            if e.hole:
+                frame(pen, boxes[1], 2)
+                f_drill(pen, boxes[1], e, thickness(pe), len(e.points), pe.mark, jig_model)
+            y_top -= need
+            continue
         for i, bx in enumerate(boxes):
             frame(pen, bx, i + 1)
         if f.line is not None:

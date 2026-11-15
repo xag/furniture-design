@@ -23,6 +23,8 @@ all draw. Everything is read from the quern tree; nothing here is typed twice.
   for each added part the side it comes in from (up: lowered from above; front: slid in
   from the front; ...). Added parts with no direction are set down where they go.
 - `material_names`: how the documents name each material, by its id.
+- `info["instructions"]`: the piece's payload instructions, full (when absent) or short, how much the
+  assembly instructions show of the tools in use (INSTRUCTIONS); any other value is refused.
 """
 
 from __future__ import annotations
@@ -35,6 +37,11 @@ from quern.tree import _segs, get_node
 from .natives import DIRECTIONS, _param, bodies, joint_layout, number
 
 TOUCH = 0.5
+
+
+# How much of the assembly instructions show the tools in use (a piece's payload instructions): full
+# shows them; short leaves them out for someone who knows their tools, keeping what the piece needs.
+INSTRUCTIONS = ("full", "short")
 
 
 @dataclass
@@ -436,4 +443,8 @@ def scene(tree: Quern, piece: str) -> Scene:
                           list(s.get("split", [])), list(s.get("cuts", []))))
     info = {k: payload[k] for k in ("version", "authors", "date", "project", "use", "description")
             if k in payload}
+    info["instructions"] = payload.get("instructions", "full")
+    if info["instructions"] not in INSTRUCTIONS:
+        raise ValueError(f"the piece {piece} has payload instructions {info['instructions']!r}: it must be "
+                         f"one of {', '.join(INSTRUCTIONS)}")
     return Scene(root.name or root.id, piece, parts, joints, steps, info)

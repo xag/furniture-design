@@ -90,7 +90,10 @@ VOCABULARY = [
     KindDef(kind="piece", description=(
         "A piece of furniture: its parts beneath it. Frame: x across, y from the front "
         "(smallest y) to the back, z up from the floor, mm. payload category (e.g. "
-        "clothing-storage-unit) brings it into a requirement's scope."),
+        "clothing-storage-unit) brings it into a requirement's scope. payload instructions, full "
+        "(when absent) or short: short assembly instructions leave out how the tools are used (the "
+        "methods beside each cut, the jointer drawn at work, the test groove) for someone who knows "
+        "them, and keep what the piece needs (the cuts, the marks, the settings, the holes)."),
         params={"storage_volume": "mm3, what it holds, when a requirement's scope reads it"},
         links={"stability_case": "the overturning requirements it is held to",
                "sideways_case": "the sideways-force requirements it is held to",
@@ -731,7 +734,7 @@ COUNTER_EXAMPLES = [
 
 PACKAGE = Package(
     name="furniture-design",
-    version="0.13.0",
+    version="0.14.0",
     description=(
         "Furniture designs and the published knowledge they are judged against. Kinds: "
         "source and clause (a publication and its verbatim, located statements, with the "

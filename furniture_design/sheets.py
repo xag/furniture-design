@@ -996,9 +996,9 @@ def cut_sentences(p: Part, L: dict, lang: str) -> list[str]:
             L["saw_from_hole"] if starts == 0 else L["saw_mixed"]]
 
 
-def _cut_method(pen: Pen, p: Part, box, L: dict, lang: str):
+def _cut_method(pen: Pen, p: Part, box, L: dict, lang: str, short: bool = False):
     """Beside the card: where to mark, the order to saw in, then how each of the part's
-    tools is used, as its clauses say, and the clauses cited."""
+    tools is used, as its clauses say, and the clauses cited; `short` leaves the tools' use out."""
     x, y, w, h = box
     chars = int(w / 1.62)
     yy = y + h - 4
@@ -1012,6 +1012,8 @@ def _cut_method(pen: Pen, p: Part, box, L: dict, lang: str):
             yy -= 4.3
         yy -= 1.2
     said = [t for t in p.tools if (t.say or {}).get(lang)]
+    if short:
+        return
     if not said:
         for line in _wrap(L["no_method"], chars):
             pen.text(x, yy, line, 3.2, MARK)
@@ -1043,8 +1045,11 @@ def _cut_method(pen: Pen, p: Part, box, L: dict, lang: str):
 
 
 def assembly_instructions(sc: Scene, path: Path, lang: str = "fr") -> Path:
-    """Picture-first assembly instructions, A4 portrait."""
+    """Picture-first assembly instructions, A4 portrait. A piece whose payload instructions is short
+    leaves out how its tools are used: the methods beside each cut, the jointer drawn at work and
+    the test groove; what the piece needs (the cuts, the marks, the settings, the holes) stays."""
     L = LABELS[lang]
+    short = sc.info.get("instructions") == "short"
     W, H = 210, 297
     c = Canvas(str(path), pagesize=A4)
     c.setTitle(f"{sc.title} - {L['assemble']}")
@@ -1159,11 +1164,11 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr") -> Path:
                 pen.line(15, 148, W - 15, 148, 0.2, THIN, [1.5, 1.5])
             cx, cy, cw, ch = slots[slot % 2]
             _cut_card(pen, p, qty, (cx, cy, cw * 0.46, ch), L)
-            _cut_method(pen, p, (cx + cw * 0.5, cy, cw * 0.5, ch), L, lang)
+            _cut_method(pen, p, (cx + cw * 0.5, cy, cw * 0.5, ch), L, lang, short)
             slot += 1
         if grooved:            # the grooving step's pages, drawn to IKEA's rules, after its picture
             from .grooving import grooving_pages
-            grooving_pages(c, pen, sc, step, L, W, H)
+            grooving_pages(c, pen, sc, step, L, W, H, short)
             slot += (slot % 2) + 2
         if (cut or grooved) and slot % 2:
             slot += 1    # and the next step starts a page too

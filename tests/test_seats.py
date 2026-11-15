@@ -154,3 +154,12 @@ def test_the_grooving_pages_say_nothing_in_words(tmp_path, monkeypatch):
     allowed = {LABELS["fr"]["prepare"], *sc.steps[0].tools}
     words = [w for w in written if w not in allowed and not re.fullmatch(r"[0-9A-Z×Ø ,.-]{1,7}|max|S-1", w)]
     assert written and not words, words
+
+
+def test_short_instructions_draw_only_the_marks_and_the_holes_of_each_kind_of_joint(tmp_path):
+    tree = _tree()
+    full = assembly_instructions(scene(tree, "pieces/cabinet"), tmp_path / "full.pdf", "fr")
+    tree.get("pieces/cabinet").payload["instructions"] = "short"
+    short = assembly_instructions(scene(tree, "pieces/cabinet"), tmp_path / "short.pdf", "fr")
+    pages = [p.read_bytes().count(b"/Type /Page\n") or p.read_bytes().count(b"/Type /Page") for p in (full, short)]
+    assert pages[0] - pages[1] == 1   # two frames a kind of joint: the corners and the shelves on one page
