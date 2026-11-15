@@ -1717,6 +1717,107 @@ def fm_5_426() -> Node:
                                   "to avoid cutting laps oversize by the thickness of the cut.")])
 
 
+# Makers' manuals and woodworking articles on hand-held biscuit and plate jointers: copyrighted, so
+# cited by locator and said in our words; each copy is kept privately and found by its sha256.
+JOINTER_SOURCES = [
+    ("makita-pj7000-manual", "Makita: PJ7000 plate joiner, instruction manual", "Makita",
+     "https://cdn.makitatools.com/apps/cms/doc/prod/PJ7/a19db8f1-71ad-485a-8222-b77224e27045_PJ7000_IM.pdf",
+     "11cde68774ee9e24d2365a04ed39bc0d18e2d104f370c8d149db304ecaddfa3b",
+     [("making-joints", "How to make joints, steps 1 to 11, pp. 6-8"),
+      ("t-butt", "How to make joints, For T-Butt Joint only, p. 7")]),
+    ("dewalt-dw682-manual", "DeWalt: DW682 plate joiner, instruction manual N075830", "DeWalt",
+     "https://assets.dewalt.com/GLOBALBOM/QU/DW682K/4/Instruction_Manual/EN/N075830_DW682.pdf",
+     "ccab8d73baeed41a124d110f91d386577ca7e8f0a996588531e53a3b4fa4b3ab",
+     [("test-cuts", "Controls 3, fine depth adjustment, p. 1"),
+      ("layout", "General Operation, layout and cutting, p. 2"),
+      ("t-joints", "Applications 6, T-joints, A to D, p. 3")]),
+    ("festool-df500-manual", "Festool: DOMINO DF 500 RQ, original instructions 10851226_D", "Festool",
+     "https://media.cdn.festool.io/productmedia/Images/attachment/d2e7333e-3714-11f0-8a62-005056b3ad01.pdf",
+     "55afbaeeb252dc3b56d57d887b1ec448362c8b60ccd0efa624eb4bd11cf1dff6",
+     [("procedure", "8.1 Procedure, steps 5 and 6, and the test rout recommended before it")]),
+    ("woodsmith-aligning-edge-joints", "Woodsmith: How to use biscuit joints for perfect panel alignment",
+     "Woodsmith", "https://www.woodsmith.com/article/aligning-edge-joints/",
+     "7d064d5aeb3c1a7ee670eb26f5dbf6f161d64cfb42526f34e3b5d19d19dfc94a",
+     [("same-face", "the same reference face for both workpieces")]),
+    ("woodsmith-biscuit-essentials", "Woodsmith: Biscuit joinery essentials", "Woodsmith",
+     "https://www.woodsmith.com/article/biscuit-joinery-essentials/",
+     "36d62e111e0325196cdecac5f74242686465333accff14536ad2b6b43109e41c",
+     [("layout", "laying out: parts cut to final size, a centerline across the joint"),
+      ("cutting", "cutting: the joiner's centerline mark on the layout mark, the same reference face")]),
+    ("popular-woodworking-plate-joiner-tips", "Popular Woodworking: Plate joiner tips and techniques",
+     "Popular Woodworking",
+     "https://www.popularwoodworking.com/projects/aw-extra-52313-plate-joiner-tips-and-techniques/",
+     "35aadd56aeab026386d537427f799c281eca3978d987261ab0868f291599e3ee",
+     [("shelves", "the shelf clamped on its line, photos A and B")]),
+    ("fine-woodworking-biscuit-basics", "Fine Woodworking: Biscuit basics (the free excerpt)",
+     "Fine Woodworking", "https://www.finewoodworking.com/project-guides/joinery/biscuit-basics",
+     "530fd9d5fb901c0f6324d0f620301592ef8242c1e91ec3535e0a18bc9599303f",
+     [("base", "The base is a constant reference")]),
+]
+
+
+def jointer_sources() -> list[Node]:
+    return [Node(id=id_, kind="source", name=name,
+                 payload={"publisher": publisher, "url": url, "fetched": "2026-11-15", "sha256": sha,
+                          "licence": "copyrighted", "capture": "private copy, identified by its sha256"},
+                 children=[Node(id=cid, kind="clause", payload={"locator": loc}) for cid, loc in clauses])
+            for id_, name, publisher, url, sha, clauses in JOINTER_SOURCES]
+
+
+def plate_jointer() -> Node:
+    """The method of any hand-held machine that cuts a connector's groove, a biscuit or plate
+    jointer: how the two grooves of a joint are made to meet. A maker's machine follows it and
+    adds its own settings."""
+    S = SOURCES
+    return Node(
+        id="plate-jointer", kind="tool", name="Biscuit or plate jointer",
+        payload={"does": "cuts the grooves a connector sits in, one in each part of a joint",
+                 "say": {
+                     "fr": {"name": "Lamelleuse (méthode générale)", "method": [
+                         "Couper les pièces à leurs cotes finies avant de tracer.",
+                         "Présenter les deux pièces d'un assemblage comme elles seront montées et "
+                         "tracer au crayon, à chaque connecteur, un trait d'équerre à la jonction "
+                         "qui passe sur les deux pièces.",
+                         "Fraiser les deux pièces d'un assemblage depuis la même référence, celle "
+                         "que donne la fiche de chaque pièce : fraisée depuis une autre face, une "
+                         "rainure tombe à une autre hauteur et les faces ne s'alignent plus.",
+                         "Prendre la semelle de la machine comme référence plutôt qu'un guide "
+                         "réglable : sa distance à la fraise ne change pas.",
+                         "Serrer la pièce, poser la machine à plat sur sa référence, aligner son "
+                         "repère central sur le trait et plonger jusqu'en butée.",
+                         "Pour une tablette : tracer sur le montant le trait du dessus de la "
+                         "tablette ; coucher la tablette sur le montant, face du dessus contre lui, "
+                         "son bout sur le trait, et serrer les deux. Fraiser le bout de la tablette "
+                         "machine à plat sur le montant, puis le montant machine debout, semelle "
+                         "contre le bout de la tablette, sans rien desserrer.",
+                         "Faire d'abord un essai dans une chute de la même épaisseur."]},
+                     "en": {"name": "Biscuit or plate jointer (general method)", "method": [
+                         "Cut the parts to their finished size before marking out.",
+                         "Set the two parts of a joint together as they will be assembled and, at "
+                         "each connector, draw a pencil line square across the joint onto both "
+                         "parts.",
+                         "Cut both parts of a joint from the same reference, the one each part's "
+                         "card gives: cut from another face, a groove lands at another height and "
+                         "the faces no longer line up.",
+                         "Register on the machine's base rather than an adjustable fence: its "
+                         "distance to the cutter does not change.",
+                         "Clamp the part, hold the machine flat on its reference, line up its centre "
+                         "mark with the pencil line and plunge to the stop.",
+                         "For a shelf: draw on the side the line of the shelf's top face; lay the "
+                         "shelf on the side, top face down, its end on the line, and clamp both. "
+                         "Cut the shelf's end with the machine flat on the side, then the side with "
+                         "the machine on end, its base against the shelf's end, without unclamping.",
+                         "First make a test cut in an offcut of the same thickness."]}}},
+        links={"per": [f"{S}/woodsmith-biscuit-essentials/layout",
+                       f"{S}/makita-pj7000-manual/making-joints", f"{S}/dewalt-dw682-manual/layout",
+                       f"{S}/woodsmith-aligning-edge-joints/same-face",
+                       f"{S}/woodsmith-biscuit-essentials/cutting",
+                       f"{S}/fine-woodworking-biscuit-basics/base",
+                       f"{S}/dewalt-dw682-manual/t-joints", f"{S}/makita-pj7000-manual/t-butt",
+                       f"{S}/popular-woodworking-plate-joiner-tips/shelves",
+                       f"{S}/dewalt-dw682-manual/test-cuts", f"{S}/festool-df500-manual/procedure"]})
+
+
 def tools() -> Node:
     """Hand tools that cut a part's cuts, each saying, per language, its name and how it is
     used, every sentence resting on the clauses it links `per`. The documents print a
@@ -1765,7 +1866,7 @@ def tools() -> Node:
                          "twist it sharply, the narrow blade bends easily.",
                          "Saw on the waste side of the line."]}}},
         links={"per": [f"{tm}/keyhole-46-5-a", f"{tm}/keyhole-46-5-b-c", f"{fm}/waste-side-6"]})
-    return Node(id="tools", kind="", children=[saw, keyhole])
+    return Node(id="tools", kind="", children=[saw, keyhole, plate_jointer()])
 
 
 def requirements() -> Node:
@@ -1839,7 +1940,8 @@ def knowledge() -> list[Node]:
     the hand tools that cut a part's cuts."""
     return [Node(id="sources", kind="", children=[wood_handbook(), federal_register(), gsa_fnae(),
                                                   tm_9_243(), fm_5_426(), *tropix(), schmidtova(),
-                                                  boruvka(), *sag_limits(), *seating_tests()]),
+                                                  boruvka(), *sag_limits(), *seating_tests(),
+                                                  *jointer_sources()]),
             materials(), requirements(), tools()]
 
 

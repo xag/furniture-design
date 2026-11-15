@@ -1047,6 +1047,72 @@ def entries() -> list[Node]:
                      "The check would read as passed on a design no one has judged; absent says it was not."),
             ],
         ),
+        Node(
+            id="a-joints-grooves-are-cut-from-one-reference-the-card-names", kind="decision",
+            name="A preparation step that cuts the grooves of joints gives, after its picture, the "
+                 "method of the joints' tools on a page and a card per part: the part's face drawn square to "
+                 "it with every groove and access hole, and sentences saying for each joint the surface "
+                 "grooved, each groove's middle measured from an edge of that part, and the one reference both "
+                 "parts are cut from, so the two grooves of a connector meet: the face where the parts are "
+                 "flush (an edge groove registers on it, a face groove on the edge flush with it), else for a "
+                 "part whose edge meets the other's face away from its edges (a shelf) the line of that part's "
+                 "top face, drawn on the other. The groove's middle is the machine's groove_offset from the "
+                 "reference less the spacer that brings it nearest the middle of the edge-grooved part, the "
+                 "thinner of two as near. A connector closed through a hole has it drilled in the part grooved "
+                 "in its edge, from the face away from the reference (so the hole is on the hidden side of a "
+                 "flush corner and under a shelf), at access_hole_offset from the joint face, in the middle "
+                 "of each groove",
+            links={"rests_on": ["a-cut-is-explained-from-its-shape-and-its-tools-clauses",
+                                "the-documents-are-for-the-people-who-build"]},
+            payload={"decided_on": "2026-11-15", "the_owner": "Je voudrais que les plans de montage détaillent les actions de perçage avec la lamello zeta P2. Tout ça doit reposer sur une excellente compréhension de l'outil et des techniques pour l'utiliser, notamment pour l'alignement des trous",
+                     "why": "The jointer's makers and woodworking authors agree that the two grooves of a joint "
+                            "meet only when both are cut from the same reference face (Woodsmith; DeWalt DW682 "
+                            "p. 2; Fine Woodworking), and a shelf is set by the line of its top face with both "
+                            "cuts made from one clamping (DeWalt p. 3; Makita PJ7000 p. 7; Popular "
+                            "Woodworking). The instructions said one sentence per step and no position. "
+                            "Lamello's 20 mm panel is centred with no spacer and its 16 mm corner drawn with the "
+                            "2 mm one, which the spacer rule gives. Which part takes the hole is not said in "
+                            "words by Lamello: its drawings put it 7.5 mm from the joint face in one half, drilled "
+                            "square into a face with the jig hooked over the edge the groove opens into, which "
+                            "only the edge-grooved part has.",
+                     "falsified_by": "a builder who follows a card and finds a connector's two grooves do not "
+                                     "meet, or a hole the key cannot reach once assembled"},
+            children=[
+                _alt("one-sentence-per-step", "Keep one sentence per step naming the machine and its setting",
+                     "It said neither where the grooves go nor from what they are cut, which is where a joint "
+                     "goes wrong."),
+                _alt("positions-without-reference", "Give the positions along the joint and nothing across it",
+                     "Two grooves at the right place along a joint but cut from different faces leave the "
+                     "parts out of flush."),
+                _alt("centre-in-the-thickness", "Put every groove in the middle of the thickness, as the joint "
+                                                "layout draws it",
+                     "A jointer cuts at a fixed distance from its reference, and the card must say what the "
+                     "machine does: 10 mm, or 8 with a spacer, is within the connector's 1 mm radial tolerance "
+                     "of the middle of 18 mm."),
+            ],
+        ),
+        Node(
+            id="a-makers-machine-follows-the-general-method-of-its-kind", kind="decision",
+            name="How any biscuit or plate jointer is used is one general tool, tools/plate-jointer, here, its "
+                 "method in sentences resting on makers' manuals and woodworking articles, cited by locator; "
+                 "a maker's machine (in its maker's package) links follows to it and says only what is its own "
+                 "(its settings, stops and depth), and states groove_offset and spacers_mm. A connector closed "
+                 "through a hole states access_hole_diameter and access_hole_offset and links drilled_with to "
+                 "the tool that drills it. The documents print the general method, then the machine's, then "
+                 "the drilling tool's",
+            links={"rests_on": ["the-method-is-public-and-names-no-home",
+                                "a-joints-grooves-are-cut-from-one-reference-the-card-names"]},
+            payload={"decided_on": "2026-11-15", "the_owner": "Les spécificités de Lamello et de ses modèles vont dans lamello-unofficial mais ce qui est générique pour ce genre de machine reste dans un paquet générique",
+                     "why": "What is true of every jointer (marking across both parts, one reference face, a "
+                            "shelf on its line, a test cut) would otherwise be copied into every maker's "
+                            "package, or missing from the next one."},
+            children=[
+                _alt("all-in-the-makers-package", "Write the whole method in each maker's package",
+                     "The general method would be written again, and differently, for every maker."),
+                _alt("all-here", "Write the maker's settings here too",
+                     "A maker's settings are its own, and the general method names no maker."),
+            ],
+        ),
     ]
 
 

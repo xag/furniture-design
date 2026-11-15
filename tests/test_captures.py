@@ -15,7 +15,7 @@ from pathlib import Path
 
 from quern import Quern, run_rules
 
-from furniture_design.knowledge import (OPEN_LICENCES, TROPIX_ROWS, TROPIX_SHEETS, boruvka, design_stress,
+from furniture_design.knowledge import (JOINTER_SOURCES, OPEN_LICENCES, TROPIX_ROWS, TROPIX_SHEETS, boruvka, design_stress,
                                         european_species, knowledge, sag_limits, schmidtova, seating_tests, thermo_beech,
                                         tropix)
 from furniture_design.package import PACKAGE
@@ -131,3 +131,25 @@ def test_the_thermally_modified_beech_is_read_from_its_study():
     table_3 = next(c for c in schmidtova().children if c.id == "table-3")
     assert table_3.params["bending_strength_characteristic"].value == 17.27
     assert table_3.params["modulus_of_elasticity_mean"].value == 13_620
+
+
+# What each passage the general jointer method rests on says, a few of its words, found in the copy
+JOINTER_WORDS = {
+    "makita-pj7000-manual": ["Fit the two workpieces together as they will", "Lay the vertical workpiece on the horizontal one"],
+    "dewalt-dw682-manual": ["exactly as they are to be assembled", "Lay the shelf down on the mating workpiece",
+                            "making test cuts in scrap"],
+    "festool-df500-manual": ["Mark the matching surfaces of the", "test rout and join"],
+    "woodsmith-aligning-edge-joints": ["Use the same reference face for both workpieces"],
+    "woodsmith-biscuit-essentials": ["cutting your workpieces to their final dimensions",
+                                     "Align the centerline mark on the biscuit joiner"],
+    "popular-woodworking-plate-joiner-tips": ["Clamp the shelf right on the line", "Stand your plate joiner on end"],
+    "fine-woodworking-biscuit-basics": ["the distance between the blade and the base does not change"],
+}
+
+
+def test_every_passage_the_jointer_method_rests_on_is_in_the_copy_fetched():
+    assert {s[0] for s in JOINTER_SOURCES} == set(JOINTER_WORDS)
+    for sid, _name, _publisher, _url, sha, _clauses in JOINTER_SOURCES:
+        text = _text(sha)
+        for words in JOINTER_WORDS[sid]:
+            assert words in text, (sid, words)

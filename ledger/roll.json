@@ -160,6 +160,41 @@
     "digest": "ceb7568b3447"
   },
   {
+    "path": "a-joints-grooves-are-cut-from-one-reference-the-card-names",
+    "kind": "decision",
+    "digest": "3f17dbb54dcf"
+  },
+  {
+    "path": "a-joints-grooves-are-cut-from-one-reference-the-card-names/centre-in-the-thickness",
+    "kind": "alternative",
+    "digest": "ea98c123fd5d"
+  },
+  {
+    "path": "a-joints-grooves-are-cut-from-one-reference-the-card-names/one-sentence-per-step",
+    "kind": "alternative",
+    "digest": "010ec3d584a5"
+  },
+  {
+    "path": "a-joints-grooves-are-cut-from-one-reference-the-card-names/positions-without-reference",
+    "kind": "alternative",
+    "digest": "49bb8731cdd7"
+  },
+  {
+    "path": "a-makers-machine-follows-the-general-method-of-its-kind",
+    "kind": "decision",
+    "digest": "665d1a87524c"
+  },
+  {
+    "path": "a-makers-machine-follows-the-general-method-of-its-kind/all-here",
+    "kind": "alternative",
+    "digest": "583c3eff7125"
+  },
+  {
+    "path": "a-makers-machine-follows-the-general-method-of-its-kind/all-in-the-makers-package",
+    "kind": "alternative",
+    "digest": "1575e7578a73"
+  },
+  {
     "path": "a-makers-products-are-their-own-package",
     "kind": "decision",
     "digest": "e3edc58f97d7"

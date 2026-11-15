@@ -135,14 +135,21 @@ VOCABULARY = [
         "blade's), blade_thickness (mm, the blade's body: a kerf is wider), max_cut_depth "
         "(mm, the thickest board it cuts through square), min_part_width (mm, the narrowest "
         "part it cuts, a shop's cutting service's rule). It links refuses to the materials it "
-        "does not cut."),
+        "does not cut. A machine that cuts a connector's groove (a biscuit or plate jointer) "
+        "states groove_offset (mm, from the face or edge it registers on to the middle of the "
+        "groove it cuts) and payload spacers_mm (the spacers that bring the groove that much "
+        "nearer its reference), and links follows to the general tool whose method it is used "
+        "by; payload say gives, per language, its name and its method in sentences that rest on "
+        "the clauses it links per."),
         params={"kerf": "mm, the width its blade takes out",
                 "min_part_width": "mm, the narrowest part it cuts",
                 "max_kerf": "mm, the widest blade it takes",
                 "blade_thickness": "mm, its blade's body",
-                "max_cut_depth": "mm, the thickest board it cuts through at 90°"},
+                "max_cut_depth": "mm, the thickest board it cuts through at 90°",
+                "groove_offset": "mm, from the face it registers on to the middle of its groove"},
         links={"per": "the clauses that say what it does and its limits",
-               "refuses": "the materials it does not cut"}),
+               "refuses": "the materials it does not cut",
+               "follows": "the general tool whose method it is used by"}),
     KindDef(kind="connector", description=(
         "A manufactured element that joins parts (a knock-down fitting, a biscuit, a dowel): "
         "payload maker and setting (the machine setting its seat is cut at, when it has "
@@ -154,15 +161,24 @@ VOCABULARY = [
         "maker states it, length (mm, along the joint) and thickness (mm, across it), which "
         "the documents draw it at. payload engages says how its two parts come together, as "
         "its maker shows it: square (pushed straight together, square to the face they meet "
-        "on; neither can be slid along that face into place)."),
+        "on; neither can be slid along that face into place). A connector closed through a "
+        "hole states access_hole_diameter and access_hole_offset (mm, from the face its parts "
+        "meet on to the hole's centre), drilled in the part whose groove is in its edge, and links "
+        "drilled_with to the tool that drills it; min_end_distance and max_spacing (mm) bound where "
+        "its grooves go along the joint."),
         params={"min_width": "mm", "min_thickness_<cut>": "mm", "pull_out_<material>": "N",
                 "shear_<material>": "N",
                 "moment_opening_<material>": "N mm, one connector's share of what a corner "
                                              "joint resists being bent open",
                 "moment_closing_<material>": "N mm, the same, bent shut",
                 "length": "mm, the connector's length along the joint",
-                "thickness": "mm, its thickness across the joint"},
+                "thickness": "mm, its thickness across the joint",
+                "access_hole_diameter": "mm, the hole it is closed through",
+                "access_hole_offset": "mm, from the face its parts meet on to that hole's centre",
+                "min_end_distance": "mm, the least from the end of a part to a groove's middle",
+                "max_spacing": "mm, the most between two grooves' middles"},
         links={"needs": "the tools that can cut its seat; any one of them will do",
+               "drilled_with": "the tool that drills the hole it is closed through",
                "per": "the clauses its limits come from"}),
     KindDef(kind="joint", description=(
         "Where parts are joined. Links joins (the parts), uses (the connector it is made "
@@ -672,7 +688,7 @@ COUNTER_EXAMPLES = [
 
 PACKAGE = Package(
     name="furniture-design",
-    version="0.10.1",
+    version="0.11.0",
     description=(
         "Furniture designs and the published knowledge they are judged against. Kinds: "
         "source and clause (a publication and its verbatim, located statements, with the "

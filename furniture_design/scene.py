@@ -183,6 +183,106 @@ class Joint:
     positions: list[tuple[float, float, float]] = field(default_factory=list)
     stated: bool = False                  # the joint gives its connectors' positions itself
     size: tuple[float, float] | None = None   # a connector's length along, thickness across
+    methods: list[Tool] = field(default_factory=list)  # how its seats are cut and drilled, in order
+    groove_offset: float | None = None    # the machine's reference face to its groove's middle
+    spacers: list[float] = field(default_factory=list)  # what brings that groove nearer, mm
+    hole: tuple[float, float] | None = None  # the access hole: (diameter, from the joint face)
+
+
+SIDES = {(0, False): "left", (0, True): "right", (1, False): "front", (1, True): "back",
+         (2, False): "bottom", (2, True): "top"}
+
+
+@dataclass
+class Seat:
+    """One part's grooves of one joint, as they are marked, set and cut: the surface they go in (an
+    edge when the joint meets the part's edge or end, else a face, named by its side), where along
+    it (mm from the part's edge `start`), the face or edge the machine registers on and how far the
+    groove's middle is from it with the spacer that gives it, and for a part grooved in its edge the
+    access holes, drilled from the face away from that reference. A shelf that meets a face away
+    from its ends (`line`) is placed by a line drawn on that face, its top face's, measured from
+    the face's edge `line_from`."""
+    joint: str
+    part: str
+    other: str
+    in_edge: bool
+    side: str                   # the side of the part the grooves open on
+    start: str                  # the part's edge the positions are measured from
+    at: list[float]
+    reference: str              # the side of the part the machine registers on
+    offset: float | None        # mm from the reference to the groove's middle
+    spacer: float = 0.0
+    line: float | None = None
+    line_from: str = ""
+    hole_side: str = ""
+    hole: tuple[float, float] | None = None
+    points: list[tuple[float, float, float]] = field(default_factory=list)  # each groove's middle
+    holes: list[tuple[float, float, float]] = field(default_factory=list)   # each hole's centre
+    length: float | None = None   # the connector's length along the joint
+
+
+def _thin(p: "Part") -> int:
+    return min(range(3), key=lambda i: p.hi[i] - p.lo[i])
+
+
+def _spacer(offset: float | None, spacers: list[float], thickness: float) -> float:
+    """The spacer (none, or one of `spacers`) that brings the groove's middle nearest the middle of
+    `thickness`; of two as near, the thinner."""
+    if offset is None:
+        return 0.0
+    return min([0.0, *spacers], key=lambda s: (round(abs(offset - s - thickness / 2), 6), s))
+
+
+def seats(sc: "Scene", j: Joint) -> list[Seat]:
+    """Where each part of `j` is grooved and drilled, and from what reference, so that the two
+    grooves of every connector meet: both cut from one plane, the face where the parts are flush,
+    else the top face of the part whose edge meets the other's face, placed on a line."""
+    if len(j.parts) != 2:
+        return []
+    a, b = (sc.part(i) for i in j.parts)
+    n, al = j.normal_axis, j.along_axis
+    across = next(i for i in range(3) if i not in (n, al))
+    face = [p for p in (a, b) if _thin(p) == n]
+    edge = [p for p in (a, b) if _thin(p) != n]
+    if len(face) != 1 or len(edge) != 1:
+        return []
+    F, E = face[0], edge[0]
+    if abs(E.lo[across] - F.lo[across]) <= TOUCH:
+        high, line = False, None
+    elif abs(E.hi[across] - F.hi[across]) <= TOUCH:
+        high, line = True, None
+    else:
+        high, line = True, E.hi[across] - F.lo[across]
+    spacer = _spacer(j.groove_offset, j.spacers, E.hi[across] - E.lo[across])
+    offset = None if j.groove_offset is None else j.groove_offset - spacer
+    plane = E.hi[across] if high else E.lo[across]
+    meet = j.face_lo[n]
+
+    def at_middle(q):
+        pt = list(q)
+        if offset is not None:
+            pt[across] = plane - offset if high else plane + offset
+        return tuple(pt)
+    middles = [at_middle(q) for q in j.positions]
+    inward = 1 if (E.lo[n] + E.hi[n]) / 2 > meet else -1
+    out = []
+    for p, other in ((E, F), (F, E)):
+        toward = (other.lo[n] + other.hi[n]) / 2 > (p.lo[n] + p.hi[n]) / 2
+        at = [round(q[al] - p.lo[al], 1) for q in j.positions]
+        seat = Seat(j.id, p.id, other.id, p is E, SIDES[(n, toward)], SIDES[(al, False)], at,
+                    SIDES[(across, high)], offset, spacer, points=middles,
+                    length=j.size[0] if j.size else None)
+        if p is F and line is not None:
+            seat.reference, seat.line, seat.line_from = "", line, SIDES[(across, False)]
+        if p is E and j.hole is not None:
+            seat.hole_side, seat.hole = SIDES[(across, not high)], j.hole
+            face_at = E.lo[across] if high else E.hi[across]
+            for q in middles:
+                h = list(q)
+                h[n], h[across] = meet + inward * j.hole[1], face_at
+                seat.holes.append(tuple(h))
+        out.append(seat)
+    return out
 
 
 @dataclass
@@ -231,6 +331,26 @@ def _tool(tree: Quern, path: str) -> Tool:
         short = (source.payload or {}).get("identifier") or source.name or source.id
         cites.append((short, (clause.payload or {}).get("locator", clause.id)))
     return Tool(path, node.name or node.id, (node.payload or {}).get("say", {}), cites)
+
+
+def _seat_methods(tree: Quern, joint: Joint, links: dict) -> None:
+    """What a joint's tools and connector say of cutting its seats: each tool after the general tool
+    it follows, its groove's distance from its reference and its spacers, then the connector's
+    access hole and the tool that drills it."""
+    seen: list[str] = []
+    for t in links.get("made_with", []):
+        for f in [*(get_node(tree, t).links or {}).get("follows", []), t]:
+            if f not in seen:
+                seen.append(f)
+        if joint.groove_offset is None and _param(tree, t, "groove_offset") is not None:
+            joint.groove_offset = _param(tree, t, "groove_offset")
+            joint.spacers = [float(x) for x in (get_node(tree, t).payload or {}).get("spacers_mm", [])]
+    for c in links.get("uses", []):
+        d, o = _param(tree, c, "access_hole_diameter"), _param(tree, c, "access_hole_offset")
+        if d is not None and o is not None:
+            joint.hole = (d, o)
+            seen += [t for t in (get_node(tree, c).links or {}).get("drilled_with", []) if t not in seen]
+    joint.methods = [_tool(tree, t) for t in seen]
 
 
 def _kerf(tree: Quern, path: str) -> float | None:
@@ -289,10 +409,12 @@ def scene(tree: Quern, piece: str) -> Scene:
             if length is not None and thickness is not None:
                 size = (length, thickness)
                 break
-        joints.append(Joint(path, node.id, node.name or node.id, [p.id for p in ps], connector,
-                            int(_param(tree, path, "count") or 0),
-                            (node.payload or {}).get("setting", ""), tools, lay.lo, lay.hi,
-                            lay.normal, lay.along, lay.positions, lay.stated, size))
+        joint = Joint(path, node.id, node.name or node.id, [p.id for p in ps], connector,
+                      int(_param(tree, path, "count") or 0),
+                      (node.payload or {}).get("setting", ""), tools, lay.lo, lay.hi,
+                      lay.normal, lay.along, lay.positions, lay.stated, size)
+        _seat_methods(tree, joint, links)
+        joints.append(joint)
     root = get_node(tree, piece)
     payload = root.payload or {}
     steps = []

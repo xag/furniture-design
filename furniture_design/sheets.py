@@ -25,7 +25,7 @@ from reportlab.lib.units import mm
 from reportlab.pdfgen.canvas import Canvas
 
 from . import linework as lw
-from .scene import Part, Scene, cut_plan
+from .scene import Part, Scene, Seat, cut_plan, seats
 
 INK = HexColor("#1d1d1b")
 THIN = HexColor("#5b5b58")
@@ -70,6 +70,26 @@ LABELS = {
                      "puis les autres en partant d'un trou percé dans la chute.",
         "no_method": "Aucun outil de la pièce ne dit comment faire cette découpe.",
         "waste": "chute", "sources": "Sources",
+        "face": {"bottom": "la face du dessous", "top": "la face du dessus",
+                 "front": "la face avant", "back": "la face arrière",
+                 "left": "la face gauche", "right": "la face droite"},
+        "grooves": "Rainures", "method": "Méthode",
+        "seat": "{surface} (contre {other}) : {grooves} à {at} {from_} {start}",
+        "seat_ref": "{its} milieu à {d} {ref}{spacer} : {what} qui affleure avec {other}",
+        "seat_ref_free": "depuis {ref} : {what} qui affleure avec {other}",
+        "seat_shelf": "{its} milieu à {d} {ref}{spacer} : la face qui se pose sur le trait de {other}",
+        "seat_shelf_free": "depuis {ref} : la face qui se pose sur le trait de {other}",
+        "seat_line": "{surface} (contre {other}) : tracer le dessus de {other} à {line} {from_} "
+                     "{line_from} ; {grooves} à {at} {from_} {start}",
+        "seat_line_d": "{its} milieu à {d} du trait, du côté de {other}",
+        "the_face": "la face", "the_edge": "le chant",
+        "no_spacer": ", sans cale", "spacer": ", avec la cale de {s}",
+        "hole": "{holes} Ø {d} dans {face}, à {o} {edge}, {middle}.",
+        "n": {1: {"grooves": "une rainure", "its": "son", "holes": "Trou d'accès",
+                  "middle": "au milieu de la rainure"},
+              2: {"grooves": "rainures", "its": "leur", "holes": "Trous d'accès",
+                  "middle": "au milieu de chaque rainure"}},
+        "and": "et",
     },
     "en": {
         "general": "General arrangement", "parts": "Parts", "checks": "Checks and notes",
@@ -102,6 +122,25 @@ LABELS = {
                      "the others starting from a hole drilled in the waste.",
         "no_method": "None of the part's tools says how to make this cut.",
         "waste": "waste", "sources": "Sources",
+        "face": {"bottom": "the bottom face", "top": "the top face", "front": "the front face",
+                 "back": "the back face", "left": "the left face", "right": "the right face"},
+        "grooves": "Grooves", "method": "Method",
+        "seat": "{surface} (against {other}): {grooves} at {at} {from_} {start}",
+        "seat_ref": "{its} middle {d} {ref}{spacer}: {what} flush with {other}",
+        "seat_ref_free": "from {ref}: {what} flush with {other}",
+        "seat_shelf": "{its} middle {d} {ref}{spacer}: the face laid on {other}'s line",
+        "seat_shelf_free": "from {ref}: the face laid on {other}'s line",
+        "seat_line": "{surface} (against {other}): draw the top of {other} at {line} {from_} "
+                     "{line_from}; {grooves} at {at} {from_} {start}",
+        "seat_line_d": "{its} middle {d} from the line, on {other}'s side",
+        "the_face": "the face", "the_edge": "the edge",
+        "no_spacer": ", no spacer", "spacer": ", with the {s} spacer",
+        "hole": "{holes} Ø {d} in {face}, {o} {edge}, {middle}.",
+        "n": {1: {"grooves": "one groove", "its": "its", "holes": "Access hole",
+                  "middle": "at the middle of the groove"},
+              2: {"grooves": "grooves", "its": "their", "holes": "Access holes",
+                  "middle": "at the middle of each groove"}},
+        "and": "and",
     },
 }
 
@@ -856,6 +895,8 @@ def _prepare_picture(pen: Pen, sc: Scene, step, box):
 
 
 EDGE_AXIS = {"left": 0, "right": 0, "front": 1, "back": 1, "bottom": 2, "top": 2}
+SIDES_OF = {(0, False): "left", (0, True): "right", (1, False): "front", (1, True): "back",
+            (2, False): "bottom", (2, True): "top"}
 HIGH_EDGES = {"right", "back", "top"}
 
 
@@ -996,6 +1037,68 @@ def cut_sentences(p: Part, L: dict, lang: str) -> list[str]:
             L["saw_from_hole"] if starts == 0 else L["saw_mixed"]]
 
 
+def _cap(s: str) -> str:
+    return s[:1].upper() + s[1:]
+
+
+def _list(values: list[float], L: dict) -> str:
+    v = [_fmt(x) for x in values]
+    return v[0] if len(v) == 1 else f"{', '.join(v[:-1])} {L['and']} {v[-1]}"
+
+
+def _of(name: str, lang: str) -> str:
+    """'from the left face' / 'de la face gauche', 'du chant avant'."""
+    if lang != "fr":
+        return f"from {name}"
+    return "du " + name[3:] if name.startswith("le ") else "de " + name
+
+
+def seat_sentences(seat: Seat, sc: Scene, L: dict, lang: str) -> list[str]:
+    """What a groove card says of one part's grooves of one joint: the surface, where along it from
+    which edge, the reference the machine registers on and how far the groove's middle is from it,
+    with which spacer; then the access holes, for a part grooved in its edge."""
+    other = sc.part(seat.other).mark or seat.other
+    surface = (L["edge"] if seat.in_edge else L["face"])[seat.side]
+    start = L["edge"][seat.start]
+    at = _list(seat.at, L)
+    sep = " ; " if lang == "fr" else "; "
+    N = L["n"][min(len(seat.at), 2)]
+    spacer = "" if seat.offset is None else         (L["no_spacer"] if not seat.spacer else L["spacer"].format(s=f"{_fmt(seat.spacer)} mm"))
+    if seat.line is not None:
+        first = L["seat_line"].format(surface=surface, other=other, line=_fmt(seat.line),
+                                      from_=L["from"], line_from=L["edge"][seat.line_from],
+                                      at=at, start=start, grooves=N["grooves"])
+        if seat.offset is not None:
+            first += ", " + L["seat_line_d"].format(d=_fmt(seat.offset), other=other, its=N["its"])
+        said = [_cap(first) + "."]
+    else:
+        first = L["seat"].format(surface=surface, other=other, at=at, from_=L["from"], start=start,
+                                 grooves=N["grooves"])
+        ref = (L["face"] if seat.in_edge else L["edge"])[seat.reference]
+        flush = not any(s.line is not None for s in seats_of(sc, seat.joint))
+        what = L["the_face" if seat.in_edge else "the_edge"]
+        if flush:
+            tail = (L["seat_ref_free"].format(ref=ref, what=what, other=other) if seat.offset is None
+                    else L["seat_ref"].format(d=_fmt(seat.offset), ref=_of(ref, lang), spacer=spacer,
+                                              what=what, other=other, its=N["its"]))
+        else:
+            tail = (L["seat_shelf_free"].format(ref=ref, other=other) if seat.offset is None
+                    else L["seat_shelf"].format(d=_fmt(seat.offset), ref=_of(ref, lang), spacer=spacer,
+                                                other=other, its=N["its"]))
+        said = [_cap(first) + sep + tail + "."]
+    if seat.hole:
+        d, o = seat.hole
+        said.append(L["hole"].format(d=_fmt(d), face=L["face"][seat.hole_side], o=_fmt(o),
+                                     edge=_of(L["edge"][seat.side], lang), holes=N["holes"],
+                                     middle=N["middle"]))
+    return said
+
+
+def seats_of(sc: Scene, joint_id: str) -> list[Seat]:
+    j = next(j for j in sc.joints if j.id == joint_id)
+    return seats(sc, j)
+
+
 def _cut_method(pen: Pen, p: Part, box, L: dict, lang: str):
     """Beside the card: where to mark, the order to saw in, then how each of the part's
     tools is used, as its clauses say, and the clauses cited."""
@@ -1037,6 +1140,159 @@ def _cut_method(pen: Pen, p: Part, box, L: dict, lang: str):
         yy -= 3.4
         for source, locators in by_source.items():
             sep = " ; " if lang == "fr" else "; "
+            for line in _wrap(f"{source}{colon}{sep.join(locators)}", int(w / 1.15)):
+                pen.text(x, yy, line, 2.3, THIN)
+                yy -= 3.0
+
+
+def _thin_axis(p: Part) -> int:
+    return min(range(3), key=lambda i: p.hi[i] - p.lo[i])
+
+
+def _seat_drawing(pen: Pen, p: Part, part_seats: list[Seat], box, L: dict):
+    """One part's face, seen square to it, with every groove the step cuts in it: a groove in the face
+    drawn where it goes, a groove in an edge drawn on that edge, each access hole as a circle, a
+    shelf's line dashed, and each groove's middle measured from the edge the card says."""
+    x, y, w, h = box
+    t = _thin_axis(p)
+    hx, vx = [i for i in range(3) if i != t]
+    size_h, size_v = p.hi[hx] - p.lo[hx], p.hi[vx] - p.lo[vx]
+    dims = {}   # (axis, value): one dimension per distinct groove position on each axis
+    for st in part_seats:
+        al = _along(st)
+        for q in st.points:
+            dims.setdefault((al, round(q[al] - p.lo[al], 1)), None)
+        if st.line is not None:   # a shelf's line, measured from the edge the card says
+            dims.setdefault((next(i for i in range(3) if i not in (al, t)), round(st.line, 1)), None)
+    rows_h = sum(1 for a, _ in dims if a == hx)
+    rows_v = sum(1 for a, _ in dims if a == vx)
+    room_w, room_h = w - 14 - 7 * rows_v, h - 22 - 7 * rows_h
+    sc_ = min(room_w / size_h, room_h / size_v)
+    rw, rv = size_h * sc_, size_v * sc_
+    ox, oy = x + 8 + 7 * rows_v + (room_w - rw) / 2, y + 12 + 7 * rows_h + (room_h - rv) / 2
+
+    def P(a, b):
+        return ox + (a - p.lo[hx]) * sc_, oy + (b - p.lo[vx]) * sc_
+
+    pen.rect(ox, oy, rw, rv, fill=_wood(0.1), stroke=INK, lw_=0.35)
+    thin_v, thin_h = rv < 14, rw < 14   # too thin to name its edges inside: name them outside
+    names = {
+        SIDES_OF[(hx, False)]: (ox - 1.5 if thin_h else ox + 3.2, oy + rv / 2, 90, "middle"),
+        SIDES_OF[(hx, True)]: (ox + rw + 3.4 if thin_h else ox + rw - 1.6, oy + rv / 2, 90, "middle"),
+        SIDES_OF[(vx, False)]: (ox + rw + 2, oy - 1.2, 0, "start") if thin_v
+        else (ox + rw / 2, oy + 1.6, 0, "middle"),
+        SIDES_OF[(vx, True)]: (ox + rw / 2, oy + rv + 1.5 if thin_v else oy + rv - 3.4, 0, "middle")}
+    for side, (tx, ty, ang, anchor) in names.items():
+        pen.text(tx, ty, L["edge_short"][side], 2.4, THIN, anchor, angle=ang)
+    for st in part_seats:
+        al = _along(st)
+        across = next(i for i in range(3) if i not in (al, t))
+        half = (st.length or 60) / 2 * sc_
+        if st.line is not None:
+            a = p.lo[across] + st.line
+            (x0, y0), (x1, y1) = (P(a, p.lo[vx]), P(a, p.hi[vx])) if across == hx else \
+                (P(p.lo[hx], a), P(p.hi[hx], a))
+            pen.line(x0, y0, x1, y1, 0.3, INK, [2, 1.2])
+        for q in st.points:
+            cx, cy = P(q[hx], q[vx])
+            if al == hx:
+                pen.rect(cx - half, cy - 0.8, 2 * half, 1.6, fill=MARK, stroke=None)
+            else:
+                pen.rect(cx - 0.8, cy - half, 1.6, 2 * half, fill=MARK, stroke=None)
+        for q in st.holes:
+            cx, cy = P(q[hx], q[vx])
+            pen.circle(cx, cy, max(st.hole[0] / 2 * sc_, 0.9), fill=white, stroke=MARK, w=0.3)
+    k = {hx: 0, vx: 0}
+    for (al, v) in sorted(dims, key=lambda d: (d[0], d[1])):
+        k[al] += 1
+        if al == hx:
+            pen.dim(P(p.lo[hx], p.lo[vx]), P(p.lo[hx] + v, p.lo[vx]), -6 * k[al], _fmt(v), size=2.6)
+        else:
+            pen.dim(P(p.lo[hx], p.lo[vx]), P(p.lo[hx], p.lo[vx] + v), -6 * k[al], _fmt(v),
+                    horizontal=False, size=2.6)
+    return t
+
+
+def _which(sc: Scene, p: Part, L: dict) -> str:
+    """A part's name, and where it stands when another part has its letter (the left side)."""
+    twins = [q for q in sc.parts if q.mark == p.mark and q.id != p.id]
+    if not twins:
+        return p.name
+    c = [(a + b) / 2 for a, b in zip(p.lo, p.hi)]
+    q = twins[0]
+    d = [(a + b) / 2 - ci for a, b, ci in zip(q.lo, q.hi, c)]
+    axis = max(range(3), key=lambda i: abs(d[i]))
+    return f"{p.name} ({L['edge_short'][SIDES_OF[(axis, d[axis] < 0)]]})"
+
+
+def _along(st: Seat) -> int:
+    """The axis a seat's grooves are spread along: the one its points differ on, else the edge it
+    is measured from."""
+    return EDGE_AXIS[st.start]
+
+
+def _seat_card(pen: Pen, sc: Scene, p: Part, part_seats: list[Seat], box, L: dict, lang: str):
+    """One part's grooves in a step: its face drawn on the left, and on the right what to mark, the
+    reference and setting of each joint's grooves, and its access holes."""
+    x, y, w, h = box
+    dw = w * 0.46
+    t = _seat_drawing(pen, p, part_seats, (x, y, dw, h - 16), L)
+    shown = next((st.side for st in part_seats if not st.in_edge),
+                 next((st.hole_side for st in part_seats if st.hole_side), ""))
+    pen.circle(x + 5, y + h - 5, 4.2, fill=white, w=0.4)
+    pen.text(x + 5, y + h - 6.6, p.mark, 4.6, INK, "middle", bold=True)
+    pen.text(x + 11, y + h - 6.6, _which(sc, p, L), 3.6, INK, bold=True)
+    if shown:
+        pen.text(x + 11, y + h - 11.5, _cap(L["face"][shown]), 2.8, THIN)
+    tx, tw = x + dw + 4, w - dw - 4
+    chars = int(tw / 1.62)
+    yy = y + h - 4
+    pen.text(tx, yy, f"{L['grooves']} {p.mark}", 4.2, INK, bold=True)
+    yy -= 7
+    k = 0
+    for st in part_seats:
+        for sentence in seat_sentences(st, sc, L, lang):
+            k += 1
+            for i, line in enumerate(_wrap(sentence, chars - 4)):
+                if i == 0:
+                    pen.text(tx, yy, f"{k}.", 3.2, INK, bold=True)
+                pen.text(tx + 4, yy, line, 3.2, INK)
+                yy -= 4.3
+            yy -= 1.2
+    del t
+
+
+def _method_page(pen: Pen, methods: list, L: dict, lang: str, W: float, H: float, number: int):
+    """The way a step's grooves and holes are made, each tool's method as its clauses say, the general
+    method first, and the clauses cited."""
+    x, w = 15, W - 30
+    chars = int(w / 1.62)
+    yy = H - 22
+    pen.rect(x, yy - 3, 12, 12, fill=INK, stroke=None)
+    pen.text(x + 6, yy, str(number), 7, white, "middle", bold=True)
+    pen.text(x + 17, yy, L["method"], 6, INK, bold=True)
+    yy -= 12
+    said = [t for t in methods if (t.say or {}).get(lang)]
+    for t in said:
+        pen.text(x, yy, t.say[lang].get("name", t.name), 3.8, INK, bold=True)
+        yy -= 5.2
+        for sentence in t.say[lang].get("method", []):
+            for i, line in enumerate(_wrap(sentence, chars - 3)):
+                pen.text(x + (3 if i else 0), yy, ("– " if i == 0 else "") + line, 3.1, INK)
+                yy -= 4.1
+            yy -= 0.9
+        yy -= 2.5
+    by_source: dict[str, list[str]] = {}
+    for t in said:
+        for source, locator in t.cites:
+            if locator not in by_source.setdefault(source, []):
+                by_source[source].append(locator)
+    if by_source:
+        colon = " : " if lang == "fr" else ": "
+        sep = " ; " if lang == "fr" else "; "
+        pen.text(x, yy, L["sources"], 2.6, THIN, bold=True)
+        yy -= 3.4
+        for source, locators in by_source.items():
             for line in _wrap(f"{source}{colon}{sep.join(locators)}", int(w / 1.15)):
                 pen.text(x, yy, line, 2.3, THIN)
                 yy -= 3.0
@@ -1124,7 +1380,20 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr") -> Path:
             if p.id in step.cuts and p.cuts and p.mark not in [q.mark for q, _ in cut]:
                 cut.append((p, sum(1 for q in sc.parts
                                    if q.mark == p.mark and q.id in step.cuts)))
-        if cut and slot % 2:
+        grooved: list[tuple[Part, list[Seat]]] = []   # the parts the step grooves, in order
+        methods: list = []
+        if step.prepare:
+            joints = [j for j in sc.joints if j.id in step.joints]
+            for j in joints:
+                for t in j.methods:
+                    if t.path not in [m.path for m in methods]:
+                        methods.append(t)
+            by_part = {}
+            for j in joints:
+                for st in seats(sc, j):
+                    by_part.setdefault(st.part, []).append(st)
+            grooved = [(p, by_part[p.id]) for p in sc.parts if p.id in by_part]
+        if (cut or grooved) and slot % 2:
             slot += 1    # a step with cuts starts a page: its picture, then its cards
         x, y, w, h = slots[slot % 2]
         if slot % 2 == 0 and slot:
@@ -1160,7 +1429,20 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr") -> Path:
             _cut_card(pen, p, qty, (cx, cy, cw * 0.46, ch), L)
             _cut_method(pen, p, (cx + cw * 0.5, cy, cw * 0.5, ch), L, lang)
             slot += 1
-        if cut and slot % 2:
+        if grooved and any((t.say or {}).get(lang) for t in methods):
+            if slot % 2:
+                slot += 1
+            c.showPage()
+            _method_page(pen, methods, L, lang, W, H, step.number)
+            slot += 2
+        for p, part_seats in grooved:
+            if slot % 2 == 0:
+                c.showPage()
+            else:
+                pen.line(15, 148, W - 15, 148, 0.2, THIN, [1.5, 1.5])
+            _seat_card(pen, sc, p, part_seats, slots[slot % 2], L, lang)
+            slot += 1
+        if (cut or grooved) and slot % 2:
             slot += 1    # and the next step starts a page too
     c.showPage()
     c.save()
