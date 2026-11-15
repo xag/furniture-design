@@ -1854,6 +1854,84 @@ def plate_jointer() -> Node:
                        f"{S}/dewalt-dw682-manual/test-cuts", f"{S}/festool-df500-manual/procedure"]})
 
 
+# Makers' manuals of 125 mm angle grinders: copyrighted, so cited by locator and said in our words; each
+# copy is kept privately and found by its sha256.
+GRINDER_SOURCES = [
+    ("makita-xag04-manual", "Makita: XAG03 / XAG04 cordless angle grinder, instruction manual", "Makita",
+     "https://cdn.makitatools.com/apps/cms/doc/prod/XAG/07ecaeb5-c290-4aaf-9ec2-5195e2f74b83_XAG04-IM.pdf",
+     "1b1de5ea4bfb77c85184a4824ba537f34d72286069835cfdd901f8918afabf99",
+     [("protective-equipment", "General safety, eye and hearing protection, p. 4"),
+      ("cutting-off", "Additional safety for abrasive cutting-off: jamming, binding, supporting panels, p. 5"),
+      ("lateral-pressure", "Additional safety 33: cutting discs must not take lateral pressure, p. 6"),
+      ("cut-off-wheel", "Operation with abrasive cut-off wheel: guard, full speed, no change of angle, p. 11")]),
+    ("metabo-w-18-ltx-manual", "Metabo: W 18 LTX 125 and family, original instructions 17027752", "Metabo",
+     "https://portal.metabo-service.com/fileadmin/metabo_material/BA/17027752_00_0621_124_A5_de_en_fr_nl_it_es_pt_sv_fi_no_da_pl_el_hu_ru_%20W%20WP%2018%20LTX%20Akku-WS%20NLO%20UKCA.pdf",
+     "22ef6219070ec2e12f6277c7d3262d6531f9543b3c6dfb38e120534649397b4d",
+     [("workpiece", "Special safety instructions: workpiece flat, secured with clamps, supported, p. 15"),
+      ("handle", "Attaching the additional handle, p. 16"),
+      ("cutting-off", "Cutting-off: against the run of the disc, even feed, no tilting, p. 18"),
+      ("ear-protection", "Noise: wear ear protectors, p. 19")]),
+    ("dewalt-dcg405-manual", "DeWalt: DCG405 cordless angle grinder, instruction manual NA409002", "DeWalt",
+     "https://service.dewalt.ae/i/DEWALT/GLOBALBOM/B1/DCG405/1/Instruction_Manual/EN/NA409002_DCG405_T1_Asia.pdf",
+     "3f25d963dab27c1b1e02ffc1ef29033a7c25c9869d41ecc8ed8383596430294f",
+     [("guard", "Guards for cutting: a Type 1 guard, PDF pp. 14-15"),
+      ("workpiece", "Secure and support the workpiece with clamps or a vice, PDF p. 16"),
+      ("cutting", "Edge grinding and cutting: full speed first, minimum pressure, no change of angle, PDF pp. 17-18")]),
+]
+
+
+def grinder_sources() -> list[Node]:
+    return [Node(id=id_, kind="source", name=name,
+                 payload={"publisher": publisher, "url": url, "fetched": "2026-11-15", "sha256": sha,
+                          "licence": "copyrighted", "capture": "private copy, identified by its sha256"},
+                 children=[Node(id=cid, kind="clause", payload={"locator": loc}) for cid, loc in clauses])
+            for id_, name, publisher, url, sha, clauses in GRINDER_SOURCES]
+
+
+def angle_grinder() -> Node:
+    """The method of cutting with any hand-held angle grinder and a cut-off disc, as its makers state it.
+    A maker's grinder follows it and adds its own guard, disc and settings."""
+    S = SOURCES
+    mk, mt, dw = f"{S}/makita-xag04-manual", f"{S}/metabo-w-18-ltx-manual", f"{S}/dewalt-dcg405-manual"
+    return Node(
+        id="angle-grinder", kind="tool", name="Angle grinder with a cut-off disc",
+        payload={"does": "cuts a straight line through a profile, a bar or a sheet with an abrasive disc",
+                 "say": {
+                     "fr": {"name": "Meuleuse d'angle (méthode générale)", "method": [
+                         "Monter le capot de protection prévu pour le tronçonnage, côté fermé vers soi, et la "
+                         "poignée auxiliaire ; tenir la meuleuse à deux mains.",
+                         "Serrer la pièce sur un plan stable avec des serre-joints ou un étau, et la soutenir "
+                         "des deux côtés de la coupe, près du trait et au bord, pour que la chute ne tombe pas "
+                         "et ne pince pas le disque.",
+                         "Laisser le disque prendre toute sa vitesse avant qu'il touche la pièce, puis avancer "
+                         "régulièrement, en appuyant à peine.",
+                         "Couper dans le sens où la rotation du disque ne pousse pas la meuleuse hors du trait ; "
+                         "ne jamais appuyer le disque de côté, ni l'incliner ou changer d'angle une fois la "
+                         "coupe commencée.",
+                         "Si le disque se coince, arrêter la meuleuse et la tenir immobile jusqu'à l'arrêt du "
+                         "disque ; ne jamais la sortir de la coupe ni la remettre en marche dans la pièce.",
+                         "Porter des lunettes de protection, une protection auditive, un masque anti-poussière "
+                         "et des gants."]},
+                     "en": {"name": "Angle grinder (general method)", "method": [
+                         "Fit the guard made for cutting, its closed side towards you, and the auxiliary "
+                         "handle; hold the grinder with both hands.",
+                         "Clamp the workpiece to a stable bench with clamps or a vice, and support it on both "
+                         "sides of the cut, near the line and at the edge, so the offcut neither drops nor "
+                         "pinches the disc.",
+                         "Let the disc reach full speed before it touches the work, then feed it evenly with "
+                         "light pressure.",
+                         "Cut in the direction in which the disc's rotation does not drive the grinder out of "
+                         "the line; never press the disc sideways, tilt it or change its angle once the cut "
+                         "has started.",
+                         "If the disc jams, switch off and hold the grinder still until the disc stops; never "
+                         "pull it out of the cut or switch it on again in the workpiece.",
+                         "Wear eye protection, hearing protection, a dust mask and gloves."]}}},
+        links={"per": [f"{mk}/cut-off-wheel", f"{mt}/handle", f"{dw}/guard",
+                       f"{mt}/workpiece", f"{dw}/workpiece", f"{mk}/cutting-off",
+                       f"{dw}/cutting", f"{mt}/cutting-off", f"{mk}/lateral-pressure",
+                       f"{mk}/protective-equipment", f"{mt}/ear-protection"]})
+
+
 def tools() -> Node:
     """Hand tools that cut a part's cuts, each saying, per language, its name and how it is
     used, every sentence resting on the clauses it links `per`. The documents print a
@@ -1902,7 +1980,7 @@ def tools() -> Node:
                          "twist it sharply, the narrow blade bends easily.",
                          "Saw on the waste side of the line."]}}},
         links={"per": [f"{tm}/keyhole-46-5-a", f"{tm}/keyhole-46-5-b-c", f"{fm}/waste-side-6"]})
-    return Node(id="tools", kind="", children=[saw, keyhole, plate_jointer()])
+    return Node(id="tools", kind="", children=[saw, keyhole, plate_jointer(), angle_grinder()])
 
 
 def requirements() -> Node:
@@ -2002,6 +2080,7 @@ AUTHORITY = {
     "makita-pj7000-manual": "maker", "dewalt-dw682-manual": "maker", "festool-df500-manual": "maker",
     "woodsmith-aligning-edge-joints": "editorial", "woodsmith-biscuit-essentials": "editorial",
     "popular-woodworking-plate-joiner-tips": "editorial", "fine-woodworking-biscuit-basics": "editorial",
+    "makita-xag04-manual": "maker", "metabo-w-18-ltx-manual": "maker", "dewalt-dcg405-manual": "maker",
 }
 
 
@@ -2020,7 +2099,7 @@ def knowledge() -> list[Node]:
     the hand tools that cut a part's cuts."""
     sources = [wood_handbook(), federal_register(), gsa_fnae(), tm_9_243(), fm_5_426(), *tropix(),
                schmidtova(), boruvka(), *sag_limits(), *seating_tests(), *jointer_sources(),
-               *jointer_videos()]
+               *jointer_videos(), *grinder_sources()]
     return [Node(id="sources", kind="", children=with_authority(sources, AUTHORITY)),
             materials(), requirements(), tools()]
 

@@ -15,7 +15,7 @@ from pathlib import Path
 
 from quern import Quern, run_rules
 
-from furniture_design.knowledge import (JOINTER_SOURCES, JOINTER_VIDEOS, OPEN_LICENCES, TROPIX_ROWS, TROPIX_SHEETS, boruvka, design_stress,
+from furniture_design.knowledge import (GRINDER_SOURCES, JOINTER_SOURCES, JOINTER_VIDEOS, OPEN_LICENCES, TROPIX_ROWS, TROPIX_SHEETS, boruvka, design_stress,
                                         european_species, knowledge, sag_limits, schmidtova, seating_tests, thermo_beech,
                                         tropix)
 from furniture_design.package import PACKAGE
@@ -166,3 +166,22 @@ def test_every_passage_of_a_video_the_jointer_method_rests_on_is_in_the_account_
         for cid, _locator, words in clauses:
             for w in words:
                 assert w in text, (sid, cid, w)
+
+
+# What each passage the general angle-grinder method rests on says, a few of its words, found in the copy
+GRINDER_WORDS = {
+    "makita-xag04-manual": ["Support panels or any oversized workpiece", "Do not start the cutting operation in the workpiece",
+                            "lateral pressure", "Always wear eye protection"],
+    "metabo-w-18-ltx-manual": ["using clamps", "Always work with the additional handle", "against the run of the disc",
+                               "Wear ear protectors"],
+    "dewalt-dcg405-manual": ["Type 1 guard", "Use clamps or a", "Apply minimum pressure to the work surface",
+                             "do not change the angle of the cut"],
+}
+
+
+def test_every_passage_the_angle_grinder_method_rests_on_is_in_the_copy_fetched():
+    assert {s[0] for s in GRINDER_SOURCES} == set(GRINDER_WORDS)
+    for sid, _name, _publisher, _url, sha, _clauses in GRINDER_SOURCES:
+        text = re.sub(r"\s+", " ", _text(sha))
+        for words in GRINDER_WORDS[sid]:
+            assert words in text, (sid, words)
