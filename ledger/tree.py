@@ -1257,7 +1257,9 @@ def entries() -> list[Node]:
                  "to mark it, the edges it is measured from and the saw lines and their order are read from "
                  "the cut's box against its board; the kind of cut is stored nowhere; the tools' methods stay "
                  "knowledge, sentences resting on clauses, which the frames draw and the instructions do not "
-                 "print",
+                 "print. The same rules reach every page of the instructions; still written, and owed: each "
+                 "step's sentence under its picture, and the hardware and tools named in words on the page of "
+                 "what is needed",
             links={"rests_on": ["the-documents-are-for-the-people-who-build",
                                 "the-grooving-step-is-drawn-to-ikeas-rules"],
                    "supersedes": ["a-cut-is-explained-from-its-shape-and-its-tools-clauses"]},
