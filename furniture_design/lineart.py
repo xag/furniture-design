@@ -132,7 +132,8 @@ class Drawing:
     fills: list = field(default_factory=list)    # (polygon [(x, y)], rgb), back to front
     lines: list = field(default_factory=list)    # (polyline [(x, y)], weight)
     bounds: tuple = (0, 0, 1, 1)
-    image: object = None           # (H, W, 3) uint8, top row first
+    image: object = None           # uint8, top row first: (H, W, 3), or (H, W) numbers into `palette`
+    palette: list | None = None    # the colours of an (H, W) image, as PIL takes them (r, g, b, r, ...)
     pixel: tuple = (0, 0, 1)       # x0, y0 of the image's corner and pixels per unit
 
 
@@ -175,15 +176,26 @@ def draw(meshes: list[Mesh], view: View, *, px: int = 1600, crease: float = 28.0
     span = max(x1 - x0, y1 - y0) or 1
     s = (px - 4) / span
     W, H = int((x1 - x0) * s) + 4, int((y1 - y0) * s) + 4
-    # the depth in single precision and the solid seen as a small integer: at 1800 px a drawing's
-    # buffers then take some 20 MB where double precision and a float image took near 200 MB, more
-    # than a 512 MB server had to spare beside the app
-    zb = np.full((H, W), np.inf, dtype=np.float32)
-    ib = np.full((H, W), -1, dtype=np.int16 if len(meshes) < 32767 else np.int32)
-    for mi, (m, p) in enumerate(zip(meshes, P)):
+    depth_span = allp[:, 2].max() - allp[:, 2].min() or 1
+    eps = depth_span * 0.004 + 1.5 / s
+    dr = Drawing(bounds=(x0, y0, x1, y1))
+    dr.pixel = (x0 - 2 / s, y0 - 2 / s, s)
+    # The drawing is made a strip of rows at a time: the depth of a strip (single precision) and
+    # the solid seen at each of its pixels are all that is held, with the image as one byte a
+    # pixel (the solid's number, coloured by a palette). Whole, at 1800 px, the depth, the solids
+    # and a colour image took some 30 MB a drawing, and double precision before that near 200 MB,
+    # more than a 512 MB server had to spare beside the app.
+    indexed = len(meshes) < 255
+    img = np.full((H, W) if indexed else (H, W, 3), 255, dtype=np.uint8)   # top row first
+    fills = [(np.asarray(m.fill, float) * 255).astype(np.uint8) for m in meshes]   # truncated
+    if indexed:
+        dr.palette = [int(c) for f in fills for c in f] + [255] * (3 * (256 - len(fills)))
+    faces = []   # per solid: its screen points and its faces turned to the eye, with their rows
+    for m, p in zip(meshes, P):
         sx = (p[:, 0] - x0) * s + 2
         sy = (p[:, 1] - y0) * s + 2
         nrm = np.cross(m.v[m.f[:, 1]] - m.v[m.f[:, 0]], m.v[m.f[:, 2]] - m.v[m.f[:, 0]])
+        tris = []
         for tri in m.f[nrm @ view.d < 1e-9]:
             xa, ya, za = sx[tri], sy[tri], p[tri, 2]
             u0, u1 = max(int(xa.min()), 0), min(int(xa.max()) + 1, W - 1)
@@ -193,10 +205,31 @@ def draw(meshes: list[Mesh], view: View, *, px: int = 1600, crease: float = 28.0
             den = (ya[1] - ya[2]) * (xa[0] - xa[2]) + (xa[2] - xa[1]) * (ya[0] - ya[2])
             if abs(den) < 1e-12:
                 continue
-            # in bands of rows: a face that fills the drawing would otherwise make a handful of
-            # full-size arrays at once
-            for w0 in range(v0, v1 + 1, 128):
-                w1 = min(w0 + 127, v1)
+            tris.append((xa, ya, za, u0, u1, v0, v1, den))
+        faces.append(tris)
+    edges = []   # every edge to consider, sampled along its length, with the depth seen around each sample
+    for m, p in zip(meshes, P):
+        found, _n, _f = _edges(m, view, crease)
+        for a, b, kind in found:
+            pa, pb = p[a], p[b]
+            length = math.hypot(*(pb[:2] - pa[:2])) * s
+            k = max(int(length / 1.5), 2)
+            t = np.linspace(0, 1, k + 1)
+            q = pa[None, :] * (1 - t[:, None]) + pb[None, :] * t[:, None]
+            ix = np.clip(((q[:, 0] - x0) * s + 2).astype(int), 0, W - 1)
+            iy = np.clip(((q[:, 1] - y0) * s + 2).astype(int), 0, H - 1)
+            edges.append((q, ix, iy, np.empty(k + 1, dtype=np.float32), (1.0 if kind == "out" else 0.55) * m.weight))
+    STRIP = 64
+    for r0 in range(0, H, STRIP):
+        r1 = min(r0 + STRIP, H) - 1
+        h0, h1 = max(r0 - 1, 0), min(r1 + 1, H - 1)   # a row more each side: a sample looks at its neighbours
+        zb = np.full((h1 - h0 + 1, W), np.inf, dtype=np.float32)
+        ib = np.full((h1 - h0 + 1, W), -1, dtype=np.int16 if len(meshes) < 32767 else np.int32)
+        for mi, tris in enumerate(faces):
+            for xa, ya, za, u0, u1, v0, v1, den in tris:
+                w0, w1 = max(v0, h0), min(v1, h1)
+                if w1 < w0:
+                    continue
                 gx, gy = np.meshgrid(np.arange(u0, u1 + 1) + 0.5, np.arange(w0, w1 + 1) + 0.5)
                 l0 = ((ya[1] - ya[2]) * (gx - xa[2]) + (xa[2] - xa[1]) * (gy - ya[2])) / den
                 l1 = ((ya[2] - ya[0]) * (gx - xa[2]) + (xa[0] - xa[2]) * (gy - ya[2])) / den
@@ -205,45 +238,36 @@ def draw(meshes: list[Mesh], view: View, *, px: int = 1600, crease: float = 28.0
                 if not inside.any():
                     continue
                 z = np.where(inside, l0 * za[0] + l1 * za[1] + l2 * za[2], np.inf).astype(np.float32)
-                sub = zb[w0:w1 + 1, u0:u1 + 1]
+                sub = zb[w0 - h0:w1 - h0 + 1, u0:u1 + 1]
                 nearer = z < sub
                 sub[nearer] = z[nearer]
-                ib[w0:w1 + 1, u0:u1 + 1][nearer] = mi
-    depth_span = allp[:, 2].max() - allp[:, 2].min() or 1
-    eps = depth_span * 0.004 + 1.5 / s
-    dr = Drawing(bounds=(x0, y0, x1, y1))
-    # the fills: each pixel the colour of the solid seen there, as an image under the lines
-    img = np.full((H, W, 3), 255, dtype=np.uint8)
-    for mi, m in enumerate(meshes):
-        img[ib == mi] = (np.asarray(m.fill, float) * 255).astype(np.uint8)   # truncated, as before
-    dr.image = np.ascontiguousarray(img[::-1])
-    del img
-    dr.pixel = (x0 - 2 / s, y0 - 2 / s, s)
-    # lines
-    for m, p in zip(meshes, P):
-        edges, _n, _f = _edges(m, view, crease)
-        for a, b, kind in edges:
-            pa, pb = p[a], p[b]
-            length = math.hypot(*(pb[:2] - pa[:2])) * s
-            k = max(int(length / 1.5), 2)
-            t = np.linspace(0, 1, k + 1)
-            q = pa[None, :] * (1 - t[:, None]) + pb[None, :] * t[:, None]
-            ix = np.clip(((q[:, 0] - x0) * s + 2).astype(int), 0, W - 1)
-            iy = np.clip(((q[:, 1] - y0) * s + 2).astype(int), 0, H - 1)
-            near = np.maximum.reduce([zb[np.clip(iy + dy, 0, H - 1), np.clip(ix + dx, 0, W - 1)]
-                                      for dx in (-1, 0, 1) for dy in (-1, 0, 1)])
-            seen = q[:, 2] <= near + eps
-            w = (1.0 if kind == "out" else 0.55) * m.weight
-            run = []
-            for i, vis in enumerate(seen):
-                if vis:
-                    run.append((q[i, 0], q[i, 1]))
-                elif run:
-                    if len(run) > 1:
-                        dr.lines.append((run, w))
-                    run = []
-            if len(run) > 1:
-                dr.lines.append((run, w))
+                ib[w0 - h0:w1 - h0 + 1, u0:u1 + 1][nearer] = mi
+        # the fills: each pixel the colour of the solid seen there, as an image under the lines
+        seen = ib[r0 - h0:r1 - h0 + 1]
+        rows = img[H - 1 - r1:H - r0][::-1]   # the image's rows run down, the drawing's up
+        if indexed:
+            rows[seen >= 0] = seen[seen >= 0]
+        else:
+            for mi in np.unique(seen[seen >= 0]):
+                rows[seen == mi] = fills[mi]
+        for q, ix, iy, near, _w in edges:
+            here = (iy >= r0) & (iy <= r1)
+            if here.any():
+                jx, jy = ix[here], iy[here]
+                near[here] = np.maximum.reduce([zb[np.clip(jy + dy, 0, H - 1) - h0, np.clip(jx + dx, 0, W - 1)]
+                                                for dx in (-1, 0, 1) for dy in (-1, 0, 1)])
+    dr.image = img
+    for q, _ix, _iy, near, w in edges:
+        run = []
+        for i, vis in enumerate(q[:, 2] <= near + eps):
+            if vis:
+                run.append((q[i, 0], q[i, 1]))
+            elif run:
+                if len(run) > 1:
+                    dr.lines.append((run, w))
+                run = []
+        if len(run) > 1:
+            dr.lines.append((run, w))
     return dr
 
 
@@ -268,7 +292,10 @@ def render(pen, dr: Drawing, box, *, line=0.35, pad=2.0, scale=None, fit=None):
         ix0, iy0, ps = dr.pixel
         Hh, Ww = dr.image.shape[:2]
         a = P(ix0, iy0)
-        pen.c.drawImage(ImageReader(Image.fromarray(dr.image)), a[0] * MM, a[1] * MM,
+        im = Image.fromarray(dr.image)
+        if dr.palette is not None:
+            im.putpalette(dr.palette)
+        pen.c.drawImage(ImageReader(im), a[0] * MM, a[1] * MM,
                         Ww / ps * k * MM, Hh / ps * k * MM)
     c = pen.c
     from reportlab.lib.units import mm

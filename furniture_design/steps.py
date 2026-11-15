@@ -29,7 +29,7 @@ DPI = 200
 
 def _cutter(pdf: Path, out: Path):
     import pymupdf
-    from PIL import Image, ImageChops
+    from PIL import Image
 
     doc = pymupdf.open(str(pdf))
     to_pt = 72 / 25.4
@@ -41,11 +41,15 @@ def _cutter(pdf: Path, out: Path):
         x0, y0, x1, y1 = box or region["box"]
         pix = doc[region["page"]].get_pixmap(dpi=DPI, clip=pymupdf.Rect(x0 * to_pt, y0 * to_pt, x1 * to_pt, y1 * to_pt))
         im = Image.frombytes("RGB", (pix.width, pix.height), pix.samples)
+        # the page's pictures are kept decoded by MuPDF as they are drawn, some 35 MB for a bench's
+        # instructions on a server with 150 MB to spare: what a region needed is let go once it is cut
+        del pix
+        pymupdf.TOOLS.store_shrink(100)
         px = lambda v: round(v * DPI / 25.4)
         if region.get("blank"):
             bx0, by0, bx1, by1 = region["blank"]
             im.paste("white", (px(bx0 - x0), px(by0 - y0), px(bx1 - x0), px(by1 - y0)))
-        drawn = ImageChops.difference(im, Image.new("RGB", im.size, "white")).point(lambda v: 255 if v > 12 else 0).getbbox()
+        drawn = im.point(lambda v: 255 if v < 243 else 0).getbbox()   # what is darker than white by more than 12
         if not drawn:
             return None
         pad = px(pad_mm)
