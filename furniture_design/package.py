@@ -240,9 +240,20 @@ VOCABULARY = [
         "point), provenance published when a clause states it, design-target when the "
         "design does."),
         params={"mass": "kg"}, links={"on": "the part it acts on"}),
+    KindDef(kind="guidance", description=(
+        "What whoever designs with a package is told before reading its nodes, that no node says of "
+        "itself: when to reach for one, and what to do where the knowledge stops. Its name is what it "
+        "is about, in a few words; payload text its sentences; the link about names the nodes it "
+        "speaks of. A reader (a connector, a skill) gives its assistant every guidance of the tree it "
+        "works in and writes none of its own; a guidance whose node is gone is refused."),
+        params={}, links={"about": "the nodes it speaks of"}),
 ]
 
 RULES = [
+    Rule(name="a-guidance-speaks-of-what-exists", kind="guidance",
+         expr="len(payload(self, 'text', '')) > 0 and unsupported(self, 'about') == 0",
+         description="A guidance says something (payload text), and every "
+                     "node it speaks of (the link about) exists."),
     Rule(name="a-clause-quotes-its-source", kind="clause",
          expr="some(s, nodes('source'), s == parent(self)) "
               "and len(payload(self, 'locator', '')) > 0 "
@@ -655,7 +666,13 @@ _UNVERIFIED = Node(id="sources", kind="", children=[
     Node(id="a-video", kind="source", payload={"licence": "copyrighted", "authority": "none"}, children=[
         Node(id="trick", kind="clause", payload={"locator": "at 2:10"})])])
 
+_STALE = Node(id="guidance", kind="", children=[
+    Node(id="a-saw-that-left", kind="guidance", name="The saw the shop lends",
+         payload={"text": "Cut with tools/the-shops-saw."}, links={"about": ["tools/the-shops-saw"]})])
+
 COUNTER_EXAMPLES = [
+    CounterExample(rule="a-guidance-speaks-of-what-exists", nodes=[_STALE],
+                   because="a guidance sending people to a tool the package no longer holds"),
     CounterExample(rule="a-source-says-its-authority", nodes=[_UNSAID],
                    because="a source that does not say who stands behind it cannot be weighed"),
     CounterExample(rule="a-clause-with-no-authority-is-verified", nodes=[_UNVERIFIED],
@@ -750,13 +767,14 @@ COUNTER_EXAMPLES = [
 
 PACKAGE = Package(
     name="furniture-design",
-    version="0.20.0",
+    version="0.21.0",
     description=(
         "Furniture designs and the published knowledge they are judged against. Kinds: "
         "source and clause (a publication and its verbatim, located statements, with the "
         "quantities they state), material (properties derived from clauses), requirement "
         "(a demand resting on clauses, with its limits and test conditions), piece, assembly, part and "
-        "load. Rules: every clause quotes its source; requirements and materials rest on "
+        "load; guidance (what whoever designs with a package is told before reading its nodes, which a "
+        "reader gives its assistant and never writes itself). Rules: every clause quotes its source; requirements and materials rest on "
         "clauses; a piece in a requirement's scope is held to it; a piece stands in its "
         "stability cases (furniture/tipping_cases); a part bends within its longtime sag "
         "limit (Wood Handbook Eq. 9-2 to 9-4 and its creep guidance, furniture/deflection, with no shear term for a panel whose modulus was measured on the panel); a part is strong enough (Eq. 9-13 against the near-minimum modulus of rupture over the Handbook's factor for 10-year duration of load and safety); a part bends the way its material's values were measured; a seat carries the light-service sidethrust of GSA's FNAE-80-214A through a panel in the push's plane (furniture/sideways_margin); a part that swells and "

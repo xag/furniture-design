@@ -2288,13 +2288,15 @@ def with_authority(sources: list[Node], authority: dict[str, str]) -> list[Node]
 
 
 def knowledge() -> list[Node]:
-    """The top-level branches a design tree mounts: sources, materials, requirements, and
-    the hand tools that cut a part's cuts."""
+    """The top-level branches a design tree mounts: sources, materials, requirements, the hand
+    tools that cut a part's cuts, and what whoever designs with them is told (guidance)."""
     sources = [wood_handbook(), federal_register(), gsa_fnae(), tm_9_243(), fm_5_426(), *tropix(),
                schmidtova(), boruvka(), *sag_limits(), *seating_tests(), *jointer_sources(),
                *jointer_videos(), *grinder_sources(), *profile_saw_sources(), *pinch_sources()]
+    from .guidance import guidance
+
     return [Node(id="sources", kind="", children=with_authority(sources, AUTHORITY)),
-            materials(), requirements(), tools()]
+            materials(), requirements(), tools(), guidance()]
 
 
 def merge(*branches: list[Node]) -> list[Node]:

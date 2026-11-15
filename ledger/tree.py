@@ -1571,6 +1571,41 @@ def entries() -> list[Node]:
                      "Built first and turned down by the owner, who expected it above the model."),
             ],
         ),
+        Node(
+            id="what-an-assistant-is-told-is-guidance-in-the-packages", kind="decision",
+            name="What whoever designs with a package must be told before reading its nodes is a node of kind "
+                 "guidance in that package's knowledge (branch guidance: a name, payload text, the link about to "
+                 "the nodes it speaks of), held by the rule a-guidance-speaks-of-what-exists. A reader (a "
+                 "connector, a skill) gives its assistant every guidance of the tree it works in and writes "
+                 "none of its own: its own instructions say how its tools work and nothing about furniture, "
+                 "shops, tools or standards. A package that adds a shop, a tool, a rule or a level adds what "
+                 "must be said of it. furniture-design's are in furniture_design/guidance.py, the standards' "
+                 "in standards.guidance(); a level says what reaching it allows (payload allows), so a reader "
+                 "asks the tree which level allows the assembly instructions and names none",
+            payload={"decided_on": "2026-11-15",
+                     "the_owner": "attention \u00e0 n'\u00e9crire aucune connaissance dans le code. Tout ce qui est "
+                                  "connaissance est dans quern \u2014 V\u00e9rifie partout, d'ailleurs, qu'aucune "
+                                  "connaissance n'est hardcod\u00e9e dans l'appli \u2014 ok je n'avais pas en t\u00eate "
+                                  "l'\u00e9tendue de la catastrophe. Sans h\u00e9siter pour tout 1",
+                     "why": "The app's connector carried some 250 lines of instructions to assistants that "
+                            "restated the packages: the shops and their prefixes, a default cut, the tools of "
+                            "three packages by path, panel classes, sag limits, how a tool and a piece are "
+                            "certified. A package that changed left them false, and a new shop was not in them.",
+                     "not_yet": "The text is in English only, as assistants read it. furniture-standards@ still "
+                                "defines criterion and level itself; certification@ (the ledger repository) is "
+                                "written and not yet published or required."},
+            links={"rests_on": ["a-tool-is-certified-by-a-standard-that-is-a-package"]},
+            children=[
+                _alt("in-the-kinds-descriptions", "Say it all in the kinds' descriptions",
+                     "A kind says what its nodes take, to someone who already reached for it; when to reach for "
+                     "one, and what to do where the knowledge stops, belongs to no one kind."),
+                _alt("served-on-request", "Serve the guidance only when the assistant asks for it",
+                     "An assistant that does the minimum does not ask; what it must know before it starts is "
+                     "given unasked. A reader may still shorten what it gives."),
+                _alt("in-each-reader", "Leave each reader to write its own instructions",
+                     "What the owner found: the reader's copy goes stale and no rule sees it."),
+            ],
+        ),
     ]
 
 

@@ -940,6 +940,26 @@
     "digest": "c5e095d1daa6"
   },
   {
+    "path": "what-an-assistant-is-told-is-guidance-in-the-packages",
+    "kind": "decision",
+    "digest": "bdde9a01dfef"
+  },
+  {
+    "path": "what-an-assistant-is-told-is-guidance-in-the-packages/in-each-reader",
+    "kind": "alternative",
+    "digest": "0903b16f945f"
+  },
+  {
+    "path": "what-an-assistant-is-told-is-guidance-in-the-packages/in-the-kinds-descriptions",
+    "kind": "alternative",
+    "digest": "776ea556358d"
+  },
+  {
+    "path": "what-an-assistant-is-told-is-guidance-in-the-packages/served-on-request",
+    "kind": "alternative",
+    "digest": "f452c8f1f075"
+  },
+  {
     "path": "what-the-grammar-cannot-sum-is-a-calculation-with-cases",
     "kind": "decision",
     "digest": "0a9e2f855a40"

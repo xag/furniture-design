@@ -161,9 +161,46 @@ def _criterion(id_: str, name: str, measures: str, *rules: str, of: str = "tool"
                 payload={"applies_to": of, "measures": measures, "rules": list(rules)})
 
 
-def _level(id_: str, name: str, *criteria: str, of: str = "tool") -> Node:
-    return Node(id=id_, kind="level", name=name, payload={"of": of},
+def _level(id_: str, name: str, *criteria: str, of: str = "tool", allows: tuple = ()) -> Node:
+    return Node(id=id_, kind="level", name=name, payload={"of": of, "allows": list(allows)},
                 links={"requires": [f"{STANDARDS}/{c}" for c in criteria]})
+
+
+def guidance() -> Node:
+    """What whoever writes a tool or a piece is told of the standards: a branch to merge beside the
+    knowledge's own guidance."""
+    from .guidance import branch, say
+
+    return branch(
+        say("certifying-a-tool", "A tool is certified, not only written", """
+            A tool is not done when it is written: it is certified against the standards (their criteria, and
+            the uses each level stands for). Its certificate says the uses it is fit for and, for each it is
+            not yet, what to do, in the standards' own words: go on until it is certified, in the same
+            conversation, without being asked. A value counts as observed only when the words printed are found
+            in its source's document with that value: give each clause payload rows ({param: the words as
+            printed}) and an address the document can be fetched from. A figure derived_from two documents, or
+            from a document and the figure of another tool it must equal ("tools/<id>/<param>": the disc a
+            sander takes), rests on two observations."""),
+        say("certifying-a-pieces-design", "A piece's design is certified with its ledger", """
+            A piece's design is certified against the same standards (the criteria and levels of a piece): its
+            certificate says the uses the design is fit for and, for each it is not yet, what to do. It reads
+            the piece and its ledger together. Every sentence of the purpose is answered by a decision of the
+            ledger whose payload answers quotes the words it answers, and which links realised_by to the parts,
+            assemblies, joints or motions of the piece that realise it ("pieces/<piece>/..."); a quantity the
+            ledger states in words is a figure of that decision (payload figures: [{"says": the words, "value",
+            "unit", "tolerance"?, "is": an expression over the piece's params}]) the model must give. Every
+            part is held: by a joint that joins it (links joins; payload to names what it is fixed to outside
+            the piece, a wall, a lintel), or by a motion that moves it. What moves is a node of kind motion
+            beneath the piece (its kind says what it states); a sliding part is held when its guides stop it on
+            both sides, and must cross nothing along its travel. When the certificate asks how the piece works
+            and the person has not said (which part runs in which, what is fixed to what), ask them: do not
+            decide it for them and do not write a decision they did not make."""),
+        say("instructions-at-their-level", "When a piece's assembly instructions are shown", """
+            A piece's assembly instructions are shown to the person only once its design reaches the level that
+            allows them (the level whose payload allows names assembly). Until then, say so to the person when
+            they ask for the instructions, and do what the certificate says is left.""",
+            f"{STANDARDS}/piece-instructions"),
+    )
 
 
 def knowledge() -> list[Node]:
@@ -213,7 +250,7 @@ def knowledge() -> list[Node]:
                "piece-agrees-with-its-ledger", "piece-holds-together", "piece-mechanisms-work", of="piece"),
         _level("piece-instructions", "Its assembly instructions are shown", "piece-is-explained",
                "piece-agrees-with-its-ledger", "piece-holds-together", "piece-mechanisms-work",
-               "piece-steps-build-it", of="piece"),
+               "piece-steps-build-it", of="piece", allows=("assembly",)),
     ])]
 
 
@@ -330,8 +367,10 @@ VOCABULARY = [
         "consistency or presentation). Held when every rule it names holds on the subject and beneath "
         "it. Read by quern.certify.")),
     KindDef(kind="level", description=(
-        "A use a subject may be put to: payload of (the kind of subject), and the link requires to the "
-        "criteria that use needs. Reached when every criterion it requires is held. Read by quern.certify."),
+        "A use a subject may be put to: payload of (the kind of subject) and allows (what reaching it "
+        "opens, by the names its readers ask by: assembly, a piece's assembly instructions shown to "
+        "people), and the link requires to the criteria that use needs. Reached when every criterion it "
+        "requires is held. Read by quern.certify."),
         links={"requires": "the criteria this use needs"}),
     KindDef(kind="motion", description=(
         "Something of a piece that moves, beneath the piece: payload type (slide), axis (x, y or z) and travel "
@@ -494,7 +533,7 @@ COUNTER_EXAMPLES = [
 
 PACKAGE = Package(
     name="furniture-standards",
-    version="0.3.0",
+    version="0.4.0",
     description=(
         "What a tool's entry is held to for each use it may be put to, as criteria and levels a certificate "
         "is run from (quern.certify). Criteria: the tool is identified, drawn, its drawing true to its "
