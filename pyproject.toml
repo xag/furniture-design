@@ -2,7 +2,7 @@
 name = "furniture-design"
 version = "0.1.0"
 description = "Skills, a knowledge base and the furniture-design@ quern package for designing furniture as a beginner, with the ledger of the decisions they are bound by."
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 license = "AGPL-3.0-or-later AND CC-BY-NC-ND-4.0"
 license-files = ["LICENSE", "LICENSE-DATA"]
 dependencies = [
@@ -25,7 +25,7 @@ packages = ["furniture_design"]
 dev = ["pytest>=8.0.0", "testplan"]
 
 [tool.uv.sources]
-testplan = { git = "https://github.com/xag/testplan", rev = "9913bbb00f3de6bc89d9360f8a2be722bf56e8a7" }
+testplan = { git = "https://github.com/xag/testplan", rev = "fe886041c5c20d03d6b8f07137836572e0155e03" }
 # Pinned by rev, always: quern is pre-1.0 and the doctrine is fork-or-republish.
 quern = { git = "https://github.com/xag/quern", rev = "07eff6efc0625ee0613a083095db4e6b75be7284" }
 
