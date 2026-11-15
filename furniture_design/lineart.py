@@ -175,8 +175,11 @@ def draw(meshes: list[Mesh], view: View, *, px: int = 1600, crease: float = 28.0
     span = max(x1 - x0, y1 - y0) or 1
     s = (px - 4) / span
     W, H = int((x1 - x0) * s) + 4, int((y1 - y0) * s) + 4
-    zb = np.full((H, W), np.inf)
-    ib = np.full((H, W), -1, dtype=np.int32)
+    # the depth in single precision and the solid seen as a small integer: at 1800 px a drawing's
+    # buffers then take some 20 MB where double precision and a float image took near 200 MB, more
+    # than a 512 MB server had to spare beside the app
+    zb = np.full((H, W), np.inf, dtype=np.float32)
+    ib = np.full((H, W), -1, dtype=np.int16 if len(meshes) < 32767 else np.int32)
     for mi, (m, p) in enumerate(zip(meshes, P)):
         sx = (p[:, 0] - x0) * s + 2
         sy = (p[:, 1] - y0) * s + 2
@@ -190,26 +193,31 @@ def draw(meshes: list[Mesh], view: View, *, px: int = 1600, crease: float = 28.0
             den = (ya[1] - ya[2]) * (xa[0] - xa[2]) + (xa[2] - xa[1]) * (ya[0] - ya[2])
             if abs(den) < 1e-12:
                 continue
-            gx, gy = np.meshgrid(np.arange(u0, u1 + 1) + 0.5, np.arange(v0, v1 + 1) + 0.5)
-            l0 = ((ya[1] - ya[2]) * (gx - xa[2]) + (xa[2] - xa[1]) * (gy - ya[2])) / den
-            l1 = ((ya[2] - ya[0]) * (gx - xa[2]) + (xa[0] - xa[2]) * (gy - ya[2])) / den
-            l2 = 1 - l0 - l1
-            inside = (l0 >= -1e-6) & (l1 >= -1e-6) & (l2 >= -1e-6)
-            if not inside.any():
-                continue
-            z = np.where(inside, l0 * za[0] + l1 * za[1] + l2 * za[2], np.inf)
-            sub = zb[v0:v1 + 1, u0:u1 + 1]
-            nearer = z < sub
-            sub[nearer] = z[nearer]
-            ib[v0:v1 + 1, u0:u1 + 1][nearer] = mi
+            # in bands of rows: a face that fills the drawing would otherwise make a handful of
+            # full-size arrays at once
+            for w0 in range(v0, v1 + 1, 128):
+                w1 = min(w0 + 127, v1)
+                gx, gy = np.meshgrid(np.arange(u0, u1 + 1) + 0.5, np.arange(w0, w1 + 1) + 0.5)
+                l0 = ((ya[1] - ya[2]) * (gx - xa[2]) + (xa[2] - xa[1]) * (gy - ya[2])) / den
+                l1 = ((ya[2] - ya[0]) * (gx - xa[2]) + (xa[0] - xa[2]) * (gy - ya[2])) / den
+                l2 = 1 - l0 - l1
+                inside = (l0 >= -1e-6) & (l1 >= -1e-6) & (l2 >= -1e-6)
+                if not inside.any():
+                    continue
+                z = np.where(inside, l0 * za[0] + l1 * za[1] + l2 * za[2], np.inf).astype(np.float32)
+                sub = zb[w0:w1 + 1, u0:u1 + 1]
+                nearer = z < sub
+                sub[nearer] = z[nearer]
+                ib[w0:w1 + 1, u0:u1 + 1][nearer] = mi
     depth_span = allp[:, 2].max() - allp[:, 2].min() or 1
     eps = depth_span * 0.004 + 1.5 / s
     dr = Drawing(bounds=(x0, y0, x1, y1))
     # the fills: each pixel the colour of the solid seen there, as an image under the lines
-    img = np.ones((H, W, 3))
+    img = np.full((H, W, 3), 255, dtype=np.uint8)
     for mi, m in enumerate(meshes):
-        img[ib == mi] = m.fill
-    dr.image = (img[::-1] * 255).astype(np.uint8)
+        img[ib == mi] = (np.asarray(m.fill, float) * 255).astype(np.uint8)   # truncated, as before
+    dr.image = np.ascontiguousarray(img[::-1])
+    del img
     dr.pixel = (x0 - 2 / s, y0 - 2 / s, s)
     # lines
     for m, p in zip(meshes, P):
