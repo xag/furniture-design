@@ -2016,6 +2016,106 @@ def hacksaw_on_profile() -> Node:
                        f"{S}/schluter-jolly-data-sheet/cutting-tools"]})
 
 
+# Edited publications' articles and makers' notices on taking a length where a part goes, instead of reading a tape:
+# copyrighted, so cited by locator and said in our words; each copy is kept privately, found by its sha256.
+PINCH_SOURCES = [
+    ("fhb-avoiding-numbers", "Scott McBride: Avoiding Numbers When Building or Remodeling a Home, Fine Homebuilding (2019)",
+     "Fine Homebuilding", "https://www.finehomebuilding.com/2019/05/09/avoiding-numbers",
+     "832be904acce06e320626f475ba63c42d1723c64d708cc9d4dd46437f3362ed3",
+     [("in-place", "Para. 2: mark the work in place rather than measure"),
+      ("pinch-sticks", "Para. 9: two sticks slid apart between fixed parts, floor to ceiling, clamped")]),
+    ("fhb-ten-rules-finish-carpentry", "Will Beemer: 10 Rules for Finish Carpentry, Fine Homebuilding (1997)",
+     "Fine Homebuilding", "https://www.finehomebuilding.com/1997/12/01/ten-rules-for-finish-carpentry",
+     "1afec19f7ec50e9ea22255b6e8185f6edbd40c7736ba2d3b7e8da0426f1eaa0d",
+     [("numbers", "Rule 1, Avoid using numbers: the errors of reading and carrying a number"),
+      ("long", "Rule 7: cut one end slightly long and shave it until it fits")]),
+    ("fhb-story-stick-measuring", "Paul K. Kincaid: How to Make and Use a Story Stick for Measuring, Fine Homebuilding 149 (2002)",
+     "Fine Homebuilding", "https://www.finehomebuilding.com/2002/09/01/story-stick-measuring",
+     "ef01e7dcb2bed6ecf8e34ff7437d4fa1fbe123539f018eca7936a7d721d868de",
+     [("transfer", "Para. 3: extended against the opening, clamped, transferred to the workpiece, no numbers")]),
+    ("fhb-cutting-miters", "Chuck Sjodin: Cutting miters, Fine Homebuilding 4 (1981)", "Fine Homebuilding",
+     "https://www.finehomebuilding.com/1981/09/01/cutting-miters",
+     "cf75c61ec0e70f09d09627df720f567551ac1ad892caf0ee4742284f263c389e",
+     [("long", "Para. 4: a piece meeting something at both ends left long and trimmed to fit")]),
+    ("fhb-perfect-scribing", "Stefan Straka: Perfect Scribing for 5 Types of Tasks, Fine Homebuilding (2022)",
+     "Fine Homebuilding",
+     "https://www.finehomebuilding.com/project-guides/finish-trim-carpentry/perfect-scribing-for-5-types-of-tasks",
+     "9f53474dd45722efe627c72621158fa9a03185dba329caba510d669880c89ba3",
+     [("tape", "The scribing process: low-tack tape on the edge, the line marked on it")]),
+    ("fww-story-sticks", "Mario Rodriguez: Story Sticks Leave Little Room for Error, Fine Woodworking (2001), public opening",
+     "Fine Woodworking", "https://www.finewoodworking.com/2001/12/01/story-sticks-leave-little-room-for-error",
+     "34e0b06b98cf3772a52242bd04ec10eb37268d09359fe908000ac2a7ab6496d5",
+     [("errors", "Paras. 1-3: each measuring and marking lets an error in; direct transfer instead")]),
+    ("pw-pinch-rods", "Pete Dulak: Shop-made Pinch Rods, Popular Woodworking (2021)", "Popular Woodworking",
+     "https://www.popularwoodworking.com/tricks/shop-made-pinch-rods/",
+     "865ef5a842c53e65ffc3350ecffad9a9ed8737a305aa77246c9e7119988338d9",
+     [("rods", "Paras. 1-2: two sticks clamped by a collar, two collars on a long span, bevelled ends")]),
+    ("wj-pinch-sticks", "Making Tongue-and-Groove Pinch Sticks, Woodworker's Journal (2018)", "Woodworker's Journal",
+     "https://www.woodworkersjournal.com/making-tongue-and-groove-pinch-sticks/",
+     "09492948809662107d0243c974c33cdc86f5be4e154e5c7dbbcf249775564160",
+     [("sticks", "Paras. 1-2: inside lengths without a tape; sticks kept in line; ends cut at an angle")]),
+    ("swu-install-sliding-doors", "Sliding Wardrobes Unlimited: How to install your sliding wardrobe doors",
+     "Sliding Wardrobes Unlimited",
+     "https://www.slidingwardrobesunlimited.com/further-information/how-to-install-your-sliding-wardrobe-doors/",
+     "7582f7aca6fb6e67382c2545e8d88ba30a309a1ce775f9e8531f4b6f1c1ad040",
+     [("tracks", "1. Cut the tracks: the opening's width taken at top and at bottom")]),
+    ("sliding-door-co-closet-door-fts", "The Sliding Door Co.: Closet Door (Flexible Track System) Instructions, 072523 (2023)",
+     "The Sliding Door Co.", "https://slidingdoorco.com/wp-content/uploads/fts-instructions-for-closet-door-ftscd.pdf",
+     "b99cc3fcc2a6bd5624c55a000d8db75d293ff908a5cb40abe01ca8687094e8f8",
+     [("tracks", "p. 4 and p. 5: the upper track from the top width, the bottom track from the bottom width")]),
+]
+
+
+def pinch_sources() -> list[Node]:
+    return [Node(id=id_, kind="source", name=name,
+                 payload={"publisher": publisher, "url": url, "fetched": "2026-11-15", "sha256": sha,
+                          "licence": "copyrighted", "capture": "private copy, identified by its sha256"},
+                 children=[Node(id=cid, kind="clause", payload={"locator": loc}) for cid, loc in clauses])
+            for id_, name, publisher, url, sha, clauses in PINCH_SOURCES]
+
+
+def pinch_sticks() -> Node:
+    """How a length is taken where a part goes, between the two surfaces it fits between, and carried to the
+    part without a number: two sticks slid apart and clamped (pinch sticks)."""
+    S = SOURCES
+    return Node(
+        id="pinch-sticks", kind="tool", name="Pinch sticks",
+        payload={"does": "takes a length between two surfaces where a part goes and marks it on the part, "
+                         "with no number read or carried",
+                 "say": {
+                     "fr": {"name": "Deux tasseaux (longueur prise en place)", "method": [
+                         "Ne pas mesurer au mètre pour reporter un nombre : c'est en lisant, en retenant et en "
+                         "recopiant un nombre que les erreurs se glissent. Prendre la longueur là où la pièce ira.",
+                         "La prendre à l'endroit même où la pièce sera posée : une ouverture n'a pas forcément la "
+                         "même largeur en haut et en bas, un rail du haut se prend au plafond, un rail du bas au sol.",
+                         "Glisser deux tasseaux droits l'un contre l'autre et les écarter jusqu'à ce que chaque bout "
+                         "touche sa paroi, en les gardant alignés ; tailler leurs bouts en biseau pour toucher juste.",
+                         "Les serrer ensemble, avec deux serre-joints s'ils sont longs, et les sortir sans les décaler.",
+                         "Poser les tasseaux serrés sur la pièce, un bout au ras de son extrémité d'équerre, et "
+                         "marquer l'autre bout sur un ruban de masquage collé à l'endroit de la coupe.",
+                         "Couper du côté de la chute. Si la pièce doit toucher aux deux bouts, la couper un peu "
+                         "longue, la présenter, et la reprendre jusqu'à ce qu'elle entre."]},
+                     "en": {"name": "Pinch sticks (length taken in place)", "method": [
+                         "Do not measure with a tape to carry a number: errors creep in where a number is read, "
+                         "remembered and written down. Take the length where the part goes.",
+                         "Take it exactly where the part will sit: an opening need not be as wide at the top as at the "
+                         "bottom, so a top rail is taken at the ceiling and a bottom rail at the floor.",
+                         "Lay two straight sticks side by side and slide them apart until each end touches its surface, "
+                         "keeping them in line; bevel their ends so they touch at a point.",
+                         "Clamp them together, with two clamps when they are long, and take them out without letting "
+                         "them slip.",
+                         "Lay the clamped sticks on the part, one end flush with its square end, and mark the other end "
+                         "on masking tape stuck where the cut will be.",
+                         "Cut on the waste side. When the part must meet something at both ends, cut it a little long, "
+                         "offer it up, and trim it until it fits."]}}},
+        links={"per": [f"{S}/fhb-ten-rules-finish-carpentry/numbers", f"{S}/fww-story-sticks/errors",
+                       f"{S}/fhb-avoiding-numbers/in-place", f"{S}/swu-install-sliding-doors/tracks",
+                       f"{S}/sliding-door-co-closet-door-fts/tracks", f"{S}/fhb-avoiding-numbers/pinch-sticks",
+                       f"{S}/wj-pinch-sticks/sticks", f"{S}/pw-pinch-rods/rods",
+                       f"{S}/fhb-story-stick-measuring/transfer", f"{S}/fhb-perfect-scribing/tape",
+                       f"{S}/fhb-ten-rules-finish-carpentry/long", f"{S}/fhb-cutting-miters/long"]})
+
+
 def tools() -> Node:
     """Hand tools that cut a part's cuts, each saying, per language, its name and how it is
     used, every sentence resting on the clauses it links `per`. The documents print a
@@ -2064,7 +2164,7 @@ def tools() -> Node:
                          "twist it sharply, the narrow blade bends easily.",
                          "Saw on the waste side of the line."]}}},
         links={"per": [f"{tm}/keyhole-46-5-a", f"{tm}/keyhole-46-5-b-c", f"{fm}/waste-side-6"]})
-    return Node(id="tools", kind="", children=[saw, keyhole, plate_jointer(), angle_grinder(), hacksaw_on_profile()])
+    return Node(id="tools", kind="", children=[saw, keyhole, plate_jointer(), angle_grinder(), hacksaw_on_profile(), pinch_sticks()])
 
 
 def requirements() -> Node:
@@ -2169,6 +2269,10 @@ AUTHORITY = {
     "spaceo-recuttable-doors-notice": "maker", "adeo-sliding-doors-guide": "maker",
     "bricomarche-sliding-door-guide": "editorial", "castorama-cutting-plastic": "editorial",
     "bosch-diy-cutting-plastic": "editorial", "bobvila-cutting-pvc": "editorial",
+    "fhb-avoiding-numbers": "editorial", "fhb-ten-rules-finish-carpentry": "editorial",
+    "fhb-story-stick-measuring": "editorial", "fhb-cutting-miters": "editorial", "fhb-perfect-scribing": "editorial",
+    "fww-story-sticks": "editorial", "pw-pinch-rods": "editorial", "wj-pinch-sticks": "editorial",
+    "swu-install-sliding-doors": "editorial", "sliding-door-co-closet-door-fts": "maker",
 }
 
 
@@ -2187,7 +2291,7 @@ def knowledge() -> list[Node]:
     the hand tools that cut a part's cuts."""
     sources = [wood_handbook(), federal_register(), gsa_fnae(), tm_9_243(), fm_5_426(), *tropix(),
                schmidtova(), boruvka(), *sag_limits(), *seating_tests(), *jointer_sources(),
-               *jointer_videos(), *grinder_sources(), *profile_saw_sources()]
+               *jointer_videos(), *grinder_sources(), *profile_saw_sources(), *pinch_sources()]
     return [Node(id="sources", kind="", children=with_authority(sources, AUTHORITY)),
             materials(), requirements(), tools()]
 

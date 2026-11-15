@@ -15,7 +15,7 @@ from pathlib import Path
 
 from quern import Quern, run_rules
 
-from furniture_design.knowledge import (GRINDER_SOURCES, JOINTER_SOURCES, PROFILE_SAW_SOURCES, JOINTER_VIDEOS, OPEN_LICENCES, TROPIX_ROWS, TROPIX_SHEETS, boruvka, design_stress,
+from furniture_design.knowledge import (GRINDER_SOURCES, JOINTER_SOURCES, PINCH_SOURCES, PROFILE_SAW_SOURCES, JOINTER_VIDEOS, OPEN_LICENCES, TROPIX_ROWS, TROPIX_SHEETS, boruvka, design_stress,
                                         european_species, knowledge, sag_limits, schmidtova, seating_tests, thermo_beech,
                                         tropix)
 from furniture_design.package import PACKAGE
@@ -210,4 +210,29 @@ def test_every_passage_the_profile_hacksaw_method_rests_on_is_in_the_copy_fetche
     for sid, _name, _publisher, _url, sha, _clauses in PROFILE_SAW_SOURCES:
         text = re.sub(r"\s+", " ", _text(sha))
         for words in PROFILE_SAW_WORDS[sid]:
+            assert words in text, (sid, words)
+
+
+# A few words of each passage the marking-a-length-in-place method rests on, found in the copy
+PINCH_WORDS = {
+    "fhb-avoiding-numbers": ["The simplest way to avoid measuring is to mark your work in place",
+                             "sliding two slender sticks alongside each other"],
+    "fhb-ten-rules-finish-carpentry": ["It is more accurate to mark trim in place than to measure and then transfer numbers",
+                                       "to confuse numbers while walking to the saw", "Cut this end slightly long"],
+    "fhb-story-stick-measuring": ["Extend the dowels against the opening, clamp, transfer to workpiece and cut"],
+    "fhb-cutting-miters": ["you must leave the piece long, so both ends can be trimmed to fit"],
+    "fhb-perfect-scribing": ["low-tack painter", "The knife cuts the tape cleanly"],
+    "fww-story-sticks": ["read the tape wrong or simply forget a number"],
+    "pw-pinch-rods": ["I use two collars, clamping one at each end of the overlapping rods"],
+    "wj-pinch-sticks": ["it was difficult to hold the two sticks in line", "I angle-cut their ends"],
+    "swu-install-sliding-doors": ["Carefully measure the width of the opening at top and bottom"],
+    "sliding-door-co-closet-door-fts": ["Measure the width of the top of the opening"],
+}
+
+
+def test_every_passage_the_marking_in_place_method_rests_on_is_in_the_copy_fetched():
+    assert {s[0] for s in PINCH_SOURCES} == set(PINCH_WORDS)
+    for sid, _name, _publisher, _url, sha, _clauses in PINCH_SOURCES:
+        text = re.sub(r"\s+", " ", _text(sha))
+        for words in PINCH_WORDS[sid]:
             assert words in text, (sid, words)
