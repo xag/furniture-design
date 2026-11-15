@@ -490,6 +490,16 @@
     "digest": "35a20818bdf9"
   },
   {
+    "path": "a-tools-steps-are-drawn-from-its-node",
+    "kind": "decision",
+    "digest": "7d28f1a2d8d5"
+  },
+  {
+    "path": "a-tools-steps-are-drawn-from-its-node/frames-per-kind-in-code",
+    "kind": "alternative",
+    "digest": "cb62e57f6eb6"
+  },
+  {
     "path": "a-video-is-cited-from-the-account-gemini-gave",
     "kind": "decision",
     "digest": "ba97c5017f10"

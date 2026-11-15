@@ -1331,6 +1331,32 @@ def entries() -> list[Node]:
                      "That is how the cut card was missed: the owner found it, the ledger did not."),
             ],
         ),
+        Node(
+            id="a-tools-steps-are-drawn-from-its-node", kind="decision",
+            name="The assembly instructions draw a tool at work only as its node in a package states it: the "
+                 "tools drawn are those the piece's parts and joints name (which the assistant chooses from the "
+                 "person's tools), each drawn from its model, and each step it is drawn doing (where it sits "
+                 "against the line or the part, its angle, its stroke, the close-up, the hand) is data on the "
+                 "tool's node beside its method's sentences, resting on the same clauses. The drawing code knows "
+                 "no tool and no step of its own. Still scripted in code, and owed: the sawing frames "
+                 "(drawn-cut-card branch, sawing.py: one push saw's start, 45 degree stroke and end, given to any "
+                 "saw with a model) and the grooving pages (grooving.py: the jointer's frames)",
+            links={"rests_on": ["a-cut-is-drawn-to-ikeas-rules", "the-grooving-step-is-drawn-to-ikeas-rules"]},
+            payload={"decided_on": "2026-11-15",
+                     "the_owner": "Is it a hardcoded card? In fact I didn't ask for a cut card. I want those to "
+                                  "be part of the assembly instructions. Are you hardcoding stuff? They should be "
+                                  "based on the tools selected by the assistant for the piece, and the drawings "
+                                  "should be based on tool models stored in the packages, not on app code",
+                     "why": "The drawn cut took its saw's shape from the tool's model but its actions from code "
+                            "written for one push saw, so the owner's pull saw would be drawn pushed at 45 "
+                            "degrees. A tool's use is knowledge, as its sentences are: it belongs to the tool "
+                            "in its package, sourced, where a maker's package can state its own."},
+            children=[
+                _alt("frames-per-kind-in-code", "Keep a drawing function per kind of tool in the instructions' code",
+                     "Every new tool needs code, its steps rest on no source, and a tool of a kind the code "
+                     "did not foresee is drawn doing another tool's steps."),
+            ],
+        ),
     ]
 
 
