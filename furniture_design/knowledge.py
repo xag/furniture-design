@@ -1932,6 +1932,90 @@ def angle_grinder() -> Node:
                        f"{mk}/protective-equipment", f"{mt}/ear-protection"]})
 
 
+# Makers' notices and guides, and edited publications' pages, on sawing a small aluminium or PVC profile by hand:
+# copyrighted, so cited by locator and said in our words; each copy is kept privately, found by its sha256.
+PROFILE_SAW_SOURCES = [
+    ("doellken-wl-instructions", "Döllken: installation instructions for angle profiles WL, 5904629 (2023)", "Döllken",
+     "https://www.doellken-profiles.com/fileadmin/downloads/verlegeanleitungen/de/5904629_Verarbeitungsanleitung_WL_WLK_Multilingual_99x210_DINlang_15-03-2022_lo.pdf",
+     "de4721411a16c9555e71f48cc2b3d0f384154dfafe8461f1278a5ef9ae65a248",
+     [("cutting", "Cutting: working temperature, a fine saw blade, p. 8")]),
+    ("schluter-jolly-data-sheet", "Schlüter-Systems: Schlüter-JOLLY product data sheet 2.3 (07/24)", "Schlüter-Systems",
+     "https://eu.schluter.com/statics/www_schlueter_gb_2x/downloads/cumulus/schlueter_db_2_3_jolly_uk.pdf",
+     "d5d3a8b08c2c71b8403670e3a5b855c4dfef9fa03a24d6c08d2bb84a815d36d4",
+     [("cutting-tools", "Recommended cutting tools; burr removed from the profile ends, p. 3")]),
+    ("sintra-fabrication-guide", "3A Composites USA: The Expanded PVC Collection, Fabrication Guide (07/2025)",
+     "3A Composites USA", "https://cdn.3acompositesusa.com/downloads/SINTRA_Fabguide0725.pdf",
+     "14d9252f9e749554f73da91553cb20d535b4aa7cd192869f4cc3fa9ce1f272d7",
+     [("clamping", "Saw cutting: wood or plastic between the work and the clamps, p. 22")]),
+    ("spaceo-recuttable-doors-notice", "Adeo Services: Spaceo recuttable sliding doors, notice IMS_5621610",
+     "Adeo Services", "https://media.weldom.fr/v2/media/catalog/product/doc_qualite/ims/IMS_5621610.pdf",
+     "4354193434ea0fe72db209707612e3b2b568fd36e6d7f971f4dee15e4c91d6a2",
+     [("rails", "Step 2, sawing the rails: a rigid wedge between the walls, tape over the cut")]),
+    ("adeo-sliding-doors-guide", "Adeo: Comment installer des portes de placard coulissantes ?", "Adeo",
+     "https://media.adeo.com/media/1359991/media.pdf",
+     "9f961e1efdc4121e1ef0b69e80332344ba03cec431575b4c5b9c2d9c3bceea5f",
+     [("profile", "Step 2, sawing the top profile: wood slats or polystyrene inside, p. 2")]),
+    ("bricomarche-sliding-door-guide", "Bricomarché: Comment poser une porte de placard coulissante", "Bricomarché",
+     "https://www.bricomarche.com/conseils/comment-poser-une-porte-de-placard-coulissante",
+     "8f99fb944e9eee7d1bff6e5335ef1be70283ce315ef13389c7651b99a2841ec6",
+     [("rails", "Cutting the rails: mitre box, a fine file against a sharp edge")]),
+    ("castorama-cutting-plastic", "Castorama: Quel outil pour couper du plastique", "Castorama",
+     "https://www.castorama.fr/idees-et-conseils/quel-outil-pour-couper-du-plastique/CF_CPRD_npcart_100493.art",
+     "a4f1c2cb5cd59263c1091a97ae848077d84933f4fd598cda3f6ccd549e62e1d1",
+     [("hacksaw", "La scie à métaux: rigid PVC, a mitre box to hold and guide")]),
+    ("bosch-diy-cutting-plastic", "Bosch DIY: Comment couper du plastique ? (2022, modified 2026)", "Bosch",
+     "https://www.bosch-diy.com/be/fr/all-about-diy/sciage-plastique",
+     "c75b676b3cb514f93c2102bbbeb167d7e34635ec78509a1c5f851824a9a6d62f",
+     [("steps", "Steps 4 and 5: clamping a profile padded, slowly, melting, deburring")]),
+    ("bobvila-cutting-pvc", "Bob Vila: The 3 Best Ways to Cut PVC Pipe (2020, updated 2024)", "Bob Vila",
+     "https://www.bobvila.com/articles/cutting-pvc-pipe/",
+     "413993421c2f936a4fb6dfba902ed9885e8cf4693e5d6b8befe45c03cb27ca7f",
+     [("hand-saw", "Hand saw: a guide for the blade, not jamming it; brittle in the cold")]),
+]
+
+
+def profile_saw_sources() -> list[Node]:
+    return [Node(id=id_, kind="source", name=name,
+                 payload={"publisher": publisher, "url": url, "fetched": "2026-11-15", "sha256": sha,
+                          "licence": "copyrighted", "capture": "private copy, identified by its sha256"},
+                 children=[Node(id=cid, kind="clause", payload={"locator": loc}) for cid, loc in clauses])
+            for id_, name, publisher, url, sha, clauses in PROFILE_SAW_SOURCES]
+
+
+def hacksaw_on_profile() -> Node:
+    """How a small aluminium or PVC profile (a U, an angle, a rail) is sawn to length by hand."""
+    S = SOURCES
+    return Node(
+        id="hacksaw-on-profile", kind="tool", name="Hacksaw on a profile",
+        payload={"does": "saws a small aluminium or PVC profile square to its length, in a mitre box",
+                 "say": {
+                     "fr": {"name": "Scie à métaux (profilé)", "method": [
+                         "Couper un profilé PVC entre 15 et 30 °C : à froid, il devient cassant et se fend.",
+                         "Tracer la longueur, puis caler le profilé dans une boîte à onglet, qui le tient et guide "
+                         "la lame droit.",
+                         "Glisser une cale rigide (une chute de bois ou de polystyrène) entre les parois du profilé "
+                         "pour qu'elles ne se déforment pas, et poser un ruban adhésif sur la zone de coupe.",
+                         "Serrer le profilé sans l'écraser ni le rayer, une cale de bois ou un chiffon entre lui et "
+                         "les mors.",
+                         "Scier lentement, en appuyant peu et sans coincer la lame : trop vite, le PVC fond.",
+                         "Ébavurer chaque bout à la lime fine : une arête vive accroche les roulettes."]},
+                     "en": {"name": "Hacksaw (profile)", "method": [
+                         "Cut a PVC profile between 15 and 30 °C: in the cold it turns brittle and cracks.",
+                         "Mark the length, then set the profile in a mitre box, which holds it and guides the blade "
+                         "straight.",
+                         "Slip a rigid wedge (an offcut of wood or polystyrene) between the profile's walls so they do "
+                         "not bend, and put tape over the cut.",
+                         "Clamp the profile without crushing or scratching it, a wooden block or a cloth between it "
+                         "and the jaws.",
+                         "Saw slowly, pressing lightly and without jamming the blade: too fast and PVC melts.",
+                         "File every end with a fine file: a sharp edge catches the rollers."]}}},
+        links={"per": [f"{S}/doellken-wl-instructions/cutting", f"{S}/bobvila-cutting-pvc/hand-saw",
+                       f"{S}/castorama-cutting-plastic/hacksaw", f"{S}/bricomarche-sliding-door-guide/rails",
+                       f"{S}/spaceo-recuttable-doors-notice/rails", f"{S}/adeo-sliding-doors-guide/profile",
+                       f"{S}/bosch-diy-cutting-plastic/steps", f"{S}/sintra-fabrication-guide/clamping",
+                       f"{S}/schluter-jolly-data-sheet/cutting-tools"]})
+
+
 def tools() -> Node:
     """Hand tools that cut a part's cuts, each saying, per language, its name and how it is
     used, every sentence resting on the clauses it links `per`. The documents print a
@@ -1980,7 +2064,7 @@ def tools() -> Node:
                          "twist it sharply, the narrow blade bends easily.",
                          "Saw on the waste side of the line."]}}},
         links={"per": [f"{tm}/keyhole-46-5-a", f"{tm}/keyhole-46-5-b-c", f"{fm}/waste-side-6"]})
-    return Node(id="tools", kind="", children=[saw, keyhole, plate_jointer(), angle_grinder()])
+    return Node(id="tools", kind="", children=[saw, keyhole, plate_jointer(), angle_grinder(), hacksaw_on_profile()])
 
 
 def requirements() -> Node:
@@ -2081,6 +2165,10 @@ AUTHORITY = {
     "woodsmith-aligning-edge-joints": "editorial", "woodsmith-biscuit-essentials": "editorial",
     "popular-woodworking-plate-joiner-tips": "editorial", "fine-woodworking-biscuit-basics": "editorial",
     "makita-xag04-manual": "maker", "metabo-w-18-ltx-manual": "maker", "dewalt-dcg405-manual": "maker",
+    "doellken-wl-instructions": "maker", "schluter-jolly-data-sheet": "maker", "sintra-fabrication-guide": "maker",
+    "spaceo-recuttable-doors-notice": "maker", "adeo-sliding-doors-guide": "maker",
+    "bricomarche-sliding-door-guide": "editorial", "castorama-cutting-plastic": "editorial",
+    "bosch-diy-cutting-plastic": "editorial", "bobvila-cutting-pvc": "editorial",
 }
 
 
@@ -2099,7 +2187,7 @@ def knowledge() -> list[Node]:
     the hand tools that cut a part's cuts."""
     sources = [wood_handbook(), federal_register(), gsa_fnae(), tm_9_243(), fm_5_426(), *tropix(),
                schmidtova(), boruvka(), *sag_limits(), *seating_tests(), *jointer_sources(),
-               *jointer_videos(), *grinder_sources()]
+               *jointer_videos(), *grinder_sources(), *profile_saw_sources()]
     return [Node(id="sources", kind="", children=with_authority(sources, AUTHORITY)),
             materials(), requirements(), tools()]
 

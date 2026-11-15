@@ -15,7 +15,7 @@ from pathlib import Path
 
 from quern import Quern, run_rules
 
-from furniture_design.knowledge import (GRINDER_SOURCES, JOINTER_SOURCES, JOINTER_VIDEOS, OPEN_LICENCES, TROPIX_ROWS, TROPIX_SHEETS, boruvka, design_stress,
+from furniture_design.knowledge import (GRINDER_SOURCES, JOINTER_SOURCES, PROFILE_SAW_SOURCES, JOINTER_VIDEOS, OPEN_LICENCES, TROPIX_ROWS, TROPIX_SHEETS, boruvka, design_stress,
                                         european_species, knowledge, sag_limits, schmidtova, seating_tests, thermo_beech,
                                         tropix)
 from furniture_design.package import PACKAGE
@@ -184,4 +184,30 @@ def test_every_passage_the_angle_grinder_method_rests_on_is_in_the_copy_fetched(
     for sid, _name, _publisher, _url, sha, _clauses in GRINDER_SOURCES:
         text = re.sub(r"\s+", " ", _text(sha))
         for words in GRINDER_WORDS[sid]:
+            assert words in text, (sid, words)
+
+
+# A few words of each passage the hacksaw-on-a-profile method rests on, found in the copy
+PROFILE_SAW_WORDS = {
+    "doellken-wl-instructions": ["working temperature between 15 °C and 30 °C", "In order to prevent material fractures",
+                                 "and mitre saw with a fine saw blade"],
+    "schluter-jolly-data-sheet": ["ensure that all burr is removed from the profile ends with a file or similar"],
+    "sintra-fabrication-guide": ["place flat pieces of wood or plastic between the work and the clamps"],
+    "spaceo-recuttable-doors-notice": ["insérer une cale rigide entre les parois", "utiliser du ruban adhésif sur la zone"],
+    "adeo-sliding-doors-guide": ["inserrez des lames de bois ou des chutes de polystyrène"],
+    "bricomarche-sliding-door-guide": ["Ébavurez légèrement avec une lime fine", "un bord tranchant peut accrocher les roulettes"],
+    "castorama-cutting-plastic": ["boîte à onglet pour bien caler le tube", "La scie à métaux"],
+    "bosch-diy-cutting-plastic": ["une cale en bois entre la pièce et le mors", "exercez que peu de pression",
+                                  "Si vous allez trop vite, le plastique risque de fondre",
+                                  "ébavurer les bords au terme de la découpe"],
+    "bobvila-cutting-pvc": ["PVC becomes brittle and a dull blade can crack the pipe", "use a guide for the blade to follow",
+                            "jam the blade into the PVC pipe"],
+}
+
+
+def test_every_passage_the_profile_hacksaw_method_rests_on_is_in_the_copy_fetched():
+    assert {s[0] for s in PROFILE_SAW_SOURCES} == set(PROFILE_SAW_WORDS)
+    for sid, _name, _publisher, _url, sha, _clauses in PROFILE_SAW_SOURCES:
+        text = re.sub(r"\s+", " ", _text(sha))
+        for words in PROFILE_SAW_WORDS[sid]:
             assert words in text, (sid, words)
