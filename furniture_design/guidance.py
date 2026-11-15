@@ -93,9 +93,16 @@ def guidance() -> Node:
             maker's documents (manual, datasheet, product page), write the source (payload publisher, url,
             fetched, licence, authority; a copyrighted one's clauses carry their locator and the values
             printed, no quote), and the tool or material on the kinds, each param derived_from the clause that
-            prints it; an installed node of the same kind shows how. A tool's model is payload model
-            {"parts": [solid, ...]}, mm, Z up, built from the maker's dimensions and photos, to hold against
-            the maker's photos once drawn. A value no document prints is not filled in."""),
+            prints it; an installed node of the same kind shows how. A value no document prints is not filled
+            in."""),
+        say("a-tools-model", "The model a tool is drawn from", """
+            A tool's model is payload model {"parts": [solid, ...]}, in mm, Z up, built from the maker's
+            dimensions and photos, to hold against the maker's photos once drawn. Each solid is
+            {"op": "box", "lo", "hi"}, {"op": "rbox", "lo", "hi", "r", "axis"}, {"op": "cyl", "r", "h", "axis",
+            "at"}, {"op": "prism", "profile": [[y, z], ...], "x": [x0, x1]} or {"op": "tube", "path":
+            [[x, y, z], ...], "w", "h"}, with "dark": true for a grip, switch or slot, and
+            "shows": {"param", "of"} on a solid that shows one of the tool's figures (of: diameter, length,
+            width, thickness, height, x, y or z). A model that does not draw is no model."""),
         say("how-far-a-part-may-sag", "How far a seat or shelf may sag", """
             How far a seat or shelf may sag is not one number: the sources hold every published limit, each a
             clause with what it is written for; none is written for a seat, so a piece authors its own
