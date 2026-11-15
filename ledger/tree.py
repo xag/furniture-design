@@ -1357,6 +1357,33 @@ def entries() -> list[Node]:
                      "did not foresee is drawn doing another tool's steps."),
             ],
         ),
+        Node(
+            id="a-tool-is-drawn-as-the-lamello-is", kind="decision",
+            name="A tool at work is drawn as the Zeta P2 is: furniture-design holds the general tool (its method "
+                 "in sentences resting on clauses, and the drawing of that method's steps, one function per "
+                 "general tool), a maker's package holds the maker's tool, which follows the general one and "
+                 "gives its own model (payload model, sized from the maker's print and drawings) and settings; "
+                 "the instructions draw the tool the piece names (chosen by the assistant from the person's "
+                 "tools) from its model, doing the steps of the general tool it follows, and a tool that follows "
+                 "none drawn gets no step it does not do. The sawing frames draw a saw that follows "
+                 "tools/crosscut-saw; the Bahco ERGO Superior 2600-22 in the saws package carries its model",
+            links={"rests_on": ["a-cut-is-drawn-to-ikeas-rules", "the-grooving-step-is-drawn-to-ikeas-rules"],
+                   "supersedes": ["a-tools-steps-are-drawn-from-its-node"]},
+            payload={"decided_on": "2026-11-15",
+                     "the_owner": "Add to the model (the packages) a standard saw or a precise model close to "
+                                  "the saw you draw and fix this: do like for the lamello.",
+                     "why": "The superseded decision went beyond the owner's words (\"the drawings should be "
+                            "based on tool models stored in the packages, not on app code\") into steps as data "
+                            "on every tool; the owner pointed to the Lamello, whose model is its maker's package's "
+                            "and whose steps are drawn by furniture-design for the general jointer. The fault "
+                            "the owner found was a model on the general saw and any saw drawn pushing: a maker's "
+                            "saw gives the model, and only one that follows the general push saw is drawn doing "
+                            "its steps."},
+            children=[
+                _alt("steps-as-data", "Each tool's steps as data on its node, the drawing code knowing no tool",
+                     "Not what the owner asked; the owner pointed to the Lamello's way."),
+            ],
+        ),
     ]
 
 

@@ -490,6 +490,16 @@
     "digest": "35a20818bdf9"
   },
   {
+    "path": "a-tool-is-drawn-as-the-lamello-is",
+    "kind": "decision",
+    "digest": "ff4b9ca2f1b9"
+  },
+  {
+    "path": "a-tool-is-drawn-as-the-lamello-is/steps-as-data",
+    "kind": "alternative",
+    "digest": "c2f80791fd58"
+  },
+  {
     "path": "a-tools-steps-are-drawn-from-its-node",
     "kind": "decision",
     "digest": "7d28f1a2d8d5"
