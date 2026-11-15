@@ -314,6 +314,9 @@ name = "furniture-design"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
+    { name = "numpy", version = "2.5.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+    { name = "pillow" },
     { name = "quern" },
     { name = "reportlab" },
     { name = "shapely" },
@@ -327,6 +330,8 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "numpy", specifier = ">=2.0" },
+    { name = "pillow", specifier = ">=10.0" },
     { name = "quern", git = "https://github.com/xag/quern?rev=07eff6efc0625ee0613a083095db4e6b75be7284" },
     { name = "reportlab", specifier = ">=5.1.0" },
     { name = "shapely", specifier = ">=2.2.0" },

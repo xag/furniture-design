@@ -640,6 +640,26 @@
     "digest": "ecb602726189"
   },
   {
+    "path": "the-grooving-step-is-drawn-to-ikeas-rules",
+    "kind": "decision",
+    "digest": "0621bd27c787"
+  },
+  {
+    "path": "the-grooving-step-is-drawn-to-ikeas-rules/one-page",
+    "kind": "alternative",
+    "digest": "f432aecb524f"
+  },
+  {
+    "path": "the-grooving-step-is-drawn-to-ikeas-rules/sections",
+    "kind": "alternative",
+    "digest": "2e28fcabf28c"
+  },
+  {
+    "path": "the-grooving-step-is-drawn-to-ikeas-rules/sentences-per-part",
+    "kind": "alternative",
+    "digest": "18e0aa69a555"
+  },
+  {
     "path": "the-knowledge-is-shared-unchanged-and-improved-only-here",
     "kind": "decision",
     "digest": "ed0c433be998"

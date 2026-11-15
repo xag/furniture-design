@@ -149,13 +149,22 @@ VOCABULARY = [
         "groove it cuts) and payload spacers_mm (the spacers that bring the groove that much "
         "nearer its reference), and links follows to the general tool whose method it is used "
         "by; payload say gives, per language, its name and its method in sentences that rest on "
-        "the clauses it links per."),
+        "the clauses it links per (knowledge: the instructions draw the method, they do not print it). "
+        "payload model, when its maker's package gives it, is its solids for the drawings "
+        "(lineart.solids: parts, and per pose, flat and standing, the parts that change; a jointer in "
+        "its own frame, X along its front face, Y back along the plunge, Z up from its base plate, the "
+        "cutter's middle at Z = groove_offset, its front stop folded flat at twice that; dials, where "
+        "its depth adjusters are and whether each shows max or the joint's setting; a drill jig in the "
+        "frame of the edge it sits on, origin at the edge's top corner in the groove, +X out of the "
+        "part, Z up from the face drilled). test_recess (mm): how far under the surface a connector "
+        "sits in a test groove cut at the right depth."),
         params={"kerf": "mm, the width its blade takes out",
                 "min_part_width": "mm, the narrowest part it cuts",
                 "max_kerf": "mm, the widest blade it takes",
                 "blade_thickness": "mm, its blade's body",
                 "max_cut_depth": "mm, the thickest board it cuts through at 90°",
-                "groove_offset": "mm, from the face it registers on to the middle of its groove"},
+                "groove_offset": "mm, from the face it registers on to the middle of its groove",
+                "test_recess": "mm, a connector's depth under the surface in a test groove"},
         links={"per": "the clauses that say what it does and its limits",
                "refuses": "the materials it does not cut",
                "follows": "the general tool whose method it is used by"}),
@@ -722,7 +731,7 @@ COUNTER_EXAMPLES = [
 
 PACKAGE = Package(
     name="furniture-design",
-    version="0.12.1",
+    version="0.13.0",
     description=(
         "Furniture designs and the published knowledge they are judged against. Kinds: "
         "source and clause (a publication and its verbatim, located statements, with the "

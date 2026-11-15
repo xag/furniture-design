@@ -1,5 +1,6 @@
 """The grooves a joint's parts are cut with, as the assembly instructions give them: one reference for
-both parts of a joint, the spacer that centres the groove, the access holes, and the sentences."""
+both parts of a joint, the spacer that centres the groove, the access holes, and the pages that draw them
+without a sentence."""
 
 import pytest
 from quern import Quern
@@ -9,7 +10,12 @@ from quern.tree import Node
 from furniture_design.knowledge import knowledge, merge
 from furniture_design.package import PACKAGE
 from furniture_design.scene import _spacer, scene, seats
-from furniture_design.sheets import LABELS, assembly_instructions, seat_sentences
+import re
+
+from reportlab.pdfgen.canvas import Canvas
+
+from furniture_design.grooving import grooving_pages
+from furniture_design.sheets import LABELS, Pen, assembly_instructions
 
 THICK = 18
 
@@ -101,23 +107,14 @@ def test_a_shelf_is_placed_by_the_line_of_its_top_face_and_cut_10_mm_below_it():
     assert shelf.at == [round(250 / 3, 1), round(500 / 3, 1)] and side.at == [round(25 + 250 / 3, 1), round(25 + 500 / 3, 1)]
 
 
-def test_the_card_says_each_grooves_place_reference_and_hole_in_whole_sentences():
+def test_a_joint_knows_the_machine_its_grooves_are_cut_with_and_the_jig_its_holes_are_drilled_with():
+    sc = scene(_tree(), "pieces/cabinet")
+    assert {(j.machine, j.jig) for j in sc.joints} == {("tools/jointer", "tools/jig")}
+    sc.joints[0].methods[1].model = None
     tree = _tree()
-    L = LABELS["fr"]
-    sc, s = _seats(tree, "top-left")
-    top, side = sc.part("top").mark, sc.part("left").mark
-    assert seat_sentences(s["left"], sc, L, "fr") == [
-        f"Le chant du haut (contre {top}) : rainures à 100 et 200 depuis le chant avant ; leur milieu à 10 "
-        f"de la face gauche, sans cale : la face qui affleure avec {top}.",
-        "Trous d'accès Ø 6 dans la face droite, à 7.5 du chant du haut, au milieu de chaque rainure."]
-    assert seat_sentences(s["top"], sc, L, "fr") == [
-        f"La face du dessous (contre {side}) : rainures à 100 et 200 depuis le chant avant ; leur milieu à 10 "
-        f"du chant gauche, sans cale : le chant qui affleure avec {side}."]
-    sc, s = _seats(tree, "shelf-left")
-    mark = sc.part("shelf").mark
-    assert seat_sentences(s["left"], sc, L, "fr") == [
-        f"La face droite (contre {mark}) : tracer le dessus de {mark} à 218 depuis le chant du bas ; rainures "
-        f"à 108.3 et 191.7 depuis le chant avant, leur milieu à 10 du trait, du côté de {mark}."]
+    tree.get("tools/jointer").payload["model"] = {"parts": [{"op": "box", "lo": [-60, 0, 0], "hi": [60, 150, 30]}]}
+    sc = scene(tree, "pieces/cabinet")
+    assert next(t for t in sc.joints[0].methods if t.path == "tools/jointer").model["parts"][0]["op"] == "box"
 
 
 def test_a_joints_methods_are_the_general_one_its_tool_follows_then_its_own_then_the_drills():
@@ -129,11 +126,31 @@ def test_a_joints_methods_are_the_general_one_its_tool_follows_then_its_own_then
             "the shelf clamped on its line, photos A and B") in general.cites
 
 
-def test_a_step_that_cuts_grooves_prints_its_method_and_a_card_per_part(tmp_path):
+def test_a_step_that_cuts_grooves_is_drawn_on_pages_of_its_own_a_block_of_frames_per_kind_of_joint(tmp_path):
     tree = _tree()
-    with_cards = assembly_instructions(scene(tree, "pieces/cabinet"), tmp_path / "with.pdf", "fr")
+    drawn = assembly_instructions(scene(tree, "pieces/cabinet"), tmp_path / "with.pdf", "fr")
     tree.get("pieces/cabinet").payload["steps"][0]["joints"] = []
     without = assembly_instructions(scene(tree, "pieces/cabinet"), tmp_path / "without.pdf", "fr")
     pages = [p.read_bytes().count(b"/Type /Page\n") or p.read_bytes().count(b"/Type /Page")
-             for p in (with_cards, without)]
-    assert pages[0] - pages[1] == 1 + 2   # the method's page, and four cards two to a page
+             for p in (drawn, without)]
+    assert pages[0] - pages[1] == 2   # the settings and the corners on one page, the shelves on the next
+
+
+def test_the_grooving_pages_say_nothing_in_words(tmp_path, monkeypatch):
+    """IKEA's instructions carry no sentence: what the grooving pages write is the step's label and its
+    tools' names, and otherwise numbers, letters, counts and diameters."""
+    written = []
+    real = Pen.text
+    monkeypatch.setattr(Pen, "text", lambda self, x, y, s, *a, **k: (written.append(s), real(self, x, y, s, *a, **k)))
+    tree = _tree()
+    tree.get("tools/jointer").payload["model"] = {
+        "parts": [{"op": "box", "lo": [-60, 0, 0], "hi": [60, 150, 30]}],
+        "poses": {"flat": [{"op": "box", "lo": [-60, -70, 20], "hi": [60, 0, 23]}], "standing": []},
+        "dials": [{"at": [50, 10, 40], "shows": "max"}, {"at": [-30, 30, 90], "shows": "setting"}]}
+    sc = scene(tree, "pieces/cabinet")
+    c = Canvas(str(tmp_path / "grooving.pdf"))
+    grooving_pages(c, Pen(c), sc, sc.steps[0], LABELS["fr"])
+    c.save()
+    allowed = {LABELS["fr"]["prepare"], *sc.steps[0].tools}
+    words = [w for w in written if w not in allowed and not re.fullmatch(r"[0-9A-Z×Ø ,.-]{1,7}|max|S-1", w)]
+    assert written and not words, words

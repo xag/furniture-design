@@ -1093,6 +1093,9 @@ def entries() -> list[Node]:
         ),
         Node(
             id="a-makers-machine-follows-the-general-method-of-its-kind", kind="decision",
+            meta={"expected:what-a-decision-rests-on-still-stands":
+                  "superseded with the card decision it rests on by the-grooving-step-is-drawn-to-ikeas-rules, "
+                  "which restates what of both still binds"},
             name="How any biscuit or plate jointer is used is one general tool, tools/plate-jointer, here, its "
                  "method in sentences resting on makers' manuals and woodworking articles, cited by locator; "
                  "a maker's machine (in its maker's package) links follows to it and says only what is its own "
@@ -1171,6 +1174,49 @@ def entries() -> list[Node]:
                      "The player's requests and the preview frames are forbidden to robots."),
                 _alt("captions", "Fetch YouTube's captions",
                      "/timedtext_video is forbidden to robots, and the Lamello videos have no speech."),
+            ],
+        ),
+        Node(
+            id="the-grooving-step-is-drawn-to-ikeas-rules", kind="decision",
+            name="A preparation step that cuts the grooves of joints is drawn, not written: after its picture, "
+                 "pages of their own with the settings drawn on the machine (its depth adjusters, the spacer, "
+                 "crossed out when none is used, a test groove), then per kind of joint four frames: the two "
+                 "parts as assembled, seen from their reference face, a tick across the joint at each groove, "
+                 "the positions from the edge they start at, a blue triangle on the reference face; the "
+                 "edge-grooved part with the machine's front stop on its reference face; the face-grooved part "
+                 "with the machine standing, its base plate flush with the reference edge; the edge-grooved "
+                 "part turned over with the jig and a drill. Lines only, in the instructions' one viewpoint, the "
+                 "machine and the jig drawn from the 3D models their makers' packages give (payload model) by "
+                 "a hidden-line renderer, the groove's distance in a close-up circle, counts as '4 ×'. Still "
+                 "binding from the decisions it replaces: both grooves of a connector are cut from one "
+                 "reference (the face where the parts are flush, else the line of a shelf's top face), at the "
+                 "machine's groove_offset less the spacer that centres them; the access hole in the "
+                 "edge-grooved part from the face away from the reference; a maker's machine follows the "
+                 "general jointer tool and states its own settings, whose sentences stay knowledge",
+            links={"rests_on": ["the-documents-are-for-the-people-who-build"],
+                   "supersedes": ["a-joints-grooves-are-cut-from-one-reference-the-card-names",
+                                  "a-makers-machine-follows-the-general-method-of-its-kind"]},
+            payload={"decided_on": "2026-11-15",
+                     "the_owner": "C'est horrible à lire tu as dumpé toutes tes connaissances dans les "
+                                  "instructions. C'est le contraire de ce que je te demande, je te demande des "
+                                  "instructions à la Ikea; then: You need a realistic model of the Lamello, not "
+                                  "just a few understandable grey strokes. Simple doesn't mean bad. To the "
+                                  "contrary. Simple is a lot of work. Fetch Ikea drawing rules",
+                     "why": "IKEA tests its instructions on people who assemble the product without any text "
+                            "(its manual for assembly instructions, as Schumacher 2011 reports it); action "
+                            "diagrams one per step cut assembly time and errors (Heiser 2004); a stylised tool "
+                            "is recognised least, so the machine is modelled from its maker's printed sizes and "
+                            "drawings. Three blind readers named the sequence, the reference face and the counts "
+                            "from the pages alone.",
+                     "falsified_by": "a builder who cannot cut a joint's grooves from the frames without "
+                                     "reading anything else"},
+            children=[
+                _alt("sentences-per-part", "Keep a card per part with sentences and a method page",
+                     "The owner found it unreadable: knowledge dumped into instructions."),
+                _alt("sections", "Draw the machine as grey blocks in section",
+                     "The owner: not clear at all; IKEA and Lamello draw the real tool in perspective."),
+                _alt("one-page", "All the frames of all the joints on one page",
+                     "Sixteen frames on an A4 page leave each too small to read the machine."),
             ],
         ),
     ]

@@ -43,6 +43,7 @@ class Tool:
     name: str
     say: dict                  # per language: {name, method: [sentences]}
     cites: list[tuple[str, str]]   # each clause it rests on: (its source, its locator)
+    model: dict | None = None  # its solids, for the drawings (lineart.solids), when it has them
 
 
 @dataclass
@@ -187,6 +188,9 @@ class Joint:
     groove_offset: float | None = None    # the machine's reference face to its groove's middle
     spacers: list[float] = field(default_factory=list)  # what brings that groove nearer, mm
     hole: tuple[float, float] | None = None  # the access hole: (diameter, from the joint face)
+    machine: str = ""          # the tool its grooves are cut with (the one stating groove_offset)
+    jig: str = ""              # the tool its access holes are drilled with
+    test_recess: float | None = None   # how far under the surface a test groove's connector sits
 
 
 SIDES = {(0, False): "left", (0, True): "right", (1, False): "front", (1, True): "back",
@@ -330,7 +334,8 @@ def _tool(tree: Quern, path: str) -> Tool:
         source = get_node(tree, ref.rsplit("/", 1)[0])
         short = (source.payload or {}).get("identifier") or source.name or source.id
         cites.append((short, (clause.payload or {}).get("locator", clause.id)))
-    return Tool(path, node.name or node.id, (node.payload or {}).get("say", {}), cites)
+    return Tool(path, node.name or node.id, (node.payload or {}).get("say", {}), cites,
+                (node.payload or {}).get("model"))
 
 
 def _seat_methods(tree: Quern, joint: Joint, links: dict) -> None:
@@ -344,12 +349,16 @@ def _seat_methods(tree: Quern, joint: Joint, links: dict) -> None:
                 seen.append(f)
         if joint.groove_offset is None and _param(tree, t, "groove_offset") is not None:
             joint.groove_offset = _param(tree, t, "groove_offset")
+            joint.machine = t
+            joint.test_recess = _param(tree, t, "test_recess")
             joint.spacers = [float(x) for x in (get_node(tree, t).payload or {}).get("spacers_mm", [])]
     for c in links.get("uses", []):
         d, o = _param(tree, c, "access_hole_diameter"), _param(tree, c, "access_hole_offset")
         if d is not None and o is not None:
             joint.hole = (d, o)
-            seen += [t for t in (get_node(tree, c).links or {}).get("drilled_with", []) if t not in seen]
+            drills = (get_node(tree, c).links or {}).get("drilled_with", [])
+            joint.jig = joint.jig or next(iter(drills), "")
+            seen += [t for t in drills if t not in seen]
     joint.methods = [_tool(tree, t) for t in seen]
 
 
