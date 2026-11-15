@@ -1146,6 +1146,33 @@ def entries() -> list[Node]:
                      "A tutorial added without the field would pass as a maker's word."),
             ],
         ),
+        Node(
+            id="a-video-is-cited-from-the-account-gemini-gave", kind="decision",
+            name="A tutorial video is a source like a document: cited by locator (its timestamps) and "
+                 "the words each clause rests on, its authority stated. Nobody here watches it: the copy "
+                 "is the account Gemini gives of it (what is said and what is shown, with timestamps), "
+                 "kept byte for byte in the private repo, its sha256 on the source, and payload read_by "
+                 "names Gemini and the date. A test finds each clause's words in that account",
+            links={"rests_on": ["a-source-says-who-stands-behind-it",
+                                "a-copyrighted-source-is-cited-by-locator-and-values"]},
+            payload={"decided_on": "2026-11-15",
+                     "the_owner": "Dans ce cas il faut aller chercher des tutoriels. Je sais que youtube ne "
+                                  "donne pas le texte de ses vidéos mais il suffit de le demander à Gemini, "
+                                  "il le donne direct",
+                     "why": "YouTube's robots.txt forbids robots its transcripts (/timedtext_video), the "
+                            "player's requests (/youtubei/) and its preview frames (i.ytimg.com/sb/); "
+                            "Gemini reads the video on Google's side. Its account can be wrong: on two "
+                            "videos it answered that it could not watch them after describing them, so a "
+                            "clause rests only on what a document with authority also says, and the "
+                            "source says who read it.",
+                     "falsified_by": "a passage of an account that the video, watched, does not show or say"},
+            children=[
+                _alt("frames", "Take frames of the video as the copy",
+                     "The player's requests and the preview frames are forbidden to robots."),
+                _alt("captions", "Fetch YouTube's captions",
+                     "/timedtext_video is forbidden to robots, and the Lamello videos have no speech."),
+            ],
+        ),
     ]
 
 

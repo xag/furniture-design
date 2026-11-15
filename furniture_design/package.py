@@ -32,8 +32,9 @@ VOCABULARY = [
         "the service it describes, on its own product), standard (a standards body or public "
         "authority), research (a peer-reviewed paper, a research institute or testing laboratory), "
         "editorial (an edited publication: a handbook, a training manual, a trade body's guide, a "
-        "magazine) or none (anyone else: a person's video, page or post). Its children are the "
-        "clauses quoted from it.")),
+        "magazine) or none (anyone else: a person's video, page or post), and read_by when nobody "
+        "here read it (a video Gemini described, its account kept as the copy). Its children are "
+        "the clauses quoted from it.")),
     KindDef(kind="clause", description=(
         "A located statement of its parent source: payload locator (chapter, table, page) "
         "and quote (verbatim); transcribed when the statement is an equation or a table row "
@@ -721,7 +722,7 @@ COUNTER_EXAMPLES = [
 
 PACKAGE = Package(
     name="furniture-design",
-    version="0.12.0",
+    version="0.12.1",
     description=(
         "Furniture designs and the published knowledge they are judged against. Kinds: "
         "source and clause (a publication and its verbatim, located statements, with the "
