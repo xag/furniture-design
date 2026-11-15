@@ -185,8 +185,9 @@ function apply() {
     m.visible = visible;
     const isNew = k && at === k;
     m.material.color.copy(m.userData.selected ? pick : (isNew ? newColor : woodColor));
-    const dir = m.userData.centre.clone().sub(view.mid);
-    m.position.copy(dir.multiplyScalar(e * view.pull));
+    const out = m.userData.out, from = (out ? out.host : m).userData.centre.clone().sub(view.mid);
+    m.position.copy(from.multiplyScalar(e * view.pull));
+    if (out) m.position.add(out.way.clone().multiplyScalar(e * 1.2 * out.far));
   });
   connectors.forEach(c => {
     const ids = c.userData.joint.parts;
@@ -237,8 +238,39 @@ function listing() {
     trail.append(a);
   });
 }
+// A part that sits inside another's box (a channel in the angle that holds it) cannot be pulled
+// apart from it by their middles: that would push it through the other. It leaves the way it is
+// free to go, across its length, found by casting rays from its corners at the part holding it.
+function nested() {
+  meshes.forEach(m => { m.position.set(0, 0, 0); m.updateMatrixWorld(); m.userData.out = null; });
+  const ps = meshes.filter(m => under(m.userData.part)), caster = new THREE.Raycaster();
+  const vol = p => (p.hi[0]-p.lo[0]) * (p.hi[1]-p.lo[1]) * (p.hi[2]-p.lo[2]);
+  ps.forEach(m => {
+    const p = m.userData.part;
+    const host = ps.filter(o => o !== m && vol(o.userData.part) > vol(p) &&
+      [0, 1, 2].every(i => Math.min(p.hi[i], o.userData.part.hi[i]) - Math.max(p.lo[i], o.userData.part.lo[i]) > 0.5))
+      .sort((a, b) => vol(a.userData.part) - vol(b.userData.part))[0];
+    if (!host) return;
+    const s = [0, 1, 2].map(i => p.hi[i] - p.lo[i]), long = s.indexOf(Math.max(...s));
+    const slender = s[long] > 4 * Math.max(...s.filter((_, i) => i !== long));
+    const at = m.geometry.attributes.position, radial = m.userData.centre.clone().sub(view.mid);
+    let best = null;
+    [2, 1, 0].filter(i => !(slender && i === long)).forEach(i => [1, -1].forEach(sign => {
+      const way = E[i].clone().multiplyScalar(sign), q = host.userData.part, far = q.hi[i] - q.lo[i];
+      for (let k = 0; k < at.count; k++) {
+        const o = new THREE.Vector3().fromBufferAttribute(at, k);
+        o.add(m.userData.centre.clone().sub(o).setLength(0.05));
+        caster.set(o, way); caster.far = far + 1;
+        if (caster.intersectObject(host, false).some(h => h.distance > 0.01)) return;
+      }
+      const score = way.dot(radial);
+      if (!best || score > best.score + 1e-9) best = {way, far, score, host};
+    }));
+    m.userData.out = best;
+  });
+}
 function go(to) {
-  here = to; view = shown(); selected = null;
+  here = to; view = shown(); selected = null; nested();
   meshes.forEach(m => m.userData.selected = false);
   tip.style.display = 'none';
   listing(); home(); apply();
@@ -286,7 +318,7 @@ renderer.domElement.addEventListener('pointerup', ev => {
   tip.style.display = 'block';
   select(p.mark);
 });
-listing();
+nested(); listing();
 apply();
 (function loop() {
   requestAnimationFrame(loop); controls.update();
