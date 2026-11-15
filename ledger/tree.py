@@ -1645,6 +1645,46 @@ def entries() -> list[Node]:
                      "They would be a design choice nobody made; opening a part needs none."),
             ],
         ),
+        Node(
+            id="a-pieces-instructions-are-judged-on-the-pages-drawn", kind="decision",
+            name="The level that allows a piece's assembly instructions also requires three criteria judged on "
+                 "the pages as they were drawn, each resting on clauses of the knowledge: no page carries a "
+                 "sentence (IKEA's own account of why its instructions are pictures); each step attaches one "
+                 "kind of part, drawn apart with a line to where it goes, and shows what fastens each joint it "
+                 "closes; each step's picture shows the parts it brings in and enough of those already there "
+                 "(Agrawala et al. 2003, whose planner's shares, 50 % of a new part and 10 % of the earlier "
+                 "ones, are params of a clause the rules read). The drawing notes what each page shows "
+                 "(sheets.Pen.note and Pen.text, pages.model: a branch instructions/<piece id> of pages and "
+                 "frames), written beside the screens as pages.json; a tree that judges mounts it. "
+                 "Instructions not drawn in the tree judged are not at the level, and say so",
+            payload={"decided_on": "2026-11-16",
+                     "the_owner": "il faut certifier la notive, et ne pas l'afficher tant qu'elle n'est pas au "
+                                  "niveau. Fait tout ce qui manque \u2014 attention \u00e0 n'\u00e9crire aucune "
+                                  "connaissance dans le code. Tout ce qui est connaissance est dans quern",
+                     "why": "The level read the piece's steps, not what was printed: instructions whose steps "
+                            "named every part and joint reached it while their pages said in sentences what "
+                            "they did not draw, and showed parts arriving with nothing that fixed them.",
+                     "sources_not_used": "Schumacher's guidelines for pictorial assembly instructions "
+                                         "(Information Design Journal 15(2), 2007; grooving.py cites them as "
+                                         "2011) are behind a paywall and were not read: no clause rests on them.",
+                     "not_yet": "No piece reaches the level: the drawing still sets each step's sentence, the "
+                                "headings and the tools' and hardware's names (every-page-of-the-instructions-"
+                                "is-drawn-to-ikeas-rules owes their pictures). The parts page's hardware is "
+                                "not compared with the joints' counts. The step order is still the piece's to "
+                                "state, held by a-pieces-instructions-have-a-level-to-reach, and not computed."},
+            links={"rests_on": ["a-pieces-instructions-have-a-level-to-reach",
+                                "every-page-of-the-instructions-is-drawn-to-ikeas-rules",
+                                "what-an-assistant-is-told-is-guidance-in-the-packages"]},
+            children=[
+                _alt("judge-the-steps-only", "Keep judging the piece's steps, and trust the drawing",
+                     "The drawing is what the person reads; what it prints was held by nothing."),
+                _alt("thresholds-in-the-code", "Write the shares a part must show as constants of the drawing",
+                     "Turned down by the owner: knowledge is in quern. They are a clause's params."),
+                _alt("wait-for-the-pictures", "Add the criteria once the drawing meets them",
+                     "The owner asked for instructions not to be shown until at the level; the criteria say "
+                     "what is left."),
+            ],
+        ),
     ]
 
 

@@ -74,9 +74,11 @@ from furniture_design import standards_piece as sp  # noqa: E402
 PIECE = "pieces/doors"
 
 
-def piece_cert(**kw) -> dict:
+def piece_cert(pages: dict | None = None, **kw) -> dict:
+    from furniture_design.standards_pages import example_pages
+
     t = Quern(vocabulary=PACKAGE.vocabulary, rules=PACKAGE.rules, solvers=PACKAGE.solvers)
-    t.root.children = _world() + sp.piece_world(**kw)
+    t.root.children = _world() + sp.piece_world(**kw) + [example_pages(**(pages or {}))]
     return certificate(t, PIECE)
 
 
@@ -136,3 +138,48 @@ def test_the_piece_ledgers_package_passes_the_publish_gate(tmp_path):
     assert any("2 rule(s) exercised" in line and "all pass" in line for line in log), log
     assert any("2 rule(s) refuted" in line for line in log), log
     assert any("in en, fr" in line for line in log), log
+
+
+def test_instructions_are_judged_on_the_pages_as_drawn():
+    """The owner: "il faut certifier la notice". A design that works, whose steps build it, is not at the
+    level while a page says in a sentence what it should draw, or a step shows a rail arriving and nothing
+    that fixes it; instructions that were not drawn are not at the level either, and say so."""
+    c = piece_cert(pages={"sentence": "Glue the channel to the angle.", "fastened": ()})
+    assert reached(c) == ["piece-settled", "piece-works"]
+    assert 'page 3: "Glue the channel to the angle."' in whys(c)
+    assert "step 1 closes angle-to-lintel and draws nothing of what fastens it" in whys(c)
+    undrawn = piece_cert(pages={"drawn": False})
+    assert reached(undrawn) == ["piece-settled", "piece-works"] and "were not drawn in this build" in whys(undrawn)
+
+
+def test_how_much_of_a_part_must_show_is_read_from_the_paper():
+    """The share of a part that must show is the clause's, not the code's: half shown passes at the paper's
+    50 %, and a tree whose clause asks for more refuses the same pages."""
+    from quern.tree import get_node
+
+    assert "piece-instructions" in reached(piece_cert(pages={"door_shows": 0.5}))
+    assert "piece-instructions" not in reached(piece_cert(pages={"door_shows": 0.49}))
+    t = Quern(vocabulary=PACKAGE.vocabulary, rules=PACKAGE.rules, solvers=PACKAGE.solvers)
+    from furniture_design.standards_pages import example_pages
+    t.root.children = _world() + sp.piece_world() + [example_pages(door_shows=0.5)]
+    get_node(t, "sources/agrawala-2003/visibility-scores").params["current_parts"].value = 0.75
+    assert "piece-instructions" not in reached(certificate(t, PIECE))
+
+
+def test_the_pages_drawn_are_the_pages_judged(tmp_path):
+    """What the drawing notes is what the standard reads: the bench's instructions, drawn, say in words
+    what each step does, and the record of its pages names those sentences."""
+    import json
+
+    from furniture_design.drawings import documents
+    from furniture_design.package import EXAMPLES as WORLD, PACKAGE as DESIGN
+    from furniture_design.standards_pages import _worded
+    from quern.tree import Node
+
+    t = Quern(vocabulary=DESIGN.vocabulary, rules=DESIGN.rules, solvers=DESIGN.solvers)
+    t.root.children = WORLD
+    out = documents(t, "pieces/bench", tmp_path)
+    t.root.children = t.root.children + [Node.model_validate(json.loads(out["pages"].read_text(encoding="utf-8")))]
+    lines = _worded(t, "pieces/bench")
+    assert any("Push the back onto the left side." in line for line in lines), lines
+    assert not any('"bench"' in line or "450 × 300" in line for line in lines), lines

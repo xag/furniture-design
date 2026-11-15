@@ -44,6 +44,16 @@ SAY = {
                                    "parts are in",
                              "fr": "Les étapes de montage amènent chaque pièce et ferment chaque assemblage, une "
                                    "fois ses pièces en place"},
+    "pages-are-drawn-not-written": {"en": "No page of the instructions carries a sentence",
+                                    "fr": "Aucune page de la notice ne porte de phrase"},
+    "steps-show-how-parts-attach": {"en": "Each step attaches one kind of part, drawn apart with a line to where it "
+                                          "goes, and shows what fastens each joint it closes",
+                                    "fr": "Chaque étape pose un seul type de pièce, dessiné à l'écart avec un trait "
+                                          "vers sa place, et montre ce qui fixe chaque assemblage qu'elle ferme"},
+    "steps-show-their-parts": {"en": "Each step's picture shows the parts it brings in, and enough of those already "
+                                     "there to place them",
+                               "fr": "L'image de chaque étape montre les pièces qu'elle amène, et assez de celles "
+                                     "déjà en place pour les situer"},
     "piece-settled": {"en": "Its design says what the person asked for",
                       "fr": "Sa conception dit ce que la personne a demandé"},
     "piece-works": {"en": "It holds together and what moves in it works",
@@ -118,6 +128,24 @@ RED = {
     "a-pieces-steps-close-every-joint": {
         "en": "A joint is closed by no step, or before the parts it joins are in.",
         "fr": "Un assemblage n'est fermé par aucune étape, ou avant que ses pièces soient en place."},
+    "a-pieces-pages-carry-no-sentence": {
+        "en": "A page of the instructions says in words what it should draw.",
+        "fr": "Une page de la notice dit en mots ce qu'elle devrait dessiner."},
+    "a-pieces-steps-attach-one-kind-of-part": {
+        "en": "A step brings in parts of several kinds at once.",
+        "fr": "Une étape amène des pièces de plusieurs types à la fois."},
+    "a-pieces-new-parts-are-drawn-apart-with-a-line": {
+        "en": "A part is drawn in place, with no line showing where it comes from.",
+        "fr": "Une pièce est dessinée en place, sans trait qui montre d'où elle vient."},
+    "a-pieces-fastenings-are-shown": {
+        "en": "A step closes a joint and draws nothing of what fastens it.",
+        "fr": "Une étape ferme un assemblage sans rien dessiner de ce qui le fixe."},
+    "a-pieces-new-parts-are-visible": {
+        "en": "A part a step brings in is hidden behind another.",
+        "fr": "Une pièce qu'une étape amène est cachée derrière une autre."},
+    "a-pieces-steps-keep-their-context": {
+        "en": "The parts a step brings in hide those they attach to.",
+        "fr": "Les pièces qu'une étape amène cachent celles auxquelles elles se fixent."},
 }
 
 

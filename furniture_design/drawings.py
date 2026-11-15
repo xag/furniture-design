@@ -216,12 +216,14 @@ def documents(tree: Quern, piece: str, out_dir: Path, *, lang: str = "fr",
     """The four things a piece is built from, written into `out_dir`: the interactive 3D
     view (HTML), the design document (PDF, A3), the assembly instructions (PDF, A4) and the
     cutting sheet for a shop's cutting service (PDF, A4); and the instructions as screens for an
-    app (steps.instruction_screens), in a folder named as their PDF, `steps` its screens.json.
+    app (steps.instruction_screens), in a folder named as their PDF, `steps` its screens.json, and
+    `pages` the instructions as they were drawn (pages.model), in that folder too.
     `notes` are the design document's notes, sections of a heading and its paragraphs, a
     paragraph being a text or (text, [lines under it]) (the piece's payload description when none
     are given). `stock` is what can be bought of each material, the sheets the cutting sheet lays
     the parts on (cutting.cutting_sheet)."""
     from .cutting import cutting_sheet
+    from .pages import model as pages_model
     from .report import checks as plain_checks
     from .scene import scene
     from .sheets import assembly_instructions, design_document
@@ -231,13 +233,19 @@ def documents(tree: Quern, piece: str, out_dir: Path, *, lang: str = "fr",
     out_dir.mkdir(parents=True, exist_ok=True)
     sc = scene(tree, piece)
     stem = stem or piece.rsplit("/", 1)[-1]
-    words = {"fr": ("3d", "plans", "montage", "decoupe"), "en": ("3d", "design", "assembly", "cutting")}[lang]
+    names = {"fr": ("3d", "plans", "montage", "decoupe"), "en": ("3d", "design", "assembly", "cutting")}[lang]
     regions: list[dict] = []     # where the assembly instructions draw each picture, for their screens
-    return {
-        "viewer": viewer_html(sc, out_dir / f"{stem}-{words[0]}.html", lang),
-        "design": design_document(sc, out_dir / f"{stem}-{words[1]}.pdf",
+    words: list[dict] = []       # every text they set on a page
+    out = {
+        "viewer": viewer_html(sc, out_dir / f"{stem}-{names[0]}.html", lang),
+        "design": design_document(sc, out_dir / f"{stem}-{names[1]}.pdf",
                                   plain_checks(tree, piece, lang), lang, notes),
-        "assembly": assembly_instructions(sc, out_dir / f"{stem}-{words[2]}.pdf", lang, regions),
-        "steps": instruction_screens(sc, out_dir / f"{stem}-{words[2]}.pdf", regions, out_dir / f"{stem}-{words[2]}", lang),
-        "cutting": cutting_sheet(sc, out_dir / f"{stem}-{words[3]}.pdf", lang, stock),
+        "assembly": assembly_instructions(sc, out_dir / f"{stem}-{names[2]}.pdf", lang, regions, words),
+        "steps": instruction_screens(sc, out_dir / f"{stem}-{names[2]}.pdf", regions, out_dir / f"{stem}-{names[2]}", lang),
+        "cutting": cutting_sheet(sc, out_dir / f"{stem}-{names[3]}.pdf", lang, stock),
     }
+    # the instructions as drawn (pages.model), for a standard to judge: a tree mounts it under instructions
+    drawn = out_dir / f"{stem}-{names[2]}" / "pages.json"
+    drawn.write_text(pages_model(piece.rsplit("/", 1)[-1], regions, words).model_dump_json(exclude_defaults=True),
+                     encoding="utf-8")
+    return {**out, "pages": drawn}

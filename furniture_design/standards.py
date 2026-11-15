@@ -25,6 +25,7 @@ from quern.provenance import Quantity
 from quern.solver import SolverDef
 from quern.tree import Demonstration, KindDef, Node, Quern, Rule, get_node, register_native
 
+from . import standards_pages as drawn
 from . import standards_piece as piece
 from . import standards_words as words
 
@@ -157,8 +158,9 @@ EXPLAINERS = {
 
 # --- the criteria and the levels --------------------------------------------------------------
 
-def _criterion(id_: str, name: str, measures: str, *rules: str, of: str = "tool") -> Node:
-    return Node(id=id_, kind="criterion", name=name,
+def _criterion(id_: str, name: str, measures: str, *rules: str, of: str = "tool", per: tuple = ()) -> Node:
+    """`per`: the clauses of the knowledge the criterion is held for, when it rests on a publication."""
+    return Node(id=id_, kind="criterion", name=name, links={"per": list(per)} if per else {},
                 payload={"applies_to": of, "measures": measures, "rules": list(rules), "say": words.SAY[id_]})
 
 
@@ -245,13 +247,27 @@ def knowledge() -> list[Node]:
         _criterion("piece-steps-build-it", "The assembly steps bring in every part and close every joint, each "
                    "once its parts are in", "completeness", "a-pieces-steps-bring-in-every-part",
                    "a-pieces-steps-close-every-joint", of="piece"),
+        _criterion("pages-are-drawn-not-written", "No page of the instructions carries a sentence",
+                   "presentation", "a-pieces-pages-carry-no-sentence", of="piece",
+                   per=("sources/ikea-why-only-pictures/pictures-not-words",)),
+        _criterion("steps-show-how-parts-attach", "Each step attaches one kind of part, drawn apart with a line "
+                   "to where it goes, and shows what fastens each joint it closes", "presentation",
+                   "a-pieces-steps-attach-one-kind-of-part", "a-pieces-new-parts-are-drawn-apart-with-a-line",
+                   "a-pieces-fastenings-are-shown", of="piece",
+                   per=("sources/agrawala-2003/grouping", "sources/agrawala-2003/step-by-step",
+                        "sources/agrawala-2003/action-diagrams")),
+        _criterion("steps-show-their-parts", "Each step's picture shows the parts it brings in, and enough of "
+                   "those already there to place them", "presentation", "a-pieces-new-parts-are-visible",
+                   "a-pieces-steps-keep-their-context", of="piece",
+                   per=("sources/agrawala-2003/visibility", "sources/agrawala-2003/visibility-scores")),
         _level("piece-settled", "Its design says what the person asked for", "piece-is-explained",
                "piece-agrees-with-its-ledger", of="piece"),
         _level("piece-works", "It holds together and what moves in it works", "piece-is-explained",
                "piece-agrees-with-its-ledger", "piece-holds-together", "piece-mechanisms-work", of="piece"),
         _level("piece-instructions", "Its assembly instructions are shown", "piece-is-explained",
                "piece-agrees-with-its-ledger", "piece-holds-together", "piece-mechanisms-work",
-               "piece-steps-build-it", of="piece", allows=("assembly",)),
+               "piece-steps-build-it", "pages-are-drawn-not-written", "steps-show-how-parts-attach",
+               "steps-show-their-parts", of="piece", allows=("assembly",)),
     ])]
 
 
@@ -303,7 +319,10 @@ def example_tool(*, documents: tuple[str, ...] = ("manual", "page"), pad: float 
 
 
 def _world(tool: Node | None = None, *, documents: list[Node] | None = None, standards: Node | None = None) -> list[Node]:
-    return [Node(id="sources", kind="", children=documents or [_document("manual"), _document("page")]),
+    from .knowledge import instruction_sources
+
+    return [Node(id="sources", kind="", children=(documents or [_document("manual"), _document("page")])
+                 + instruction_sources()),
             Node(id="tools", kind="", children=[tool or example_tool(), example_tool(saw=True).model_copy(
                 update={"id": "example-saw", "name": "Example saw"})]),
             standards or knowledge()[0]]
@@ -347,9 +366,9 @@ SPEC = {
 }
 
 
-NATIVES |= piece.NATIVES
-EXPLAINERS |= piece.EXPLAINERS
-SPEC |= piece.SPEC
+NATIVES |= piece.NATIVES | drawn.NATIVES
+EXPLAINERS |= piece.EXPLAINERS | drawn.EXPLAINERS
+SPEC |= piece.SPEC | drawn.SPEC
 
 
 def register() -> None:
@@ -457,6 +476,30 @@ RULES = [
     Rule(name="a-pieces-steps-close-every-joint", kind="piece", expr="solve('furniture/joints_misclosed', self) == 0",
          description="Close every joint in an assembly step (a step's joints), no sooner than the step that "
                      "brings in the last part it joins."),
+    Rule(name="a-pieces-pages-carry-no-sentence", kind="piece", expr="solve('furniture/pages_worded', self) == 0",
+         description="Draw what each text on the instructions' pages says, and take the text off: a count, a "
+                     "size, a part's letter and the piece's name stay (IKEA: pictures, because the instructions "
+                     "are read in every language)."),
+    Rule(name="a-pieces-steps-attach-one-kind-of-part", kind="piece",
+         expr="solve('furniture/steps_mixing_kinds', self) == 0",
+         description="Give each kind of part its own step: parts that carry the same letter come in together, "
+                     "another kind in the next step (Agrawala 2003, step-by-step instructions)."),
+    Rule(name="a-pieces-new-parts-are-drawn-apart-with-a-line", kind="piece",
+         expr="solve('furniture/parts_without_a_line', self) == 0",
+         description="Say which way each part comes in (a step's direction), so it is drawn apart from where "
+                     "it goes with a line leading there (Agrawala 2003, action diagrams)."),
+    Rule(name="a-pieces-fastenings-are-shown", kind="piece", expr="solve('furniture/fastenings_not_shown', self) == 0",
+         description="State where the connectors of each joint a step closes sit (the joint's positions, or a "
+                     "connector that gives them), so the step's picture draws what fastens it (Agrawala 2003, "
+                     "action diagrams: the attachment operations depicted)."),
+    Rule(name="a-pieces-new-parts-are-visible", kind="piece",
+         expr="solve('furniture/parts_hidden', self, param('sources/agrawala-2003/visibility-scores', 'current_parts')) == 0",
+         description="A part a step brings in is hidden behind another: bring it in in a step of its own, or "
+                     "from the side it shows from (Agrawala 2003, visibility)."),
+    Rule(name="a-pieces-steps-keep-their-context", kind="piece",
+         expr="solve('furniture/steps_without_context', self, param('sources/agrawala-2003/visibility-scores', 'previous_parts')) == 0",
+         description="The parts a step brings in cover those already there: bring fewer in at once, so what "
+                     "they attach to still shows (Agrawala 2003, visibility)."),
     Rule(name="a-saw-states-its-depth", kind="tool",
          expr="len(payload(self, 'saw_kind', '')) == 0 or states(self, 'max_cut_depth')",
          description="State the thickest board the saw cuts (max_cut_depth), from its maker's document."),
@@ -467,11 +510,12 @@ RULES = [r.model_copy(update={"messages": words.messages(r.name)}) for r in RULE
 
 register()
 
-EXAMPLES = _world() + piece.piece_world()
+EXAMPLES = _world() + piece.piece_world() + [drawn.example_pages()]
 
 
-def _piece_case(**kw) -> list[Node]:
-    return _world() + piece.piece_world(**kw)
+def _piece_case(pages: dict | None = None, **kw) -> list[Node]:
+    """The example piece in its world, with its instructions as drawn (`pages`: example_pages' knobs)."""
+    return _world() + piece.piece_world(**kw) + [drawn.example_pages(**(pages or {}))]
 
 
 _BAD_STANDARD = Node(id=STANDARDS, kind="", children=[
@@ -513,6 +557,20 @@ COUNTER_EXAMPLES = [
     CounterExample(rule="a-pieces-steps-close-every-joint",
                    nodes=_piece_case(piece=piece.example_piece(steps=[{"add": ["angle", "channel", "back-panel", "front-panel"]}])),
                    because="one step that shows every part arriving and nothing fixing the rail"),
+    CounterExample(rule="a-pieces-pages-carry-no-sentence",
+                   nodes=_piece_case(pages={"sentence": "Glue the channel to the angle."}),
+                   because="a step that says in a sentence what its picture should show"),
+    CounterExample(rule="a-pieces-steps-attach-one-kind-of-part", nodes=_piece_case(pages={"rail_kinds": ("R", "S")}),
+                   because="an angle and a channel of two kinds brought in by one step"),
+    CounterExample(rule="a-pieces-new-parts-are-drawn-apart-with-a-line",
+                   nodes=_piece_case(pages={"doors_guided": ("front-panel",)}),
+                   because="a door drawn in its rail, with nothing showing that it goes in or how"),
+    CounterExample(rule="a-pieces-fastenings-are-shown", nodes=_piece_case(pages={"fastened": ()}),
+                   because="a rail shown arriving, and nothing of the screws and glue that hold it"),
+    CounterExample(rule="a-pieces-new-parts-are-visible", nodes=_piece_case(pages={"door_shows": 0.2}),
+                   because="a back door four fifths hidden behind the front one"),
+    CounterExample(rule="a-pieces-steps-keep-their-context", nodes=_piece_case(pages={"context": 0.02}),
+                   because="doors drawn over the whole rail they go in"),
     CounterExample(rule="a-pieces-purpose-is-answered", nodes=_piece_case(ledger=piece.example_ledger(answers=False)),
                    because="doors said to slide in one rail, and no decision on how"),
     CounterExample(rule="a-pieces-decisions-name-what-realises-them",
@@ -536,7 +594,7 @@ COUNTER_EXAMPLES = [
 
 PACKAGE = Package(
     name="furniture-standards",
-    version="0.5.0",
+    version="0.6.0",
     description=(
         "What a tool's entry is held to for each use it may be put to, as criteria and levels a certificate "
         "is run from (quern.certify). Criteria: the tool is identified, drawn, its drawing true to its "
@@ -548,7 +606,10 @@ PACKAGE = Package(
         "fixed by a joint or moved by a motion (kind motion: a slide's axis, travel, what moves and what guides "
         "it), and what slides held on both sides with room along its travel; levels: its design says what the "
         "person asked for, it holds together and what moves in it works, its assembly instructions are shown (the "
-        "steps bring in every part and close every joint once its parts are in). The rules grade and refuse nothing."),
+        "steps bring in every part and close every joint once its parts are in, and the pages as drawn carry no "
+        "sentence, attach one kind of part a step with a line to where it goes and what fastens it, and show "
+        "the parts brought in and enough of those already there: Agrawala et al. 2003 and IKEA, as clauses of "
+        "the knowledge). The rules grade and refuse nothing."),
     publisher="xag/furniture-design",
     vocabulary=VOCABULARY,
     rules=RULES,

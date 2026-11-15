@@ -115,6 +115,7 @@ class Pen:
     def __init__(self, c: Canvas):
         self.c = c
         self.regions = None   # a list to note where each picture is drawn in (note()), or None
+        self.words = None     # a list to note every text set on a page (text()), or None
 
     def note(self, kind: str, box, blank=None, **info):
         """When regions are kept, note that a picture of `kind` is drawn in `box` (x, y, w, h in mm from the
@@ -153,8 +154,12 @@ class Pen:
     def rect(self, x, y, w, h, fill=None, stroke=INK, lw_=0.35):
         self.poly([(x, y), (x + w, y), (x + w, y + h), (x, y + h)], fill, stroke, lw_)
 
-    def text(self, x, y, s, size=3.0, color=INK, anchor="start", bold=False, angle=0):
+    def text(self, x, y, s, size=3.0, color=INK, anchor="start", bold=False, angle=0, role=""):
+        """Set a text. When words are kept, note it with its page; `role` says what it is where that
+        is not a thing to read as a sentence: "name", the piece's own name."""
         c = self.c
+        if self.words is not None and str(s).strip():
+            self.words.append({"page": c.getPageNumber() - 1, "text": str(s), **({"role": role} if role else {})})
         c.saveState()
         c.setFillColor(color)
         c.setFont("Helvetica-Bold" if bold else "Helvetica", size * mm / 0.3528 * 0.3528)
@@ -767,7 +772,11 @@ def _assembly_picture(pen: Pen, sc: Scene, placed_ids: list[str], new_ids: list[
                       joints: list, directions: dict, box, explode: float):
     """The state after this step: what was already there in white, the new parts darker,
     pulled back along the way they come in, arrows to where they go, and the connectors
-    of the joints the step closes."""
+    of the joints the step closes. Returns where it was placed and what it shows: the parts
+    already there (shows), those brought in (brings) and the letters they carry (kinds), those of
+    them drawn with a line to where they go (guided), the joints the step closes (closes) and those
+    whose connectors are drawn (fastened), how much of each part brought in is left to see (visible)
+    and of the parts already there taken together (context)."""
     view = lw.axonometric()
     moving_ids = [i for i in new_ids if i in directions] or list(new_ids)
     old = [p for p in sc.parts
@@ -788,6 +797,7 @@ def _assembly_picture(pen: Pen, sc: Scene, placed_ids: list[str], new_ids: list[
         fixed = next((i for i in j.parts if i not in new_ids), None)
         off = (0, 0, 0) if fixed in placed_ids or fixed is None else offsets.get(fixed, (0, 0, 0))
         draw_slots(pen, placed, j.positions, j.along_axis, j.normal_axis, off, size=j.size)
+    guided = []
     for p in new:
         o = offsets[p.id]
         a = placed(tuple(c + k for c, k in zip(p.centre, o)))
@@ -798,7 +808,13 @@ def _assembly_picture(pen: Pen, sc: Scene, placed_ids: list[str], new_ids: list[
                  [2, 1.2])
         pen.arrowhead(b[0] + (a[0] - b[0]) * 0.25, b[1] + (a[1] - b[1]) * 0.25,
                       b[0] - a[0], b[1] - a[1], 3.2)
-    return placed
+        guided.append(p.id)
+    from .pages import shares
+    left, context = shares(boxes, view, [p.id for p in old])
+    return placed, {"shows": [p.id for p in old], "brings": [p.id for p in new],
+                    "kinds": sorted({p.mark for p in new}), "guided": guided,
+                    "closes": [j.id for j in joints], "fastened": [j.id for j in joints if j.positions],
+                    "visible": {p.id: left.get(p.id, 0.0) for p in new}, "context": context}
 
 
 def _away(sc: Scene, p: Part):
@@ -888,14 +904,17 @@ def cut_sentences(p: Part, L: dict, lang: str) -> list[str]:
             L["saw_from_hole"] if starts == 0 else L["saw_mixed"]]
 
 
-def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list | None = None) -> Path:
+def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list | None = None,
+                          words: list | None = None) -> Path:
     """Picture-first assembly instructions, A4 portrait. A piece whose payload instructions is short
     leaves out how its tools are used: the saw and the jointer drawn at work and the test groove;
     what the piece needs (the cuts, the marks, the settings, the holes) stays. A cut is drawn by
     sawing.sawing_frames, a joint's grooves by grooving.grooving_pages; neither prints a sentence.
     `regions`, a list, gets where each picture is drawn (Pen.note): the cover, each board, each step's
     picture, each block of a step drawn on its own (a cut's frames, the grooving settings and each kind of
-    joint) and the frames and drawings in it, in the order drawn; steps.instruction_screens cuts them out."""
+    joint) and the frames and drawings in it, in the order drawn; steps.instruction_screens cuts them out.
+    A step's picture is noted with what it shows (_assembly_picture), and `words`, a list, gets every text
+    set on a page: pages.model makes of both the instructions as drawn, which a standard judges."""
     L = LABELS[lang]
     short = sc.info.get("instructions") == "short"
     W, H = 210, 297
@@ -903,10 +922,11 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list
     c.setTitle(f"{sc.title} - {L['assemble']}")
     pen = Pen(c)
     pen.regions = regions
+    pen.words = words
     view = lw.axonometric()
     boxes = _boxes(sc.parts)
     # cover
-    pen.text(W / 2, H - 40, sc.title, 11, INK, "middle", bold=True)
+    pen.text(W / 2, H - 40, sc.title, 11, INK, "middle", bold=True, role="name")
     pen.text(W / 2, H - 50, f"{L['version']} {sc.info.get('version', '')}", 4, THIN, "middle")
     pen.note("cover", (20, 70, W - 40, 150))
     placed = _fit(boxes, view, 20, 70, W - 40, 150, pad=10)
@@ -1000,11 +1020,12 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list
         for t in step.tools:
             tx += _tool_badge(pen, tx, y + h - 13, t) + 3
         pic = (x, y + 14, w, h - 32)
-        pen.note("step", pic, step=step.number)
         if step.prepare:
+            pen.note("step", pic, step=step.number, prepare=True)
             _prepare_picture(pen, sc, step, pic)
         else:
-            _assembly_picture(pen, sc, placed_ids, step.add, joints, step.direction, pic, explode)
+            _placed, shown = _assembly_picture(pen, sc, placed_ids, step.add, joints, step.direction, pic, explode)
+            pen.note("step", pic, step=step.number, **shown)
             placed_ids += step.add
         for k, s in enumerate(_wrap(step.text, 95)[:3]):
             pen.text(x + 2, y + 8 - 4.6 * k, s, 3.6, INK)

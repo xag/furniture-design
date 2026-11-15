@@ -2066,6 +2066,50 @@ PINCH_SOURCES = [
 ]
 
 
+# What assembly instructions are held to (furniture-standards@): research on how people follow them, and
+# what IKEA says of its own. Copyrighted, so cited by locator and values, the copies kept private.
+AGRAWALA = "agrawala-2003"
+INSTRUCTION_SOURCES = [
+    (AGRAWALA, "Agrawala, Phan, Heiser, Haymaker, Klingner, Hanrahan, Tversky: Designing Effective Step-By-Step "
+     "Assembly Instructions, ACM Transactions on Graphics 22(3), SIGGRAPH 2003, pp. 828-837",
+     "ACM", "https://graphics.stanford.edu/papers/assembly_instructions/assembly.pdf",
+     "9d649a8da979cb184bc43daecf0c1a57a2c35dc9dbb2f68695fe4c797153d2a2",
+     [("grouping", "2 Design Principles, Hierarchy and grouping of parts: the parts of a group are added together "
+                   "or one after another"),
+      ("step-by-step", "2 Design Principles, Step-by-step instructions: a sequence of diagrams, each showing how "
+                       "to attach one significant part"),
+      ("action-diagrams", "2 Design Principles, Structural diagrams and action diagrams: the parts to attach drawn "
+                          "apart from those attached, with guidelines to where they attach; the attachment "
+                          "operations depicted (Figure 2: how the shelf is fastened by the screws)"),
+      ("visibility", "2 Design Principles, Visibility: every new part of a step is visible, and parts attached "
+                     "earlier are visible to give the new attachments their context")]),
+    ("ikea-why-only-pictures", "IKEA: Why are there only photos in IKEA assembly instructions? (customer service, "
+     "knowledge article)", "IKEA",
+     "https://www.ikea.com/us/en/customer-service/knowledge/articles/f050cged-d77f-477b-8d60-ge5d56b88d2e.html",
+     "b385a32772ac494b261faecab16ed1b683d43900aa5a1725d832527200a484cb",
+     [("pictures-not-words", "The answer: the instructions are pictures because the products are sold worldwide, "
+                             "so that they are accessible to all")]),
+]
+# The shares of a part that must show in a step's picture, as the paper's planner found them to produce good
+# results (4.1 Search, Visibility): (param, the words before the figure, as printed, value).
+VISIBILITY_SCORES = [("current_parts", "at or above", "50%", 0.50), ("previous_parts", "part visibility,", "10%", 0.10),
+                     ("future_parts", "part visibility, and", "25%", 0.25)]
+
+
+def instruction_sources() -> list[Node]:
+    out = [Node(id=id_, kind="source", name=name,
+                payload={"publisher": publisher, "url": url, "fetched": "2026-11-16", "sha256": sha,
+                         "licence": "copyrighted", "capture": "private copy, identified by its sha256"},
+                children=[Node(id=cid, kind="clause", payload={"locator": loc}) for cid, loc in clauses])
+           for id_, name, publisher, url, sha, clauses in INSTRUCTION_SOURCES]
+    where = "4.1 Search, Visibility: the visibility scores found to produce good results"
+    out[0].children.append(Node(
+        id="visibility-scores", kind="clause",
+        payload={"locator": where, "rows": [[p, label, printed] for p, label, printed, _v in VISIBILITY_SCORES]},
+        params={p: published(v, "1", where, printed) for p, _label, printed, v in VISIBILITY_SCORES}))
+    return out
+
+
 def pinch_sources() -> list[Node]:
     return [Node(id=id_, kind="source", name=name,
                  payload={"publisher": publisher, "url": url, "fetched": "2026-11-15", "sha256": sha,
@@ -2247,6 +2291,7 @@ AUTHORITIES = {
 }
 
 AUTHORITY = {
+    "agrawala-2003": "research", "ikea-why-only-pictures": "maker",
     "wood-handbook": "research", "federal-register-2023-08997": "standard",
     "gsa-fnae-80-214a": "standard", "tm-9-243": "editorial", "fm-5-426": "editorial",
     **{f"tropix-{s}": "research" for s in (
@@ -2292,7 +2337,8 @@ def knowledge() -> list[Node]:
     tools that cut a part's cuts, and what whoever designs with them is told (guidance)."""
     sources = [wood_handbook(), federal_register(), gsa_fnae(), tm_9_243(), fm_5_426(), *tropix(),
                schmidtova(), boruvka(), *sag_limits(), *seating_tests(), *jointer_sources(),
-               *jointer_videos(), *grinder_sources(), *profile_saw_sources(), *pinch_sources()]
+               *jointer_videos(), *grinder_sources(), *profile_saw_sources(), *pinch_sources(),
+               *instruction_sources()]
     from .guidance import guidance
 
     return [Node(id="sources", kind="", children=with_authority(sources, AUTHORITY)),

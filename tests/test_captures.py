@@ -230,6 +230,33 @@ PINCH_WORDS = {
 }
 
 
+INSTRUCTION_WORDS = {
+    "agrawala-2003": ["parts within a group are added", "part at a time",
+                      "Action diagrams spatially separate the parts to be attached",
+                      "new parts added in each step of the assembly must be visible",
+                      "If only the new parts are visible",
+                      "how the shelf is fastened by the screws"],
+    "ikea-why-only-pictures": ["IKEA products are sold worldwide",
+                               "ensures our assembly instructions are accessible to all"],
+}
+
+
+def test_every_passage_the_instruction_standard_rests_on_is_in_the_copy_fetched():
+    from furniture_design.knowledge import INSTRUCTION_SOURCES, VISIBILITY_SCORES, instruction_sources
+
+    assert {s[0] for s in INSTRUCTION_SOURCES} == set(INSTRUCTION_WORDS)
+    for sid, _name, _publisher, _url, sha, _clauses in INSTRUCTION_SOURCES:
+        text = re.sub(r"\s+", " ", _text(sha))
+        for words in INSTRUCTION_WORDS[sid]:
+            assert words in text, (sid, words)
+    paper = instruction_sources()[0]
+    text = re.sub(r"\s+", " ", _text(paper.payload["sha256"]))
+    scores = next(c for c in paper.children if c.id == "visibility-scores")
+    for param, label, printed, value in VISIBILITY_SCORES:
+        assert f"{label} {printed}" in text, (param, label, printed)
+        assert scores.params[param].value == value == float(printed.rstrip("%")) / 100
+
+
 def test_every_passage_the_marking_in_place_method_rests_on_is_in_the_copy_fetched():
     assert {s[0] for s in PINCH_SOURCES} == set(PINCH_WORDS)
     for sid, _name, _publisher, _url, sha, _clauses in PINCH_SOURCES:

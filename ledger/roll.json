@@ -395,6 +395,26 @@
     "digest": "2fc8d8fd53a5"
   },
   {
+    "path": "a-pieces-instructions-are-judged-on-the-pages-drawn",
+    "kind": "decision",
+    "digest": "bc4b415a7a45"
+  },
+  {
+    "path": "a-pieces-instructions-are-judged-on-the-pages-drawn/judge-the-steps-only",
+    "kind": "alternative",
+    "digest": "eb6a9dd0e383"
+  },
+  {
+    "path": "a-pieces-instructions-are-judged-on-the-pages-drawn/thresholds-in-the-code",
+    "kind": "alternative",
+    "digest": "ef0e06614841"
+  },
+  {
+    "path": "a-pieces-instructions-are-judged-on-the-pages-drawn/wait-for-the-pictures",
+    "kind": "alternative",
+    "digest": "244f36f98273"
+  },
+  {
     "path": "a-pieces-instructions-have-a-level-to-reach",
     "kind": "decision",
     "digest": "df56781d5d0a"
