@@ -141,7 +141,11 @@ const under = p => here.every((id, i) => p.within[i] && p.within[i][0] === id);
 function shown() {
   const ps = DATA.parts.filter(under), a = [0, 1, 2].map(i => Math.min(...ps.map(p => p.lo[i]))),
     b = [0, 1, 2].map(i => Math.max(...ps.map(p => p.hi[i])));
-  return {mid: T((a[0]+b[0])/2, (a[1]+b[1])/2, (a[2]+b[2])/2), size: Math.max(b[0]-a[0], b[1]-a[1], b[2]-a[2]), lo: a, hi: b};
+  const mid = T((a[0]+b[0])/2, (a[1]+b[1])/2, (a[2]+b[2])/2), s = [b[0]-a[0], b[1]-a[1], b[2]-a[2]].sort((x, y) => y - x);
+  // parts whose middles are close (two profiles nested in a rail) are pulled apart by at least
+  // most of what is shown's second side, or the pull would not show
+  const far = Math.max(1e-6, ...ps.map(p => T((p.lo[0]+p.hi[0])/2, (p.lo[1]+p.hi[1])/2, (p.lo[2]+p.hi[2])/2).distanceTo(mid)));
+  return {mid, size: s[0], lo: a, hi: b, pull: Math.max(0.9, 0.6 * s[1] / far)};
 }
 let view = shown();
 function home() {
@@ -182,7 +186,7 @@ function apply() {
     const isNew = k && at === k;
     m.material.color.copy(m.userData.selected ? pick : (isNew ? newColor : woodColor));
     const dir = m.userData.centre.clone().sub(view.mid);
-    m.position.copy(dir.multiplyScalar(e * 0.9));
+    m.position.copy(dir.multiplyScalar(e * view.pull));
   });
   connectors.forEach(c => {
     const ids = c.userData.joint.parts;
@@ -190,7 +194,7 @@ function apply() {
       ids.every(id => (!k || (placedAt[id] || 0) <= k) && under(byId[id]));
     c.visible = on;
     const dir = c.userData.home.clone().sub(view.mid);
-    c.position.copy(c.userData.home).add(dir.multiplyScalar(e * 0.9));
+    c.position.copy(c.userData.home).add(dir.multiplyScalar(e * view.pull));
   });
 }
 ['steps', 'explode', 'showc'].forEach(id => document.getElementById(id).addEventListener('input', apply));

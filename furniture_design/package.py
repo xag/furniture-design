@@ -123,6 +123,13 @@ VOCABULARY = [
         "which names the kind of connector seat. A part with cuts links made_with the tools "
         "that cut them, each saying how it is used and resting on clauses; the documents "
         "draw each cut measured from the edges it touches and number its saw lines in order. "
+        "A part that is a profile (an angle, a channel, a tube) states payload section: the "
+        "outline of what it is across its length, a list of points [a, b] in mm from its minimum "
+        "corner, a and b along the two shorter sides of its box in the order of the axes (a part "
+        "lying along x gives [y, z]); its box stays the whole it fits in, by which it is placed, "
+        "listed and cut to length, while the documents draw the section and its mass, when not "
+        "stated, is its density times the section's area times its length. One profile is one "
+        "part, never one part per face. "
         "A part links sawn_with the saws that cut it out of its board: each must cut as deep "
         "as one of its sheets is thick and state the width it takes out, which the cutting "
         "sheet leaves between parts."),
@@ -743,7 +750,7 @@ COUNTER_EXAMPLES = [
 
 PACKAGE = Package(
     name="furniture-design",
-    version="0.17.0",
+    version="0.18.0",
     description=(
         "Furniture designs and the published knowledge they are judged against. Kinds: "
         "source and clause (a publication and its verbatim, located statements, with the "

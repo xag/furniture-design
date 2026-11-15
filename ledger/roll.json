@@ -355,6 +355,21 @@
     "digest": "2fc8d8fd53a5"
   },
   {
+    "path": "a-profile-is-one-part-with-its-section",
+    "kind": "decision",
+    "digest": "e337cbbfcd85"
+  },
+  {
+    "path": "a-profile-is-one-part-with-its-section/a-shape-of-its-own",
+    "kind": "alternative",
+    "digest": "6fef591a771e"
+  },
+  {
+    "path": "a-profile-is-one-part-with-its-section/named-sections",
+    "kind": "alternative",
+    "digest": "7a98d63372c6"
+  },
+  {
     "path": "a-published-sag-limit-is-a-source-a-piece-chooses-from",
     "kind": "decision",
     "digest": "400c53a9d5a5"

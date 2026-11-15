@@ -151,6 +151,27 @@ def test_a_part_says_the_assemblies_holding_it_and_stays_where_it_was(tmp_path):
     assert '"within": [["frame", "Frame"], ["sides", "Sides"]]' in page
 
 
+def test_a_profile_is_one_part_drawn_and_weighed_by_its_section(tmp_path):
+    from furniture_design.natives import bodies
+    from furniture_design.scene import scene
+    tree = _tree()
+    top = tree.get(f"{BENCH}/top")
+    whole = next(b for b in bodies(tree, BENCH) if b.path == f"{BENCH}/top").mass
+    assert next(p for p in scene(tree, BENCH).parts if p.id == "top").profile().t == 2   # a board: across its thickness
+    # the top as a channel open upwards: 1000 long, 300 across, 20 high, its walls 5 thick
+    top.payload["section"] = [[0, 0], [300, 0], [300, 20], [295, 20], [295, 5], [5, 5], [5, 20], [0, 20]]
+    part = next(p for p in scene(tree, BENCH).parts if p.id == "top")
+    f = part.profile()
+    assert (f.t, f.t1 - f.t0, len(f.outline)) == (0, 1000, 8)   # run along its length, all eight corners
+    assert {(round(a - part.lo[1]), round(b - part.lo[2])) for a, b in f.outline} >= {(5, 5), (295, 5)}
+    share = (300 * 5 + 2 * 5 * 15) / (300 * 20)
+    assert abs(next(b for b in bodies(tree, BENCH) if b.path == f"{BENCH}/top").mass - whole * share) < 1e-9
+    drawings.documents(tree, BENCH, tmp_path)   # the 3D view and the PDFs draw it
+    top.payload["section"] = [[0, 0], [300, 0], [300, 25]]
+    with pytest.raises(ValueError, match="outside its box"):
+        scene(tree, BENCH)
+
+
 # --- a part's cuts: read from their shape, said with their tools' words ---------------------
 
 import itertools

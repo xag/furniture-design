@@ -145,6 +145,37 @@ def _size(tree, path: str, node) -> list[float]:
     return out
 
 
+def section(tree, path: str, node) -> list[tuple[float, float]]:
+    """A profile's section: payload section, the outline of what the part is across its length, as
+    points [a, b] in mm from the part's minimum corner, a and b along the two shorter sides of its
+    box in the order of the axes (x, y, z). None for a part that is its whole box."""
+    points = (node.payload or {}).get("section")
+    if not points:
+        return []
+    size = _size(tree, path, node)
+    long = max(range(3), key=lambda i: size[i])
+    across = [size[i] for i in range(3) if i != long]
+    out = [(number(tree, path, a, "section"), number(tree, path, b, "section")) for a, b in points]
+    if len(out) < 3:
+        raise ValueError(f"part '{path}' section must have at least three points")
+    for a, b in out:
+        if not (-1e-6 <= a <= across[0] + 1e-6 and -1e-6 <= b <= across[1] + 1e-6):
+            raise ValueError(f"part '{path}' section point ({a:g}, {b:g}) lies outside its box, "
+                             f"{across[0]:g} by {across[1]:g} mm across its length")
+    return out
+
+
+def _share(tree, path: str, node, size) -> float:
+    """The share of its box a part fills: its section's area over the box's, 1 for a whole box."""
+    pts = section(tree, path, node)
+    if not pts:
+        return 1.0
+    long = max(range(3), key=lambda i: size[i])
+    across = [size[i] for i in range(3) if i != long]
+    area = abs(sum(a * d - c * b for (a, b), (c, d) in zip(pts, pts[1:] + pts[:1]))) / 2
+    return area / (across[0] * across[1])
+
+
 def _translate(tree, path: str, node) -> list[float]:
     t = (node.payload or {}).get("transform") or {}
     if t.get("rotate"):
@@ -173,7 +204,7 @@ def bodies(tree: Quern, piece: str) -> list[Body]:
             density = _param(tree, path, "density")
             if density is None:
                 raise ValueError(f"part '{path}' has no mass and no density to weigh it by")
-            own = density * size[0] * size[1] * size[2] * 1e-9
+            own = density * size[0] * size[1] * size[2] * 1e-9 * _share(tree, path, node, size)
         more = float((node.payload or {}).get("extends") or 0)
         cext = ext or (path if more else "")
         out.append(Body(path, own, lo, [a + s for a, s in zip(lo, size)], opens + more, cext))

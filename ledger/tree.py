@@ -1444,6 +1444,28 @@ def entries() -> list[Node]:
                      "The owner asked to view just one rail; a door standing in a rail hides its section."),
             ],
         ),
+        Node(
+            id="a-profile-is-one-part-with-its-section", kind="decision",
+            name="A part that is a profile (an angle, a channel) states payload section, the outline of what it is "
+                 "across its length, in mm from its minimum corner; its box stays the whole it fits in, by which it "
+                 "is placed, listed and cut to length. The 3D view and the documents' pictures draw the section, and "
+                 "its mass, when not stated, is its density times the section's area times its length. One profile "
+                 "is one part, never one part per face. In the 3D view, parts whose middles are close are pulled "
+                 "apart by at least most of the second side of what is shown",
+            links={"rests_on": ["a-piece-is-walked-by-its-assemblies", "a-dimension-is-stated-once-and-parts-follow-it"]},
+            payload={"decided_on": "2026-11-15",
+                     "the_owner": "Ecarter les pièces est incorrect. Il y a deux pièces sur le rail, pas cinq.",
+                     "why": "Only boxes were modelled, so a piece's rails were written as five flat strips, two for "
+                            "the angle and three for the channel, each a part in the list, the pulled-apart view and "
+                            "the cutting sheet."},
+            children=[
+                _alt("a-shape-of-its-own", "A shape op profile beside box, with no box",
+                     "Placement, the cut list and every rule read a part's box; the box a profile fits in serves "
+                     "them unchanged."),
+                _alt("named-sections", "Named sections (angle, channel) with a wall thickness and a way they open",
+                     "An outline says any section and its way round at once, with nothing to learn per shape."),
+            ],
+        ),
     ]
 
 

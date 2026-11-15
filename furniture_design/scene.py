@@ -34,7 +34,7 @@ from dataclasses import dataclass, field
 from quern import Quern
 from quern.tree import _segs, get_node
 
-from .natives import DIRECTIONS, _param, bodies, joint_layout, number
+from .natives import DIRECTIONS, _param, bodies, joint_layout, number, section
 
 TOUCH = 0.5
 
@@ -70,6 +70,7 @@ class Part:
     tools: list[Tool] = field(default_factory=list)                # what cuts its cuts
     saws: list[tuple[str, float | None]] = field(default_factory=list)  # what cuts it out: (name, kerf)
     within: list[tuple[str, str]] = field(default_factory=list)   # the groups holding it, outermost first: (id, name)
+    section: list[tuple[float, float]] = field(default_factory=list)  # a profile's outline across its length, from lo
 
     @property
     def size(self) -> tuple[float, float, float]:
@@ -86,10 +87,17 @@ class Part:
         from shapely.geometry import box as rect
         from shapely.geometry.polygon import orient
 
-        t = min(range(3), key=lambda i: self.size[i])
-        u, v = [i for i in range(3) if i != t]
         lo = [a + o for a, o in zip(self.lo, offset)]
         hi = [a + o for a, o in zip(self.hi, offset)]
+        if self.section:   # a profile: its section, run along its length
+            t = max(range(3), key=lambda i: self.size[i])
+            u, v = [i for i in range(3) if i != t]
+            pts = [(lo[u] + a, lo[v] + b) for a, b in self.section]
+            if sum(a * d - c * b for (a, b), (c, d) in zip(pts, pts[1:] + pts[:1])) < 0:
+                pts.reverse()
+            return Profile(u, v, t, pts, lo[t], hi[t])
+        t = min(range(3), key=lambda i: self.size[i])
+        u, v = [i for i in range(3) if i != t]
         shape = rect(lo[u], lo[v], hi[u], hi[v])
         for clo, chi in self.cuts:
             clo = [a + o for a, o in zip(clo, offset)]
@@ -411,7 +419,8 @@ def scene(tree: Quern, piece: str) -> Scene:
         parts.append(Part(b.path, node.id, node.name or node.id, marks.get(b.path, ""),
                           tuple(b.lo), tuple(b.hi), material, label,
                           payload.get("span_along", ""),
-                          int(payload.get("sheets", 1)), cuts, tools, saws, within))
+                          int(payload.get("sheets", 1)), cuts, tools, saws, within,
+                          section(tree, b.path, node)))
     by_path = {p.path: p for p in parts}
     joints = []
     prefix = piece.rstrip("/") + "/"
