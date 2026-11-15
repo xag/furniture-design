@@ -85,7 +85,7 @@ def whys(c: dict) -> str:
 
 
 def test_two_doors_in_one_rail_as_designed_reach_both_levels():
-    assert reached(piece_cert()) == ["piece-settled", "piece-works"]
+    assert reached(piece_cert()) == ["piece-settled", "piece-works", "piece-instructions"]
 
 
 def test_a_channel_glued_in_the_angle_leaves_the_back_door_no_room():
@@ -112,4 +112,16 @@ def test_a_number_the_ledger_states_is_compared_with_the_model():
 def test_parts_nothing_holds_and_doors_nothing_moves_are_named():
     c = piece_cert(piece=sp.example_piece(joints=False, motions=False))
     assert "pieces/doors/angle: no joint joins it, and no motion moves it" in whys(c)
-    assert "pieces/doors/front-door/panel: no joint joins it, and no motion moves it" in whys(c)
+    assert "pieces/doors/front-door/front-panel: no joint joins it, and no motion moves it" in whys(c)
+
+
+def test_instructions_are_not_at_the_level_until_the_steps_build_the_piece():
+    """The design works, and its steps say nothing of what fixes the rail: the piece holds together and its
+    assembly instructions are not to be shown."""
+    c = piece_cert(piece=sp.example_piece(steps=[{"add": ["angle", "channel", "back-panel", "front-panel"]}]))
+    assert reached(c) == ["piece-settled", "piece-works"]
+    assert "angle-to-lintel: no assembly step closes it" in whys(c)
+
+
+def test_a_design_that_does_not_work_has_no_instructions_to_show():
+    assert "piece-instructions" not in reached(piece_cert(piece=sp.example_piece(channel_at=7.0)))

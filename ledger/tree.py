@@ -1498,6 +1498,34 @@ def entries() -> list[Node]:
                      "The party graded would grade itself; a quoted sentence and a named part are checked."),
             ],
         ),
+        Node(
+            id="a-pieces-instructions-have-a-level-to-reach", kind="decision",
+            name="furniture-standards@ has a level a piece's assembly instructions are shown at "
+                 "(standards/piece-instructions): the design is explained, agrees with its ledger, holds together, "
+                 "its mechanisms work, and its steps build it: every part is brought in by a step, and every "
+                 "joint is closed by a step, no sooner than the one that brings in the last part it joins. "
+                 "Whoever shows instructions reads the level; what it requires is this package's to raise",
+            payload={"decided_on": "2026-11-15",
+                     "the_owner": "il faut certifier la notive, et ne pas l'afficher tant qu'elle n'est pas au "
+                                  "niveau",
+                     "why": "A piece's instructions were three steps that showed parts arriving, with what fixed "
+                            "them said in a sentence or not at all, for a design whose rails could not work; "
+                            "they were shown like any other.",
+                     "not_yet": "The level reads the piece's steps, not the pages drawn: no sentence on a page, "
+                                "what a part is fixed to shown in the step's picture, a close-up per fixing, the "
+                                "hardware counted on the parts page, each part cut from what was bought, the "
+                                "rules read from sources on IKEA's instructions, and the step order computed "
+                                "from the joints, are to be added to it."},
+            links={"rests_on": ["a-pieces-design-is-certified-against-its-ledger-and-its-mechanisms",
+                                "every-page-of-the-instructions-is-drawn-to-ikeas-rules"]},
+            children=[
+                _alt("always-shown", "Show the instructions of any piece that builds",
+                     "Turned down by the owner: not until they are at the level."),
+                _alt("no-sentence-now", "Require now that no step carries a sentence",
+                     "The drawing code still owes the pictures that replace them (every-page-of-the-instructions-"
+                     "is-drawn-to-ikeas-rules): no piece could reach the level, and it would say nothing."),
+            ],
+        ),
     ]
 
 

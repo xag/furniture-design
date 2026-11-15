@@ -203,7 +203,7 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "pytest", specifier = ">=8.0.0" },
-    { name = "testplan", git = "https://github.com/xag/testplan?rev=fe886041c5c20d03d6b8f07137836572e0155e03" },
+    { name = "testplan", git = "https://github.com/xag/testplan?rev=9d45f80cd57eee30fe402d5ee8f8b06ed3ee8ca8" },
 ]
 
 [[package]]
@@ -808,7 +808,7 @@ wheels = [
 [[package]]
 name = "testplan"
 version = "0.1.0"
-source = { git = "https://github.com/xag/testplan?rev=fe886041c5c20d03d6b8f07137836572e0155e03#fe886041c5c20d03d6b8f07137836572e0155e03" }
+source = { git = "https://github.com/xag/testplan?rev=9d45f80cd57eee30fe402d5ee8f8b06ed3ee8ca8#9d45f80cd57eee30fe402d5ee8f8b06ed3ee8ca8" }
 dependencies = [
     { name = "pytest" },
 ]

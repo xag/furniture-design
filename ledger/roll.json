@@ -370,6 +370,21 @@
     "digest": "2fc8d8fd53a5"
   },
   {
+    "path": "a-pieces-instructions-have-a-level-to-reach",
+    "kind": "decision",
+    "digest": "df56781d5d0a"
+  },
+  {
+    "path": "a-pieces-instructions-have-a-level-to-reach/always-shown",
+    "kind": "alternative",
+    "digest": "5d0dc3d1ed13"
+  },
+  {
+    "path": "a-pieces-instructions-have-a-level-to-reach/no-sentence-now",
+    "kind": "alternative",
+    "digest": "2144a9c93a6e"
+  },
+  {
     "path": "a-profile-is-one-part-with-its-section",
     "kind": "decision",
     "digest": "e337cbbfcd85"

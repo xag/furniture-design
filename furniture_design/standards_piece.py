@@ -296,7 +296,52 @@ def figures_off(tree: Quern, piece: str) -> float:
     return float(len(_off(tree, piece)))
 
 
+# --- the assembly steps -------------------------------------------------------------------------
+
+def _steps(tree: Quern, piece: str) -> list[dict]:
+    return [s for s in (_piece(tree, piece).payload or {}).get("steps") or [] if isinstance(s, dict)]
+
+
+def _unplaced(tree: Quern, piece: str) -> list[str]:
+    added = {str(a) for s in _steps(tree, piece) if not s.get("prepare") for a in s.get("add") or []}
+    return [f"{b.path}: no assembly step brings it in" for b in natives.bodies(tree, piece)
+            if b.path.rpartition("/")[2] not in added]
+
+
+def steps_unplaced(tree: Quern, piece: str) -> float:
+    """How many parts of the piece no assembly step brings in (a step's add names parts by their id;
+    a preparation step, which makes a part ready, brings none in)."""
+    return float(len(_unplaced(tree, piece)))
+
+
+def _misclosed(tree: Quern, piece: str) -> list[str]:
+    joints = {p.rpartition("/")[2]: j for p, j in _nodes(_piece(tree, piece), piece, "joint")}
+    closed: dict[str, int] = {}
+    placed: set[str] = set()
+    out = []
+    for n, s in enumerate([s for s in _steps(tree, piece) if not s.get("prepare")], 1):
+        placed |= {str(a) for a in s.get("add") or []}
+        for jid in s.get("joints") or []:
+            if jid not in joints:
+                out.append(f"step {n} closes {jid}, which is not a joint of the piece")
+                continue
+            closed.setdefault(jid, n)
+            missing = [t.rpartition("/")[2] for t in joints[jid].links.get("joins", [])
+                       if t.rpartition("/")[2] not in placed]
+            if missing:
+                out.append(f"step {n} closes {jid} before {', '.join(missing)} is brought in")
+    return out + [f"{jid}: no assembly step closes it" for jid in joints if jid not in closed]
+
+
+def joints_misclosed(tree: Quern, piece: str) -> float:
+    """How many faults the piece's assembly steps have in the joints they close (a step's joints): a
+    joint no step closes, one closed before every part it joins is brought in, a name that is no joint."""
+    return float(len(_misclosed(tree, piece)))
+
+
 NATIVES = {
+    "furniture/steps_unplaced": steps_unplaced,
+    "furniture/joints_misclosed": joints_misclosed,
     "furniture/motions_unstated": motions_unstated,
     "furniture/unheld_slides": unheld_slides,
     "furniture/slide_crossings": slide_crossings,
@@ -308,6 +353,8 @@ NATIVES = {
 }
 
 EXPLAINERS = {
+    "furniture/steps_unplaced": _unplaced,
+    "furniture/joints_misclosed": _misclosed,
     "furniture/motions_unstated": _unstated,
     "furniture/unheld_slides": _unheld,
     "furniture/slide_crossings": _crossings,
@@ -339,16 +386,17 @@ def _part(id_: str, size: list, at: list, section: list | None = None) -> Node:
 
 
 def example_piece(*, channel_at: float = 0.0, joints: bool = True, back_guides: tuple[str, ...] = ("channel", "angle"),
-                  overlap: float = 50.0, travel: list | None = None, motions: bool = True) -> Node:
+                  overlap: float = 50.0, travel: list | None = None, motions: bool = True,
+                  steps: list | None = None) -> Node:
     """Two doors, 600 wide, in an opening `2 * 600 - overlap` wide; the channel `channel_at` mm from the
     flange's front edge (0: at the edge, as designed; 7: glued in the angle)."""
     angle = _part("angle", ["width", 20, 20], [0, 0, 1180],
                   [[0, 19], [19, 19], [19, 0], [20, 0], [20, 20], [0, 20]])
     channel = _part("channel", ["width", 12, 12], [0, channel_at, 1187],
                     [[0, 0], [1, 0], [1, 11], [11, 11], [11, 0], [12, 0], [12, 12], [0, 12]])
-    front = Node(id="front-door", kind="assembly", children=[_part("panel", [600, 8, 1190], [0, channel_at + 2, 5])])
+    front = Node(id="front-door", kind="assembly", children=[_part("front-panel", [600, 8, 1190], [0, channel_at + 2, 5])])
     back = Node(id="back-door", kind="assembly",
-                children=[_part("panel", [600, 6, 1190], ["width - 600", 12.5, 5])])
+                children=[_part("back-panel", [600, 6, 1190], ["width - 600", 12.5, 5])])
     children = [angle, channel, front, back]
     if joints:
         children += [Node(id="angle-to-lintel", kind="joint", links={"joins": [f"{_PIECE}/angle"]},
@@ -361,7 +409,12 @@ def example_piece(*, channel_at: float = 0.0, joints: bool = True, back_guides: 
             Node(id="back-slides", kind="motion", payload={"type": "slide", "axis": "x", "travel": ["600 - width", 0]},
                  links={"moves": [f"{_PIECE}/back-door"], "guided_by": [f"{_PIECE}/{g}" for g in back_guides]})]
     return Node(id="doors", kind="piece", children=children,
+                payload={"steps": STEPS if steps is None else steps},
                 params={"width": Quantity(value=1200.0 - overlap, unit="mm", provenance="design-target", grounded=False)})
+
+
+STEPS = [{"add": ["angle", "channel"], "joints": ["angle-to-lintel", "channel-to-angle"]},
+         {"add": ["back-panel", "front-panel"]}]
 
 
 def example_ledger(*, answers: bool = True, realised: bool = True, figure: float | None = 50.0,
@@ -391,6 +444,19 @@ def _demo(contract: str, expect: float, because: str, **kw):
 
 
 SPEC = {
+    "furniture/steps_unplaced": [
+        _demo("furniture/steps_unplaced", 0, "the rail, then the two doors: every part is brought in"),
+        _demo("furniture/steps_unplaced", 2, "steps that stop at the rail leave both doors on the floor",
+              piece=example_piece(steps=STEPS[:1])),
+    ],
+    "furniture/joints_misclosed": [
+        _demo("furniture/joints_misclosed", 0, "the rail's two joints are closed in the step that brings it in"),
+        _demo("furniture/joints_misclosed", 1, "the channel glued to an angle that comes one step later",
+              piece=example_piece(steps=[{"add": ["channel"], "joints": ["channel-to-angle"]},
+                                         {"add": ["angle", "back-panel", "front-panel"], "joints": ["angle-to-lintel"]}])),
+        _demo("furniture/joints_misclosed", 2, "steps that bring parts in and say nothing of what fixes them",
+              piece=example_piece(steps=[{"add": ["angle", "channel", "back-panel", "front-panel"]}])),
+    ],
     "furniture/motions_unstated": [
         _demo("furniture/motions_unstated", 0, "each slide states its axis, its travel, what moves and what guides"),
         _demo("furniture/motions_unstated", 1, "a travel that is one number, not from and to",

@@ -186,7 +186,7 @@ def knowledge() -> list[Node]:
         _criterion("tool-figures-are-closed", "Every figure rests on two observations that agree", "reliability",
                    "a-tools-figures-each-rest-on-two-observations"),
         _level("tool-listed", "Shown, drawn, in a person's tools", "tool-is-identified", "tool-is-drawn"),
-        _level("tool-cuts-parts", "Cuts the parts of a piece", "tool-is-identified", "saw-states-its-cut",
+        _level("tool-cuts-parts", "Its figures are read by a piece's checks", "tool-is-identified", "saw-states-its-cut",
                "tool-figures-are-consistent", "tool-figures-are-observed"),
         _level("tool-in-instructions", "Drawn at work in assembly instructions", "tool-is-identified",
                "tool-is-drawn", "tool-drawing-is-true", "tool-is-said", "tool-figures-are-consistent"),
@@ -204,10 +204,16 @@ def knowledge() -> list[Node]:
         _criterion("piece-mechanisms-work", "What slides is held on both sides and has room along its travel",
                    "consistency", "a-pieces-motions-are-stated", "a-pieces-sliding-parts-are-held",
                    "a-pieces-sliding-parts-have-room", of="piece"),
+        _criterion("piece-steps-build-it", "The assembly steps bring in every part and close every joint, each "
+                   "once its parts are in", "completeness", "a-pieces-steps-bring-in-every-part",
+                   "a-pieces-steps-close-every-joint", of="piece"),
         _level("piece-settled", "Its design says what the person asked for", "piece-is-explained",
                "piece-agrees-with-its-ledger", of="piece"),
         _level("piece-works", "It holds together and what moves in it works", "piece-is-explained",
                "piece-agrees-with-its-ledger", "piece-holds-together", "piece-mechanisms-work", of="piece"),
+        _level("piece-instructions", "Its assembly instructions are shown", "piece-is-explained",
+               "piece-agrees-with-its-ledger", "piece-holds-together", "piece-mechanisms-work",
+               "piece-steps-build-it", of="piece"),
     ])]
 
 
@@ -406,6 +412,11 @@ RULES = [
                      "guide there, or name the part that is."),
     Rule(name="a-pieces-sliding-parts-have-room", kind="piece", expr="solve('furniture/slide_crossings', self) == 0",
          description="A sliding part crosses another part along its travel: move one of them, so it runs clear."),
+    Rule(name="a-pieces-steps-bring-in-every-part", kind="piece", expr="solve('furniture/steps_unplaced', self) == 0",
+         description="Bring every part in by an assembly step (payload steps, a step's add)."),
+    Rule(name="a-pieces-steps-close-every-joint", kind="piece", expr="solve('furniture/joints_misclosed', self) == 0",
+         description="Close every joint in an assembly step (a step's joints), no sooner than the step that "
+                     "brings in the last part it joins."),
     Rule(name="a-saw-states-its-depth", kind="tool",
          expr="len(payload(self, 'saw_kind', '')) == 0 or states(self, 'max_cut_depth')",
          description="State the thickest board the saw cuts (max_cut_depth), from its maker's document."),
@@ -455,6 +466,11 @@ COUNTER_EXAMPLES = [
                    because="a saw whose cut nobody stated"),
     CounterExample(rule="a-saw-states-its-depth", nodes=_world(example_tool(saw=True, drop=("max_cut_depth",))),
                    because="a saw whose depth nobody stated"),
+    CounterExample(rule="a-pieces-steps-bring-in-every-part", nodes=_piece_case(piece=piece.example_piece(steps=piece.STEPS[:1])),
+                   because="instructions that stop once the rail is up, the doors never hung"),
+    CounterExample(rule="a-pieces-steps-close-every-joint",
+                   nodes=_piece_case(piece=piece.example_piece(steps=[{"add": ["angle", "channel", "back-panel", "front-panel"]}])),
+                   because="one step that shows every part arriving and nothing fixing the rail"),
     CounterExample(rule="a-pieces-purpose-is-answered", nodes=_piece_case(ledger=piece.example_ledger(answers=False)),
                    because="doors said to slide in one rail, and no decision on how"),
     CounterExample(rule="a-pieces-decisions-name-what-realises-them",
@@ -478,7 +494,7 @@ COUNTER_EXAMPLES = [
 
 PACKAGE = Package(
     name="furniture-standards",
-    version="0.2.0",
+    version="0.3.0",
     description=(
         "What a tool's entry is held to for each use it may be put to, as criteria and levels a certificate "
         "is run from (quern.certify). Criteria: the tool is identified, drawn, its drawing true to its "
@@ -489,7 +505,8 @@ PACKAGE = Package(
         "of its ledger that names what realises it, the numbers the ledger states given by the model, every part "
         "fixed by a joint or moved by a motion (kind motion: a slide's axis, travel, what moves and what guides "
         "it), and what slides held on both sides with room along its travel; levels: its design says what the "
-        "person asked for, it holds together and what moves in it works. The rules grade and refuse nothing."),
+        "person asked for, it holds together and what moves in it works, its assembly instructions are shown (the "
+        "steps bring in every part and close every joint once its parts are in). The rules grade and refuse nothing."),
     publisher="xag/furniture-design",
     vocabulary=VOCABULARY,
     rules=RULES,
