@@ -175,6 +175,21 @@
     "digest": "ceb7568b3447"
   },
   {
+    "path": "a-held-part-is-pulled-apart-the-way-its-holder-opens",
+    "kind": "decision",
+    "digest": "098ff10ca9e5"
+  },
+  {
+    "path": "a-held-part-is-pulled-apart-the-way-its-holder-opens/between-the-two-middles",
+    "kind": "alternative",
+    "digest": "6946c4f8f129"
+  },
+  {
+    "path": "a-held-part-is-pulled-apart-the-way-its-holder-opens/rays-along-the-axes",
+    "kind": "alternative",
+    "digest": "095be0f98856"
+  },
+  {
     "path": "a-joints-grooves-are-cut-from-one-reference-the-card-names",
     "kind": "decision",
     "digest": "3f17dbb54dcf"
@@ -288,6 +303,16 @@
     "path": "a-part-names-the-saw-that-cuts-it-out/a-saw-solver",
     "kind": "alternative",
     "digest": "8adbede236e2"
+  },
+  {
+    "path": "a-part-row-opens-the-part-alone",
+    "kind": "decision",
+    "digest": "25fb6ac05779"
+  },
+  {
+    "path": "a-part-row-opens-the-part-alone/groups-made-up-for-the-banc",
+    "kind": "alternative",
+    "digest": "ce8f9fb4d38f"
   },
   {
     "path": "a-piece-has-a-cutting-sheet-for-the-shop",

@@ -1629,6 +1629,22 @@ def entries() -> list[Node]:
                      "face again."),
             ],
         ),
+        Node(
+            id="a-part-row-opens-the-part-alone", kind="decision",
+            name="In the 3D view a part's row opens it alone, as a group's row opens the group: the parts of its "
+                 "letter in the group shown, fitted, the title leading back up through the groups to the piece. A "
+                 "piece whose parts stand in no group is walked the same way, one level deep",
+            links={"rests_on": ["the-tree-leads-the-3d-views-panel"]},
+            payload={"decided_on": "2026-11-15",
+                     "the_owner": "The banc à chaussures doesn't have the new 3D view. I don't see the navigatoin "
+                                  "throught the tree",
+                     "why": "The banc's parts stand in no group, so its list had nothing to open; a part's row "
+                            "only coloured it, which a blind tester read as nothing happening."},
+            children=[
+                _alt("groups-made-up-for-the-banc", "Groups added to the banc's model",
+                     "They would be a design choice nobody made; opening a part needs none."),
+            ],
+        ),
     ]
 
 

@@ -146,8 +146,12 @@ function fit() {
   renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix();
 }
 // the group shown: the ids from the piece down to it, none for the whole piece
+// the way down to what is shown: the ids of the groups from the piece, then, when one part is
+// opened, {mark, name}: the parts of that letter in the last group
 let here = [];
-const under = p => here.every((id, i) => p.within[i] && p.within[i][0] === id);
+const groupsOf = () => here.filter(x => typeof x === 'string'), opened = () => here.find(x => typeof x !== 'string');
+const under = p => groupsOf().every((id, i) => p.within[i] && p.within[i][0] === id) &&
+  (!opened() || p.mark === opened().mark);
 // the middle and the largest side of what is shown
 function shown() {
   const ps = DATA.parts.filter(under), a = [0, 1, 2].map(i => Math.min(...ps.map(p => p.lo[i]))),
@@ -225,20 +229,22 @@ document.getElementById('reset').onclick = () => { stepIn.value = 0; document.ge
 const list = document.getElementById('parts'), title = document.getElementById('title');
 const fmt = n => String(Math.round(n * 10) / 10);
 let seen = {};
-// the list is the group shown: the groups in it first, then its own parts, one row per letter.
-// The title is the way back up, the piece then each group down to the one shown, and the line
-// under it gives the size of what is shown.
+// the list is the group shown: the groups in it first, then its own parts, one row per letter;
+// a row opens its group or its part alone. The title is the way back up, the piece then each
+// group down to what is shown, and the line under it gives the size of what is shown.
 function listing() {
   list.innerHTML = ''; seen = {};
   const groups = new Map();
+  const depth = groupsOf().length;
   DATA.parts.filter(under).forEach(p => {
-    const g = p.within[here.length];
+    const g = p.within[depth];
     if (g) { if (!groups.has(g[0])) groups.set(g[0], {name: g[1], parts: []}); groups.get(g[0]).parts.push(p); return; }
     if (seen[p.mark]) { seen[p.mark].n += p.sheets; seen[p.mark].li.querySelector('.n').textContent = '× ' + seen[p.mark].n; return; }
     const li = document.createElement('li');
     const s = [p.hi[0]-p.lo[0], p.hi[1]-p.lo[1], p.hi[2]-p.lo[2]].sort((a,b)=>b-a);
-    li.innerHTML = `<span class="mark">${p.mark}</span><span><b>${p.name}</b> <span class="n">× ${p.sheets}</span><br><span class="dims">${s[0]} × ${s[1]} × ${s[2]/p.sheets} mm</span></span>`;
-    li.onclick = () => select(p.mark);
+    li.innerHTML = `<span class="mark">${p.mark}</span><span><b>${p.name}</b> <span class="n">× ${p.sheets}</span><br><span class="dims">${s[0]} × ${s[1]} × ${s[2]/p.sheets} mm</span></span>` +
+      (opened() ? '' : '<span class="into" aria-hidden="true">›</span>');
+    li.onclick = () => opened() ? select(p.mark) : go([...groupsOf(), {mark: p.mark, name: p.name}]);
     list.appendChild(li); seen[p.mark] = {li, n:p.sheets};
   });
   [...groups].reverse().forEach(([id, g]) => {
@@ -253,8 +259,8 @@ function listing() {
   title.textContent = DATA.title;
   if (!here.length) return;
   title.innerHTML = '';
-  const first = DATA.parts.find(under);
-  [[null, DATA.title], ...first.within.slice(0, here.length)].forEach(([id, name], i) => {
+  const first = DATA.parts.find(under), part = opened();
+  [[null, DATA.title], ...first.within.slice(0, depth), ...(part ? [[part, part.name]] : [])].forEach(([id, name], i) => {
     if (i) title.append(' › ');
     if (i === here.length) { title.append(name); return; }
     const a = document.createElement('a'); a.href = '#'; a.textContent = name;
