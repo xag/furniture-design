@@ -26,6 +26,7 @@ from quern.solver import SolverDef
 from quern.tree import Demonstration, KindDef, Node, Quern, Rule, get_node, register_native
 
 from . import standards_piece as piece
+from . import standards_words as words
 
 STANDARDS = "standards"
 
@@ -158,11 +159,11 @@ EXPLAINERS = {
 
 def _criterion(id_: str, name: str, measures: str, *rules: str, of: str = "tool") -> Node:
     return Node(id=id_, kind="criterion", name=name,
-                payload={"applies_to": of, "measures": measures, "rules": list(rules)})
+                payload={"applies_to": of, "measures": measures, "rules": list(rules), "say": words.SAY[id_]})
 
 
 def _level(id_: str, name: str, *criteria: str, of: str = "tool", allows: tuple = ()) -> Node:
-    return Node(id=id_, kind="level", name=name, payload={"of": of, "allows": list(allows)},
+    return Node(id=id_, kind="level", name=name, payload={"of": of, "allows": list(allows), "say": words.SAY[id_]},
                 links={"requires": [f"{STANDARDS}/{c}" for c in criteria]})
 
 
@@ -461,6 +462,8 @@ RULES = [
          description="State the thickest board the saw cuts (max_cut_depth), from its maker's document."),
 ]
 
+# what each rule says to people when it does not hold, per language (standards_words.RED): every rule says it
+RULES = [r.model_copy(update={"messages": words.messages(r.name)}) for r in RULES]
 
 register()
 
@@ -533,7 +536,7 @@ COUNTER_EXAMPLES = [
 
 PACKAGE = Package(
     name="furniture-standards",
-    version="0.4.0",
+    version="0.5.0",
     description=(
         "What a tool's entry is held to for each use it may be put to, as criteria and levels a certificate "
         "is run from (quern.certify). Criteria: the tool is identified, drawn, its drawing true to its "

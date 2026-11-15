@@ -1,0 +1,125 @@
+"""What furniture-standards@ says to people, per language.
+
+A criterion and a level say their name (payload say: {language: name}); a rule says what is wrong
+when it does not hold (messages: {language: {"red": sentence}}, quern's messages). They are for the
+person who looks at a certificate, in the language their piece is made in; a rule's description
+stays what it tells whoever must put it right. Whoever shows a certificate reads these and writes
+no word of its own.
+"""
+from __future__ import annotations
+
+# criterion or level id -> its name, per language
+SAY = {
+    "tool-is-identified": {"en": "The tool names its maker and the clauses it is read from",
+                           "fr": "L'outil nomme son fabricant et les passages d'où il est lu"},
+    "tool-is-drawn": {"en": "The tool has a model that draws", "fr": "L'outil a un modèle qui se dessine"},
+    "tool-drawing-is-true": {"en": "The model shows the tool's figures",
+                             "fr": "Le modèle montre les cotes de l'outil"},
+    "tool-is-said": {"en": "The tool says its name and method in every language",
+                     "fr": "L'outil dit son nom et sa méthode dans chaque langue"},
+    "saw-states-its-cut": {"en": "A saw states its cut and its depth",
+                           "fr": "Une scie donne son trait et sa profondeur de coupe"},
+    "tool-figures-are-consistent": {"en": "The tool's figures do not contradict each other",
+                                    "fr": "Les chiffres de l'outil ne se contredisent pas"},
+    "tool-figures-are-observed": {"en": "Every figure was found printed in a document",
+                                  "fr": "Chaque chiffre a été trouvé imprimé dans un document"},
+    "tool-figures-are-closed": {"en": "Every figure rests on two observations that agree",
+                                "fr": "Chaque chiffre repose sur deux observations qui concordent"},
+    "tool-listed": {"en": "Shown, drawn, in a person's tools", "fr": "Montré, dessiné, parmi les outils d'une personne"},
+    "tool-cuts-parts": {"en": "Its figures are read by a piece's checks",
+                        "fr": "Ses chiffres servent aux vérifications d'un meuble"},
+    "tool-in-instructions": {"en": "Drawn at work in assembly instructions",
+                             "fr": "Dessiné à l'œuvre dans une notice de montage"},
+    "tool-shared": {"en": "Taken into the shared packages", "fr": "Repris dans les paquets partagés"},
+    "piece-is-explained": {"en": "Every sentence of the piece's purpose is answered by a decision that names what "
+                                 "realises it",
+                           "fr": "Chaque phrase de ce qu'on attend du meuble a sa décision, qui nomme ce qui la réalise"},
+    "piece-agrees-with-its-ledger": {"en": "The model gives the numbers the piece's ledger states",
+                                     "fr": "Le modèle donne les chiffres que le registre du meuble énonce"},
+    "piece-holds-together": {"en": "Every part is fixed by a joint or moved by a motion",
+                             "fr": "Chaque pièce est fixée par un assemblage ou portée par un mouvement"},
+    "piece-mechanisms-work": {"en": "What slides is held on both sides and has room along its travel",
+                              "fr": "Ce qui coulisse est tenu des deux côtés et a la place de sa course"},
+    "piece-steps-build-it": {"en": "The assembly steps bring in every part and close every joint, each once its "
+                                   "parts are in",
+                             "fr": "Les étapes de montage amènent chaque pièce et ferment chaque assemblage, une "
+                                   "fois ses pièces en place"},
+    "piece-settled": {"en": "Its design says what the person asked for",
+                      "fr": "Sa conception dit ce que la personne a demandé"},
+    "piece-works": {"en": "It holds together and what moves in it works",
+                    "fr": "Il tient ensemble et ce qui y bouge fonctionne"},
+    "piece-instructions": {"en": "Its assembly instructions are shown", "fr": "Sa notice de montage est montrée"},
+}
+
+# rule name -> what is wrong when it does not hold, per language
+RED = {
+    "a-criterion-names-what-it-judges": {
+        "en": "This criterion does not say what it judges, by which rules, or what it measures.",
+        "fr": "Ce critère ne dit pas ce qu'il juge, par quelles règles, ou ce qu'il mesure."},
+    "a-level-requires-criteria": {
+        "en": "This level does not say what it is a use of, or requires a criterion that does not exist.",
+        "fr": "Ce niveau ne dit pas de quoi il est un usage, ou exige un critère qui n'existe pas."},
+    "a-tool-names-its-maker": {"en": "The tool's maker is not named.", "fr": "Le fabricant de l'outil n'est pas nommé."},
+    "a-tool-rests-on-clauses": {
+        "en": "The tool is read from no passage of its maker's documents.",
+        "fr": "L'outil n'est lu d'aucun passage des documents de son fabricant."},
+    "a-tool-says-itself-in-every-language": {
+        "en": "The tool's name and method are missing in a language the documents are written in.",
+        "fr": "Le nom et la méthode de l'outil manquent dans une langue des documents."},
+    "a-tool-has-a-model-that-draws": {
+        "en": "The tool has no model it can be drawn from.",
+        "fr": "L'outil n'a pas de modèle d'après lequel le dessiner."},
+    "a-tools-model-shows-its-figures": {
+        "en": "The tool's model does not show its figures, or shows one at another size.",
+        "fr": "Le modèle de l'outil ne montre pas ses cotes, ou en montre une à une autre taille."},
+    "a-tools-figures-are-in-order": {
+        "en": "Two of the tool's figures contradict each other.",
+        "fr": "Deux chiffres de l'outil se contredisent."},
+    "a-tools-figures-each-rest-on-an-observation": {
+        "en": "A figure of the tool was not found printed in a document.",
+        "fr": "Un chiffre de l'outil n'a été trouvé imprimé dans aucun document."},
+    "a-tools-figures-each-rest-on-two-observations": {
+        "en": "A figure of the tool rests on one observation only.",
+        "fr": "Un chiffre de l'outil ne repose que sur une seule observation."},
+    "a-tools-figures-agree-with-what-they-are-read-from": {
+        "en": "A figure of the tool differs from the value it is read from.",
+        "fr": "Un chiffre de l'outil diffère de la valeur d'où il est lu."},
+    "a-saw-states-its-cut": {"en": "The saw does not state the cut of its blade.",
+                             "fr": "La scie ne donne pas le trait de sa lame."},
+    "a-saw-states-its-depth": {"en": "The saw does not state the thickest board it cuts.",
+                               "fr": "La scie ne donne pas l'épaisseur maximale qu'elle coupe."},
+    "a-pieces-purpose-is-answered": {
+        "en": "A sentence of what the piece is for is answered by no decision.",
+        "fr": "Une phrase de ce qu'on attend du meuble n'a pas de décision qui y réponde."},
+    "a-pieces-decisions-name-what-realises-them": {
+        "en": "A decision does not name the parts, joints or motions that realise it.",
+        "fr": "Une décision ne nomme pas les pièces, assemblages ou mouvements qui la réalisent."},
+    "a-pieces-stated-numbers-are-checked": {
+        "en": "A quantity the ledger states in words is compared with nothing in the model.",
+        "fr": "Une quantité que le registre énonce en toutes lettres n'est comparée à rien dans le modèle."},
+    "a-pieces-figures-are-those-of-its-model": {
+        "en": "The model does not give a number the ledger states.",
+        "fr": "Le modèle ne donne pas un chiffre que le registre énonce."},
+    "a-pieces-parts-are-fixed-or-guided": {
+        "en": "A part is neither fixed by a joint nor moved by a motion.",
+        "fr": "Une pièce n'est ni fixée par un assemblage ni portée par un mouvement."},
+    "a-pieces-motions-are-stated": {
+        "en": "A motion does not say its axis, its travel, what moves or what guides it.",
+        "fr": "Un mouvement ne dit pas son axe, sa course, ce qui bouge ou ce qui le guide."},
+    "a-pieces-sliding-parts-are-held": {
+        "en": "A sliding part is not held on both sides by what guides it.",
+        "fr": "Une pièce qui coulisse n'est pas tenue des deux côtés par ce qui la guide."},
+    "a-pieces-sliding-parts-have-room": {
+        "en": "A sliding part crosses another part along its travel.",
+        "fr": "Une pièce qui coulisse en traverse une autre le long de sa course."},
+    "a-pieces-steps-bring-in-every-part": {
+        "en": "A part is brought in by no assembly step.",
+        "fr": "Une pièce n'est amenée par aucune étape de montage."},
+    "a-pieces-steps-close-every-joint": {
+        "en": "A joint is closed by no step, or before the parts it joins are in.",
+        "fr": "Un assemblage n'est fermé par aucune étape, ou avant que ses pièces soient en place."},
+}
+
+
+def messages(rule: str) -> dict:
+    return {lang: {"red": text} for lang, text in RED[rule].items()}
