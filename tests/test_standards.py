@@ -183,3 +183,14 @@ def test_the_pages_drawn_are_the_pages_judged(tmp_path):
     lines = _worded(t, "pieces/bench")
     assert any("Push the back onto the left side." in line for line in lines), lines
     assert not any('"bench"' in line or "450 × 300" in line for line in lines), lines
+
+
+def test_a_hinged_part_is_carried_where_it_turns_and_swings_clear():
+    """A flap hinged on the rail's top front edge lifts outwards and the design still works; said to open
+    inwards, it goes through the rail and the door behind it, and the certificate names each."""
+    assert "piece-works" in reached(piece_cert(piece=sp.example_piece(flap={})))
+    inwards = piece_cert(piece=sp.example_piece(flap={"travel": [0, 90]}))
+    assert "piece-works" not in reached(inwards)
+    assert "it crosses pieces/doors/front-door/front-panel" in whys(inwards)
+    adrift = piece_cert(piece=sp.example_piece(flap={"pivot": [-108, 1200]}))
+    assert "piece-works" not in reached(adrift) and "from what carries it" in whys(adrift)

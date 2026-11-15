@@ -38,8 +38,10 @@ SAY = {
                                      "fr": "Le modèle donne les chiffres que le registre du meuble énonce"},
     "piece-holds-together": {"en": "Every part is fixed by a joint or moved by a motion",
                              "fr": "Chaque pièce est fixée par un assemblage ou portée par un mouvement"},
-    "piece-mechanisms-work": {"en": "What slides is held on both sides and has room along its travel",
-                              "fr": "Ce qui coulisse est tenu des deux côtés et a la place de sa course"},
+    "piece-mechanisms-work": {"en": "What slides is held on both sides, what turns is carried, and each has room "
+                                    "along its travel",
+                              "fr": "Ce qui coulisse est tenu des deux côtés, ce qui pivote est porté, et chacun a "
+                                    "la place de sa course"},
     "piece-steps-build-it": {"en": "The assembly steps bring in every part and close every joint, each once its "
                                    "parts are in",
                              "fr": "Les étapes de montage amènent chaque pièce et ferment chaque assemblage, une "
@@ -114,8 +116,14 @@ RED = {
         "en": "A part is neither fixed by a joint nor moved by a motion.",
         "fr": "Une pièce n'est ni fixée par un assemblage ni portée par un mouvement."},
     "a-pieces-motions-are-stated": {
-        "en": "A motion does not say its axis, its travel, what moves or what guides it.",
-        "fr": "Un mouvement ne dit pas son axe, sa course, ce qui bouge ou ce qui le guide."},
+        "en": "A motion does not say its axis, its travel, its pivot, what moves or what guides it.",
+        "fr": "Un mouvement ne dit pas son axe, sa course, son pivot, ce qui bouge ou ce qui le guide."},
+    "a-pieces-turning-parts-are-carried": {
+        "en": "A turning part turns about a line that is not on it, or not on what carries it.",
+        "fr": "Une pièce qui pivote tourne autour d'une ligne qui n'est pas sur elle, ou pas sur ce qui la porte."},
+    "a-pieces-turning-parts-have-room": {
+        "en": "A turning part crosses another part as it turns.",
+        "fr": "Une pièce qui pivote en traverse une autre en tournant."},
     "a-pieces-sliding-parts-are-held": {
         "en": "A sliding part is not held on both sides by what guides it.",
         "fr": "Une pièce qui coulisse n'est pas tenue des deux côtés par ce qui la guide."},

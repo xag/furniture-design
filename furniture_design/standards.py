@@ -185,6 +185,9 @@ def guidance() -> Node:
             from a document and the figure of another tool it must equal ("tools/<id>/<param>": the disc a
             sander takes), rests on two observations."""),
         say("certifying-a-pieces-design", "A piece's design is certified with its ledger", """
+            What is hinged is a motion too (type turn: the line it turns about, where that line is, and how
+            far it turns, in degrees): a turning part is held when that line lies on it and on the part that
+            carries its hinges, and must cross nothing through its travel.
             A piece's design is certified against the same standards (the criteria and levels of a piece): its
             certificate says the uses the design is fit for and, for each it is not yet, what to do. It reads
             the piece and its ledger together. Every sentence of the purpose is answered by a decision of the
@@ -241,9 +244,10 @@ def knowledge() -> list[Node]:
                    of="piece"),
         _criterion("piece-holds-together", "Every part is fixed by a joint or moved by a motion", "completeness",
                    "a-pieces-parts-are-fixed-or-guided", of="piece"),
-        _criterion("piece-mechanisms-work", "What slides is held on both sides and has room along its travel",
-                   "consistency", "a-pieces-motions-are-stated", "a-pieces-sliding-parts-are-held",
-                   "a-pieces-sliding-parts-have-room", of="piece"),
+        _criterion("piece-mechanisms-work", "What slides is held on both sides, what turns is carried, and each "
+                   "has room along its travel", "consistency", "a-pieces-motions-are-stated",
+                   "a-pieces-sliding-parts-are-held", "a-pieces-sliding-parts-have-room",
+                   "a-pieces-turning-parts-are-carried", "a-pieces-turning-parts-have-room", of="piece"),
         _criterion("piece-steps-build-it", "The assembly steps bring in every part and close every joint, each "
                    "once its parts are in", "completeness", "a-pieces-steps-bring-in-every-part",
                    "a-pieces-steps-close-every-joint", of="piece"),
@@ -393,11 +397,15 @@ VOCABULARY = [
         "requires is held. Read by quern.certify."),
         links={"requires": "the criteria this use needs"}),
     KindDef(kind="motion", description=(
-        "Something of a piece that moves, beneath the piece: payload type (slide), axis (x, y or z) and travel "
-        "([from, to] in mm from where the parts are modelled, numbers or expressions over the piece's params); "
-        "the link moves to the parts or assemblies that move, and guided_by to the parts that guide them. It "
-        "places and weighs nothing."),
-        links={"moves": "the parts or assemblies that move", "guided_by": "the parts that guide them"}),
+        "Something of a piece that moves, beneath the piece: payload type (slide, or turn for what is hinged), "
+        "axis (x, y or z: the way it slides, or the line it turns about) and travel ([from, to] from where the "
+        "parts are modelled, in mm for a slide and in degrees for a turn, anticlockwise positive seen with the "
+        "two other axes in their order; numbers or expressions over the piece's params); for a turn, pivot "
+        "([a, b]: where the line it turns about is, in the plane across the axis, in the piece's frame); the "
+        "link moves to the parts or assemblies that move, and guided_by to the parts that guide them or that "
+        "carry their hinges. It places and weighs nothing."),
+        links={"moves": "the parts or assemblies that move",
+               "guided_by": "the parts that guide them, or that carry their hinges"}),
 ]
 
 _MEASURES = ("completeness", "reliability", "consistency", "presentation")
@@ -464,8 +472,14 @@ RULES = [
          description="Say what holds every part: a joint that joins it (to another part, or payload to: what it "
                      "is fixed to outside the piece), or a motion that moves it."),
     Rule(name="a-pieces-motions-are-stated", kind="piece", expr="solve('furniture/motions_unstated', self) == 0",
-         description="State each motion whole: type slide, its axis, its travel [from, to], what moves and what "
-                     "it is guided by."),
+         description="State each motion whole: type slide or turn, its axis, its travel [from, to], for a turn "
+                     "its pivot, what moves and what it is guided by."),
+    Rule(name="a-pieces-turning-parts-are-carried", kind="piece", expr="solve('furniture/unheld_turns', self) == 0",
+         description="A turning part turns about a line on itself and on what carries it: put its pivot where its "
+                     "hinge is, and name the part the hinge is fixed to (guided_by)."),
+    Rule(name="a-pieces-turning-parts-have-room", kind="piece", expr="solve('furniture/turn_crossings', self) == 0",
+         description="A turning part crosses another part through its travel: move the pivot or the part, or turn "
+                     "it the other way, so it swings clear."),
     Rule(name="a-pieces-sliding-parts-are-held", kind="piece", expr="solve('furniture/unheld_slides', self) == 0",
          description="A sliding part needs a wall on both sides, of the parts its motion says guide it: place a "
                      "guide there, or name the part that is."),
@@ -571,6 +585,12 @@ COUNTER_EXAMPLES = [
                    because="a back door four fifths hidden behind the front one"),
     CounterExample(rule="a-pieces-steps-keep-their-context", nodes=_piece_case(pages={"context": 0.02}),
                    because="doors drawn over the whole rail they go in"),
+    CounterExample(rule="a-pieces-turning-parts-are-carried",
+                   nodes=_piece_case(piece=piece.example_piece(flap={"pivot": [-108, 1200]})),
+                   because="a flap said to turn about a line in mid-air, where no hinge can be"),
+    CounterExample(rule="a-pieces-turning-parts-have-room",
+                   nodes=_piece_case(piece=piece.example_piece(flap={"travel": [0, 90]})),
+                   because="a flap that opens inwards, through the rail and the door behind it"),
     CounterExample(rule="a-pieces-purpose-is-answered", nodes=_piece_case(ledger=piece.example_ledger(answers=False)),
                    because="doors said to slide in one rail, and no decision on how"),
     CounterExample(rule="a-pieces-decisions-name-what-realises-them",
@@ -594,7 +614,7 @@ COUNTER_EXAMPLES = [
 
 PACKAGE = Package(
     name="furniture-standards",
-    version="0.6.0",
+    version="0.7.0",
     description=(
         "What a tool's entry is held to for each use it may be put to, as criteria and levels a certificate "
         "is run from (quern.certify). Criteria: the tool is identified, drawn, its drawing true to its "
@@ -603,8 +623,9 @@ PACKAGE = Package(
         "tools, cuts the parts of a piece, drawn at work in assembly instructions, taken into the shared "
         "packages. And what a piece's design is held to: every sentence of its purpose answered by a decision "
         "of its ledger that names what realises it, the numbers the ledger states given by the model, every part "
-        "fixed by a joint or moved by a motion (kind motion: a slide's axis, travel, what moves and what guides "
-        "it), and what slides held on both sides with room along its travel; levels: its design says what the "
+        "fixed by a joint or moved by a motion (kind motion: a slide's or a turn's axis and travel, a turn's pivot, "
+        "what moves and what guides or carries it), what slides held on both sides, what turns carried where "
+        "it turns, each with room along its travel; levels: its design says what the "
         "person asked for, it holds together and what moves in it works, its assembly instructions are shown (the "
         "steps bring in every part and close every joint once its parts are in, and the pages as drawn carry no "
         "sentence, attach one kind of part a step with a line to where it goes and what fastens it, and show "

@@ -6,9 +6,11 @@ purpose no decision answers. These are the rules that say so. They read three th
 
 - the piece's parts and their profiles' sections (natives.bodies, natives.section);
 - its `joint` nodes, which say what is fixed to what, and its `motion` nodes, which say what moves:
-  payload type ("slide"), axis ("x", "y" or "z") and travel ([from, to] in mm from where the parts
-  are modelled, numbers or expressions over the piece's params), the link moves to the parts or
-  assemblies that move, and the link guided_by to the parts that guide them;
+  payload type ("slide" or "turn"), axis ("x", "y" or "z": the way it slides, or the line it turns
+  about) and travel ([from, to] from where the parts are modelled, in mm for a slide and in degrees
+  for a turn, numbers or expressions over the piece's params), for a turn its pivot (where that line
+  is, two numbers in the plane across the axis), the link moves to the parts or assemblies that
+  move, and the link guided_by to the parts that guide or carry them;
 - the piece's ledger, mounted at ledgers/<piece id>: its `purpose` entries and its `decision`
   entries, each decision saying which words of the purpose it answers (payload answers: fragments of
   it, verbatim), what in the piece realises it (the link realised_by) and the figures it states
@@ -17,7 +19,9 @@ purpose no decision answers. These are the rules that say so. They read three th
 
 A sliding part is judged in the plane across its axis: its outline, moved sideways, must meet a guide
 in both directions before it has moved its own thickness (it is held), and, slid along its travel,
-it must cross no other part (it has room).
+it must cross no other part (it has room). A turning part is judged in the plane across the line it
+turns about: that line must lie on what moves and on what carries it, within the moving part's own
+thickness (it is carried), and, turned through its travel, it must cross no other part.
 """
 
 from __future__ import annotations
@@ -79,16 +83,26 @@ class _Slide:
         self.path, self.node, self.faults = path, node, []
         payload = node.payload or {}
         self.axis = AXES.get(str(payload.get("axis", "")).lower())
-        if payload.get("type") != "slide":
-            self.faults.append(f"{path}: its type is {payload.get('type')!r}; a slide is the motion judged")
+        self.type = payload.get("type")
+        if self.type not in ("slide", "turn"):
+            self.faults.append(f"{path}: its type is {self.type!r}; a motion is a slide or a turn")
         if self.axis is None:
             self.faults.append(f"{path}: its axis is not x, y or z")
+        unit = "degrees" if self.type == "turn" else "mm"
         try:
             a, b = (natives.number(tree, piece, t, "travel") for t in payload.get("travel") or [])
             self.travel = (min(a, b), max(a, b))
         except (ValueError, TypeError):
             self.travel = (0.0, 0.0)
-            self.faults.append(f"{path}: its travel is not [from, to] in mm")
+            self.faults.append(f"{path}: its travel is not [from, to] in {unit}")
+        self.pivot = (0.0, 0.0)
+        if self.type == "turn":
+            try:
+                u, v = (natives.number(tree, piece, t, "pivot") for t in payload.get("pivot") or [])
+                self.pivot = (u, v)
+            except (ValueError, TypeError):
+                self.faults.append(f"{path}: its pivot is not two numbers, where the line it turns about is in "
+                                   "the plane across its axis")
         everything = natives.bodies(tree, piece)
         self.movers = [b for b in everything if _under(b.path, node.links.get("moves", []))]
         self.guides = [b for b in everything if _under(b.path, node.links.get("guided_by", []))]
@@ -98,18 +112,90 @@ class _Slide:
                 self.faults.append(f"{path}: {rel} names no part of the piece")
 
 
-def _slides(tree: Quern, piece: str) -> list[_Slide]:
+def _motions(tree: Quern, piece: str) -> list[_Slide]:
     return [_Slide(tree, piece, p, n) for p, n in _nodes(_piece(tree, piece), piece, "motion")]
 
 
+def _slides(tree: Quern, piece: str) -> list[_Slide]:
+    return [m for m in _motions(tree, piece) if m.type != "turn"]
+
+
+def _turns(tree: Quern, piece: str) -> list[_Slide]:
+    return [m for m in _motions(tree, piece) if m.type == "turn"]
+
+
 def _unstated(tree: Quern, piece: str) -> list[str]:
-    return [f for s in _slides(tree, piece) for f in s.faults]
+    return [f for s in _motions(tree, piece) for f in s.faults]
 
 
 def motions_unstated(tree: Quern, piece: str) -> float:
-    """How many faults the piece's motions have in what they state: a type that is not slide, an axis
-    that is not x, y or z, a travel that is not [from, to], moves or guided_by naming no part."""
+    """How many faults the piece's motions have in what they state: a type that is neither slide nor
+    turn, an axis that is not x, y or z, a travel that is not [from, to], a turn whose pivot is not
+    two numbers, moves or guided_by naming no part."""
     return float(len(_unstated(tree, piece)))
+
+
+def _uncarried(tree: Quern, piece: str) -> list[str]:
+    from shapely.geometry import Point
+    from shapely.ops import unary_union
+
+    out = []
+    for s in _turns(tree, piece):
+        if s.faults:
+            continue
+        mover = unary_union([_outline(tree, b, s.axis) for b in s.movers])
+        guide = unary_union([_outline(tree, b, s.axis) for b in s.guides])
+        x0, y0, x1, y1 = mover.bounds
+        thick = min(x1 - x0, y1 - y0)
+        at = Point(*s.pivot)
+        for what, shape in (("what moves", mover), ("what carries it", guide)):
+            far = at.distance(shape)
+            if far > thick + _EPS:
+                out.append(f"{s.path}: the line it turns about is {far:.1f} mm from {what}, more than the moving "
+                           f"part's own {thick:g} mm")
+    return out
+
+
+def unheld_turns(tree: Quern, piece: str) -> float:
+    """How many of the piece's turning parts are not carried: the line a part turns about (its pivot,
+    in the plane across its axis) lies farther from what moves, or from the parts it is guided by,
+    than the moving part's own thickness."""
+    return float(len(_uncarried(tree, piece)))
+
+
+_SWEEP = 2.0    # degrees: the step a turning part is turned by to find what it crosses
+
+
+def _swept(tree: Quern, piece: str) -> list[str]:
+    from shapely.affinity import rotate
+    from shapely.ops import unary_union
+
+    out = []
+    for s in _turns(tree, piece):
+        if s.faults:
+            continue
+        mover = unary_union([_outline(tree, b, s.axis) for b in s.movers])
+        lo, hi = min(b.lo[s.axis] for b in s.movers), max(b.hi[s.axis] for b in s.movers)
+        steps = max(1, int((s.travel[1] - s.travel[0]) / _SWEEP))
+        angles = [s.travel[0] + (s.travel[1] - s.travel[0]) * k / steps for k in range(steps + 1)]
+        for o in s.others:
+            if o.hi[s.axis] <= lo or o.lo[s.axis] >= hi:
+                continue
+            shape = _outline(tree, o, s.axis)
+            worst = max(((rotate(mover, a, origin=s.pivot).intersection(shape).area, a) for a in angles),
+                        default=(0.0, 0.0))
+            if worst[0] > _EPS:
+                out.append(f"{s.path}: turned {worst[1]:g} degrees it crosses {o.path} ({worst[0]:.1f} mm2 of their "
+                           "outlines overlap)")
+    return out
+
+
+def turn_crossings(tree: Quern, piece: str) -> float:
+    """How many parts the piece's turning parts cross through their travel: parts that do not move
+    with them, beside them along the axis, whose outlines across the axis theirs overlap at some
+    angle of the travel (turned about the pivot, anticlockwise for a positive angle seen with the
+    two other axes in their order)."""
+    return float(len(_swept(tree, piece)))
 
 
 def _unheld(tree: Quern, piece: str) -> list[str]:
@@ -340,6 +426,8 @@ def joints_misclosed(tree: Quern, piece: str) -> float:
 
 
 NATIVES = {
+    "furniture/unheld_turns": unheld_turns,
+    "furniture/turn_crossings": turn_crossings,
     "furniture/steps_unplaced": steps_unplaced,
     "furniture/joints_misclosed": joints_misclosed,
     "furniture/motions_unstated": motions_unstated,
@@ -353,6 +441,8 @@ NATIVES = {
 }
 
 EXPLAINERS = {
+    "furniture/unheld_turns": _uncarried,
+    "furniture/turn_crossings": _swept,
     "furniture/steps_unplaced": _unplaced,
     "furniture/joints_misclosed": _misclosed,
     "furniture/motions_unstated": _unstated,
@@ -387,7 +477,7 @@ def _part(id_: str, size: list, at: list, section: list | None = None) -> Node:
 
 def example_piece(*, channel_at: float = 0.0, joints: bool = True, back_guides: tuple[str, ...] = ("channel", "angle"),
                   overlap: float = 50.0, travel: list | None = None, motions: bool = True,
-                  steps: list | None = None) -> Node:
+                  steps: list | None = None, flap: dict | None = None) -> Node:
     """Two doors, 600 wide, in an opening `2 * 600 - overlap` wide; the channel `channel_at` mm from the
     flange's front edge (0: at the edge, as designed; 7: glued in the angle)."""
     angle = _part("angle", ["width", 20, 20], [0, 0, 1180],
@@ -408,6 +498,14 @@ def example_piece(*, channel_at: float = 0.0, joints: bool = True, back_guides: 
                  links={"moves": [f"{_PIECE}/front-door"], "guided_by": [f"{_PIECE}/channel"]}),
             Node(id="back-slides", kind="motion", payload={"type": "slide", "axis": "x", "travel": ["600 - width", 0]},
                  links={"moves": [f"{_PIECE}/back-door"], "guided_by": [f"{_PIECE}/{g}" for g in back_guides]})]
+    if flap is not None:
+        # a flap in front of the rail, hinged on the angle's top front edge: it lifts outwards (-90 degrees
+        # about x); `flap` overrides what its motion states (the counter-examples)
+        children += [_part("flap", [300, 8, 100], [0, -8, 1100]),
+                     Node(id="flap-turns", kind="motion",
+                          payload={"type": "turn", "axis": "x", "pivot": [0, 1200], "travel": [-90, 0]} | flap,
+                          links={"moves": [f"{_PIECE}/flap"], "guided_by": [f"{_PIECE}/angle"]})]
+        steps = (STEPS if steps is None else steps) + [{"add": ["flap"]}]
     return Node(id="doors", kind="piece", children=children,
                 payload={"steps": STEPS if steps is None else steps},
                 params={"width": Quantity(value=1200.0 - overlap, unit="mm", provenance="design-target", grounded=False)})
@@ -444,6 +542,18 @@ def _demo(contract: str, expect: float, because: str, **kw):
 
 
 SPEC = {
+    "furniture/unheld_turns": [
+        _demo("furniture/unheld_turns", 0, "a flap hinged on the angle's top front edge, which it touches",
+              piece=example_piece(flap={})),
+        _demo("furniture/unheld_turns", 2, "a flap said to turn about a line in mid-air, 100 mm in front of it",
+              piece=example_piece(flap={"pivot": [-108, 1200]})),
+    ],
+    "furniture/turn_crossings": [
+        _demo("furniture/turn_crossings", 0, "the flap lifts outwards, clear of the rail",
+              piece=example_piece(flap={})),
+        _demo("furniture/turn_crossings", 3, "the flap said to turn inwards: through the angle, the channel and "
+              "the front door", piece=example_piece(flap={"travel": [0, 90]})),
+    ],
     "furniture/steps_unplaced": [
         _demo("furniture/steps_unplaced", 0, "the rail, then the two doors: every part is brought in"),
         _demo("furniture/steps_unplaced", 2, "steps that stop at the rail leave both doors on the floor",
@@ -459,6 +569,8 @@ SPEC = {
     ],
     "furniture/motions_unstated": [
         _demo("furniture/motions_unstated", 0, "each slide states its axis, its travel, what moves and what guides"),
+        _demo("furniture/motions_unstated", 1, "a turn that does not say where the line it turns about is",
+              piece=example_piece(flap={"pivot": []})),
         _demo("furniture/motions_unstated", 1, "a travel that is one number, not from and to",
               piece=example_piece(travel=[600])),
     ],
