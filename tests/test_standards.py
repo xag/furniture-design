@@ -125,3 +125,14 @@ def test_instructions_are_not_at_the_level_until_the_steps_build_the_piece():
 
 def test_a_design_that_does_not_work_has_no_instructions_to_show():
     assert "piece-instructions" not in reached(piece_cert(piece=sp.example_piece(channel_at=7.0)))
+
+
+def test_the_piece_ledgers_package_passes_the_publish_gate(tmp_path):
+    """The purpose of a piece and its two rules are a package (they were written in the app that reads
+    ledgers): its rules hold on a purpose and the one that replaced it, and each is refuted."""
+    from furniture_design.piece_ledger import PACKAGE as LEDGER
+
+    log = validate_package(LEDGER, tmp_path)
+    assert any("2 rule(s) exercised" in line and "all pass" in line for line in log), log
+    assert any("2 rule(s) refuted" in line for line in log), log
+    assert any("in en, fr" in line for line in log), log
