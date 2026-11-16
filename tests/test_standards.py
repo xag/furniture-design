@@ -203,3 +203,13 @@ def test_a_piece_is_buildable_once_it_says_what_cuts_and_fastens_it():
     assert reached(c) == ["piece-settled", "piece-works"]
     assert "angle-to-lintel: it does not say what fastens it" in whys(c)
     assert "channel: it does not say what cuts it out (sawn_with)" in whys(c)
+
+
+def test_a_rule_that_waits_on_the_person_says_the_question_in_every_language():
+    """Whoever shows a certificate asks the person only what the person alone knows, in the standard's
+    words: the rules on what cuts and fastens a piece say a question beside what is wrong, in each
+    language they speak; a rule whoever edits the model can put right alone asks nothing."""
+    by = {r.name: r.messages for r in standards.RULES}
+    for name in ("a-pieces-parts-say-how-they-are-cut", "a-pieces-joints-say-what-fastens-them"):
+        assert set(by[name]) == {"en", "fr"} and all(m["ask"].rstrip().endswith("?") for m in by[name].values())
+    assert all("ask" not in m for m in by["a-pieces-pages-carry-no-sentence"].values())

@@ -632,7 +632,7 @@ COUNTER_EXAMPLES = [
 
 PACKAGE = Package(
     name="furniture-standards",
-    version="0.8.0",
+    version="0.9.0",
     description=(
         "What a tool's entry is held to for each use it may be put to, as criteria and levels a certificate "
         "is run from (quern.certify). Criteria: the tool is identified, drawn, its drawing true to its "

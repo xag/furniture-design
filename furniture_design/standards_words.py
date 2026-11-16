@@ -3,7 +3,8 @@
 A criterion and a level say their name (payload say: {language: name}); a rule says what is wrong
 when it does not hold (messages: {language: {"red": sentence}}, quern's messages). They are for the
 person who looks at a certificate, in the language their piece is made in; a rule's description
-stays what it tells whoever must put it right. Whoever shows a certificate reads these and writes
+stays what it tells whoever must put it right. A rule that waits on what only the person knows also
+says the question to put to them (messages ask). Whoever shows a certificate reads these and writes
 no word of its own.
 """
 from __future__ import annotations
@@ -169,5 +170,19 @@ RED = {
 }
 
 
+# rule name -> the question it puts to the person, per language: only a rule that waits on what the
+# person alone knows (what they buy, what they cut and fasten with) asks; whoever shows a certificate
+# puts the question to them, and what the others need is work for whoever edits the model
+ASK = {
+    "a-pieces-parts-say-how-they-are-cut": {
+        "en": "Which boards do you buy, and what do you cut them with?",
+        "fr": "Quelles planches achetez-vous, et avec quoi les coupez-vous\u00a0?"},
+    "a-pieces-joints-say-what-fastens-them": {
+        "en": "What do you fasten the parts together with?",
+        "fr": "Avec quoi fixez-vous les pièces entre elles\u00a0?"},
+}
+
+
 def messages(rule: str) -> dict:
-    return {lang: {"red": text} for lang, text in RED[rule].items()}
+    return {lang: {"red": text} | ({"ask": ASK[rule][lang]} if rule in ASK else {})
+            for lang, text in RED[rule].items()}
