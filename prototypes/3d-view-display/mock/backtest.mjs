@@ -17,14 +17,14 @@ const page = await (await b.newContext({ viewport: { width: 390, height: 780 } }
 await page.goto(pathToFileURL(path.join(dir, '_parent.html')).href);
 const f = page.frameLocator('#f');
 await page.frame({ url: /A-s01-rest/ }).waitForSelector('html[data-ready="1"]');
-await f.locator('#layers').click();
+await f.locator('#opts').click();
 const open1 = await f.locator('#display').evaluate(e => e.classList.contains('open'));
 await page.evaluate(() => history.back());
 await page.waitForTimeout(300);
 const open2 = await f.locator('#display').evaluate(e => e.classList.contains('open'));
 const parentClosed1 = await page.evaluate(() => window.shut);
-await f.locator('#layers').click();
-await f.locator('#close').click();
+await f.locator('#opts').click();
+await f.locator('#opts').click();
 await page.waitForTimeout(300);
 const parentClosed2 = await page.evaluate(() => window.shut);
 const open3 = await f.locator('#display').evaluate(e => e.classList.contains('open'));

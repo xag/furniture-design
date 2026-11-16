@@ -29,7 +29,7 @@ Requested:
 
 Agreed placement:
 3. Wide: the display settings stand just below the tree, at the head of the tools.
-4. Narrow: a small button over the top right corner of the model opens the display settings at the bottom, in the strip of sliders, leaving the model in view.
+4. Narrow: the display settings open at the bottom, in the strip of sliders, from a Display button in its bottom row beside Reset, leaving the model in view (the owner first proposed a settings button over the model's top right corner, then turned it down once drawn).
 
 Side effects, each with the effect it manages:
 5. The Connectors checkbox moves with the two new settings (it is the same kind of setting: what is drawn). On a phone this frees the strip for the sliders alone. Reset, which resets the sliders and the branch, stays with the sliders on its own row.
@@ -54,22 +54,19 @@ The two settings that are on or off stay checkboxes, as Connectors is today and 
 
 With room for it (wider than 720 px and taller than 560 px): at the head of `#tools`, directly under the tree, before the assembly step slider. Below the sliders, Reset on its own row, aligned right as today.
 
-Without room for it (720 px wide or less, or 560 px tall or less: a phone, a phone held sideways, a low laptop window), the block is behind the layers button (E3, E4). The layout of the rest of the page still follows the width alone, as today.
+Without room for it (720 px wide or less, or 560 px tall or less: a phone, a phone held sideways, a low laptop window), the block is behind the Display button (E3, E4). The layout of the rest of the page still follows the width alone, as today.
 
-### E3. The layers button
+### E3. The Display button
 
-Where the block is behind it: a 44 × 44 px round button over the model, 12 px from its top and right edges, drawn in the panel's colour with the line colour as border (as `#tip` is). Its icon is a stack of layers (the Material Icons "layers" path, drawn as inline SVG: no font or other file is loaded), its accessible name "Affichage" (en: Display). It follows Google Maps' Layers button, top right, which opens the same kind of choice (what is drawn); the owner said "settings button", and a gear is the other candidate. Stage two's testers are asked to find the dimensions from the button with no hint. The tip box opens at the top left and is at most 70 % wide, so the two do not meet. The button shows its pressed state (`aria-expanded`, drawn in ink) while the block is open.
+Where the block is not shown under the tree: the bottom row of the strip under the model holds a text button, "Affichage" (en: Display) with a chevron, at the left, and Reset at the right as today. Nothing is drawn over the model. The chevron points up while the block is closed and down while it is open, and the button carries `aria-expanded`.
+
+The owner, on the first version, which had a round layers button over the model's top right corner: "I find the button ugly and a friction. I thought you wouldn't keep it when you talked about a menu attached to the bottom". A text label also settles round 1's F6 (an icon alone is ambiguous).
 
 ### E4. The block opened
 
-The button puts the block in the sliders' place, in the strip under the model: the sliders and Reset are hidden while it is open, and the strip grows to the block's height, so the model's area shrinks a little and the model is drawn smaller, all of it still in view. It never lies over the model, so the dimensions along its bottom stay visible. Each setting takes effect as it is changed, and the model can still be turned, pinched and tapped.
+The Display button puts the block in the sliders' place, in the strip, above the bottom row: the sliders are hidden while it is open, and the strip grows to the block's height, so the model's area shrinks a little and the model is drawn smaller, all of it still in view. It never lies over the model, so the dimensions along its bottom stay visible. On a phone, Connecteurs and Cotes share one row, so the block fits the strip on a 320 × 640 screen; the bottom row stays pinned to the strip's foot while the block is open, so the button that closes it is always in reach. Each setting takes effect as it is changed, and the model can still be turned, pinched and tapped.
 
-It closes by:
-- the phone's Back: opening it adds a step to the browser's history, so Back closes it and leaves the 3D view open (checked in Chromium with a parent page that, like Soban's sheet, closes on Back: `mock/backtest.mjs`); a second Back closes the view;
-- a close button (×) at its top right, named "Fermer l'affichage" / "Close display", so it is not confused with the app's own "Close", which closes the whole 3D view;
-- the layers button again, Escape, or a swipe down on it.
-
-Closing it brings the sliders back.
+It closes by the Display button again, the phone's Back (opening it adds a step to the browser's history, so Back closes it and leaves the 3D view open; checked in Chromium with a parent page that, like Soban's sheet, closes on Back: `mock/backtest.mjs`; a second Back closes the view), Escape, or a swipe down on it. Closing it brings the sliders back.
 
 ### E5. Dimensions on the model
 
@@ -106,10 +103,10 @@ The research agent was given the element list, the paths of the code and ledgers
 
 - F1 checkbox against switch: kept, reason in E1. F2 row style: the prototype already gave the rows their own style; now stated in E1. F3 the row shifts the sliders: stated in E1. F7 the glyph: inline SVG, stated in E3. F14 order: in mm, stated in E5. F16 on top: stated in E5. F17 overall sizes: kept (they tell which axis each number is on).
 - F5 no rule for height: the block goes behind the button when the view is 560 px tall or less (E2).
-- F8 two Close buttons: the viewer's × is named "Fermer l'affichage" / "Close display" (E4).
+- F8 two Close buttons: the viewer's × was named "Fermer l'affichage"; it has since gone with the layers button (E3).
 - F9 Back: Back closes the block, checked in Chromium (E4). F10 swipe down added (E4).
 - F11 the sheet covers the model in branches: the block takes the sliders' place instead of lying over the model (E4).
 - F12 chains lose their parts in a turned view: extension lines from each part's own corner (E5). F15 jumps between edges: a 12 px margin (E5).
 - F19 a solid rest passes taps to hidden parts: a solid rest catches taps (E6). F20 grey too close to the wood: a darker grey and no outlines on the rest (E6). F21 a third word: "Transparent" in English too; the look stays grey rather than Compare's accent, since the accent says "this differs" there (E6). F22 parts pulled into a still rest: the rest is not drawn while pulled apart (E6).
 - For the owner: F4 (settings not remembered on a phone) and F18 (A gives positions, which read less well when turned and show nothing close up in the middle of a part; B gives sizes already in the list and the tip box, but on the model and close up).
-- F6 the icon: left to stage two's testers. F13 nothing close up in the middle of a part under A: inherent to A, put to the owner with F18.
+- F6 the icon: the icon has gone; the Display button is labelled in words (E3). F13 nothing close up in the middle of a part under A: inherent to A, put to the owner with F18.
