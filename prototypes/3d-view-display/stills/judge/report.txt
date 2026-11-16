@@ -1,0 +1,16 @@
+J A-s01-rest.html 390 light: landmark-one-main — html
+J A-s01-rest.html 390 light: region — #title | #sub | #nav > label | li:nth-child(1) > span:nth-child(2) | li:nth-child(2) > span:nth-child(2) | #marks | canvas:nth-child(3) | #assembly | label[for="explode"] | #explode
+J A-s02-sheet.html 390 light: landmark-one-main — html
+J A-s02-sheet.html 390 light: region — #title | #sub | #nav > label | li:nth-child(1) > span:nth-child(2) | li:nth-child(2) > span:nth-child(2) | #marks | canvas:nth-child(3) | .pair
+J A-s03-dims.html 390 light: landmark-one-main — html
+J A-s03-dims.html 390 light: region — #title | #sub | #nav > label | li:nth-child(1) > span:nth-child(2) | li:nth-child(2) > span:nth-child(2) | #marks | canvas:nth-child(3) | #assembly | label[for="explode"] | #explode
+J A-s05-branch-see.html 390 light: landmark-one-main — html
+J A-s05-branch-see.html 390 light: region — #title | #sub | #nav > label | li:nth-child(1) > span:nth-child(2) | .mark | li:nth-child(2) > span:nth-child(2) | #marks | canvas:nth-child(3) | label[for="explode"] | #explode
+J A-s06-branch-solid.html 390 light: landmark-one-main — html
+J A-s06-branch-solid.html 390 light: region — #title | #sub | #nav > label | li:nth-child(1) > span:nth-child(2) | .mark | li:nth-child(2) > span:nth-child(2) | #marks | canvas:nth-child(3) | label[for="explode"] | #explode
+J A-s07-branch-sheet.html 390 light: landmark-one-main — html
+J A-s07-branch-sheet.html 390 light: region — #title | #sub | #nav > label | li:nth-child(1) > span:nth-child(2) | .mark | li:nth-child(2) > span:nth-child(2) | #marks | canvas:nth-child(3) | #display
+J A-s08-branch-dims.html 390 light: landmark-one-main — html
+J A-s08-branch-dims.html 390 light: region — #title | #sub | #nav > label | li:nth-child(1) > span:nth-child(2) | .mark | li:nth-child(2) > span:nth-child(2) | #marks | canvas:nth-child(3) | label[for="explode"] | #explode
+J A-s09-branch-dims-close.html 390 light: landmark-one-main — html
+J A-s09-branch-dims-close.html 390 light: region — #title | #sub | #nav > label | li:nth-child(1) > span:nth-child(2) | .mark | li:nth-child(2) > span:nth-child(2) | #marks | canvas:nth-child(3) | label[for="explode"] | #explode

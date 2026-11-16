@@ -1,0 +1,5 @@
+BAwide before-s04-branch-hidden.html 1280 light: label — #showc
+BAwide before-s04-branch-hidden.html 1280 light: landmark-one-main — html
+BAwide before-s04-branch-hidden.html 1280 light: region — #title | #sub | #nav > label | li:nth-child(1) > span:nth-child(2) | .mark | li:nth-child(2) > span:nth-child(2) | canvas | label[for="explode"] | #explode | #showc | .row > span:nth-child(2)
+BAwide A-s05-branch-see.html 1280 light: landmark-one-main — html
+BAwide A-s05-branch-see.html 1280 light: region — #title | #sub | #nav > label | li:nth-child(1) > span:nth-child(2) | .mark | li:nth-child(2) > span:nth-child(2) | #marks | canvas:nth-child(3) | #display | label[for="explode"] | #explode
