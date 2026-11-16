@@ -634,14 +634,16 @@ def _counter_examples() -> list[CounterExample]:
     ]
 
 
-VERSION = "0.9.2"
+VERSION = "0.9.3"
 
 
 SOLVERS = [SolverDef(name=name, native=True, reads=[""], description=(fn.__doc__ or "").strip().split("\n\n")[0])
            for name, fn in NATIVES.items()]
 
 
-def _package() -> Package:
+def make_package() -> Package:
+    """The package, made anew with examples of its own that the module does not keep (PACKAGE keeps
+    the one made first): a reader that wants only its digest lets all of it go."""
     return Package(
         name="furniture-standards",
         version=VERSION,
@@ -665,12 +667,12 @@ def _package() -> Package:
         vocabulary=VOCABULARY,
         rules=RULES,
         solvers=SOLVERS,
-        examples=_made("EXAMPLES"),
-        counter_examples=_made("COUNTER_EXAMPLES"),
+        examples=_examples(),
+        counter_examples=_counter_examples(),
     )
 
 
-_MAKERS = {"EXAMPLES": _examples, "COUNTER_EXAMPLES": _counter_examples, "PACKAGE": _package}
+_MAKERS = {"EXAMPLES": _examples, "COUNTER_EXAMPLES": _counter_examples, "PACKAGE": make_package}
 
 
 def _made(name: str):

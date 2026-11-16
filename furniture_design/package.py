@@ -765,10 +765,12 @@ def _counter_examples() -> list[CounterExample]:
     ]
 
 
-VERSION = "0.22.7"
+VERSION = "0.22.8"
 
 
-def _package() -> Package:
+def make_package() -> Package:
+    """The package, made anew with examples of its own that the module does not keep (PACKAGE keeps
+    the one made first): a reader that wants only its digest lets all of it go."""
     return Package(
         name="furniture-design",
         version=VERSION,
@@ -791,12 +793,12 @@ def _package() -> Package:
         vocabulary=VOCABULARY,
         rules=RULES,
         solvers=SOLVERS,
-        examples=_made("EXAMPLES"),
-        counter_examples=_made("COUNTER_EXAMPLES"),
+        examples=_world(),
+        counter_examples=_counter_examples(),
     )
 
 
-_MAKERS = {"EXAMPLES": _world, "COUNTER_EXAMPLES": _counter_examples, "PACKAGE": _package}
+_MAKERS = {"EXAMPLES": _world, "COUNTER_EXAMPLES": _counter_examples, "PACKAGE": make_package}
 
 
 def _made(name: str):
