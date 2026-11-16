@@ -448,3 +448,34 @@ def test_a_saw_is_drawn_at_work_only_when_it_follows_the_general_saw_whose_metho
         {"text": "Cut the notch.", "prepare": True, "add": ["side"], "cuts": ["side"]}]
     written, drawn = _cut_drawn(monkeypatch, tree, tmp_path / "follows")
     assert any(d[:1] == MAKERS_SAW["parts"] for d in drawn)
+
+
+def test_the_instructions_draw_at_work_the_tools_they_are_given_and_no_other(monkeypatch, tmp_path):
+    """at_work overrides the payload's full or short tool by tool: the saw is drawn at work only when its path
+    is given, and the marks are drawn either way."""
+    tree = _tree()
+    tree.get("pieces/bench-side").payload["steps"] = [
+        {"text": "Cut the notch.", "prepare": True, "add": ["side"], "cuts": ["side"]}]
+    _with_a_makers_saw(tree)
+    saw = next(t for t in scene(tree, "pieces/bench-side").part("side").tools if t.model)
+    from furniture_design import lineart
+    drawn, real = [], lineart.solids
+    monkeypatch.setattr(lineart, "solids", lambda spec: (drawn.append(spec), real(spec))[1])
+    for given, at_work in [(set(), False), ({saw.path}, True), ({"tools/another"}, False)]:
+        drawn.clear()
+        out = drawings.document(tree, "pieces/bench-side", tmp_path / str(len(given)) / str(at_work), "assembly",
+                                at_work=given)
+        assert out["assembly"].is_file() and out["steps"].is_file() and out["pages"].is_file()
+        assert any(d[:len(MAKERS_SAW["parts"])] == MAKERS_SAW["parts"] for d in drawn) is at_work
+
+
+def test_one_document_is_drawn_as_the_four_are_and_says_how_far_it_has_got(tmp_path):
+    tree = _tree()
+    every = drawings.documents(tree, BENCH, tmp_path / "all")
+    seen: list[float] = []
+    for what in drawings.DOCUMENTS:
+        one = drawings.document(tree, BENCH, tmp_path / "one", what, progress=seen.append)
+        assert {k: v.name for k, v in one.items()} == {k: every[k].name for k in one}
+    assert seen and seen == sorted(seen) and seen[0] >= 0 and seen[-1] == 1.0
+    with pytest.raises(ValueError, match="viewer, design, assembly, cutting"):
+        drawings.document(tree, BENCH, tmp_path, "poster")

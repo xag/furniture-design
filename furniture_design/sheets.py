@@ -910,7 +910,7 @@ def cut_sentences(p: Part, L: dict, lang: str) -> list[str]:
 
 
 def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list | None = None,
-                          words: list | None = None) -> Path:
+                          words: list | None = None, at_work: set[str] | None = None, progress=None) -> Path:
     """Picture-first assembly instructions, A4 portrait. A piece whose payload instructions is short
     leaves out how its tools are used: the saw and the jointer drawn at work and the test groove;
     what the piece needs (the cuts, the marks, the settings, the holes) stays. A cut is drawn by
@@ -919,9 +919,17 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list
     picture, each block of a step drawn on its own (a cut's frames, the grooving settings and each kind of
     joint) and the frames and drawings in it, in the order drawn; steps.instruction_screens cuts them out.
     A step's picture is noted with what it shows (_assembly_picture), and `words`, a list, gets every text
-    set on a page: pages.model makes of both the instructions as drawn, which a standard judges."""
+    set on a page: pages.model makes of both the instructions as drawn, which a standard judges.
+    `at_work`, when given, overrides the payload's choice tool by tool: a block draws its tool at work when
+    the tool's path is in it, and leaves it out otherwise (an empty set: no tool at work). `progress`, when
+    given, is called with (steps drawn, steps) before each step."""
     L = LABELS[lang]
     short = sc.info.get("instructions") == "short"
+
+    def brief(tool) -> bool:
+        """Whether a block leaves out how its tool is used: the payload's choice for every tool, or, with
+        `at_work` given, every tool but those it names (by path)."""
+        return short if at_work is None else not (tool and tool.path in at_work)
     W, H = 210, 297
     c = Canvas(str(path), pagesize=A4)
     c.setTitle(f"{sc.title} - {L['assemble']}")
@@ -999,7 +1007,9 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list
     placed_ids: list[str] = []
     slots = [(15, 158, W - 30, 118), (15, 22, W - 30, 118)]
     slot = 0   # the next free half page, counted from the first page of steps
-    for step in sc.steps:
+    for done, step in enumerate(sc.steps):
+        if progress:
+            progress(done, len(sc.steps))
         cut = []   # one board per letter among the parts the step cuts, with how many
         for p in sc.parts:
             if p.id in step.cuts and p.cuts and p.mark not in [q.mark for q, _ in cut]:
@@ -1042,11 +1052,15 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list
                 pen.line(15, 148, W - 15, 148, 0.2, THIN, [1.5, 1.5])
             from .sawing import sawing_frames
             pen.note("block", slots[slot % 2], step=step.number, part=p.id, count=qty)
-            sawing_frames(pen, slots[slot % 2], p, qty, short)
+            from .sawing import SAW
+            saw = next((t for t in p.tools if t.model and SAW in t.follows), None)
+            sawing_frames(pen, slots[slot % 2], p, qty, brief(saw))
             slot += 1
         if grooved:            # the grooving step's pages, drawn to IKEA's rules, after its picture
             from .grooving import grooving_pages
-            grooving_pages(c, pen, sc, step, L, W, H, short)
+            machine = next((j.machine for j in sc.joints if j.id in step.joints and j.machine), "")
+            grooving_pages(c, pen, sc, step, L, W, H, brief(next((t for j in sc.joints for t in j.methods
+                                                                   if t.path == machine), None)))
             slot += (slot % 2) + 2
         if (cut or grooved) and slot % 2:
             slot += 1    # and the next step starts a page too

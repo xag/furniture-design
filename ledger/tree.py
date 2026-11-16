@@ -1230,6 +1230,27 @@ def entries() -> list[Node]:
             ],
         ),
         Node(
+            id="a-caller-names-the-tools-drawn-at-work", kind="decision",
+            name="Whoever draws a piece's documents may name the tools its assembly instructions draw at work "
+                 "(at_work, by path), overriding the payload's full or short tool by tool: a block draws its tool "
+                 "at work when it is named and leaves it out otherwise, an empty set drawing none; and may draw "
+                 "one document at a time (drawings.document), told how far the instructions have got as they "
+                 "draw their steps then cut their screens",
+            links={"rests_on": ["a-pieces-instructions-are-full-or-short"]},
+            payload={"decided_on": "2026-11-16",
+                     "why": "A reader of the documents may want the method of one tool drawn and not another's, "
+                            "and the documents may be drawn where a person waits for them, one at a time, on a "
+                            "slower machine than a server: the payload's one choice for every tool cannot say "
+                            "the first, and drawing the four together with no word of progress cannot serve "
+                            "the second. The payload's choice stays the default, so a piece drawn without "
+                            "at_work is drawn as before."},
+            children=[
+                _alt("payload-per-tool", "A list of tools in the piece's payload",
+                     "Which tools are drawn at work is a reader's choice made after the design is saved, and a "
+                     "saved version's piece.json never changes."),
+            ],
+        ),
+        Node(
             id="the-grooving-step-is-drawn-to-ikeas-rules", kind="decision",
             name="A preparation step that cuts the grooves of joints is drawn, not written: after its picture, "
                  "pages of their own with the settings drawn on the machine (its depth adjusters, the spacer, "

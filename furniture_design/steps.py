@@ -141,14 +141,24 @@ def screens_of(sc: Scene, regions: list[dict], cut, lang: str) -> list[dict]:
     return out
 
 
-def instruction_screens(sc: Scene, pdf: Path, regions: list[dict], out: Path, lang: str = "fr") -> Path:
+def instruction_screens(sc: Scene, pdf: Path, regions: list[dict], out: Path, lang: str = "fr",
+                        progress=None) -> Path:
     """Write the screens of the instructions in `pdf` (drawn with `regions` kept) into the folder `out`: one
     WebP per drawing and screens.json, {steps: how many steps, screens: [...]}, each image named by its file
-    in `out`. Returns screens.json's path."""
+    in `out`. Returns screens.json's path. `progress`, when given, is called with (drawings cut, regions)
+    after each drawing is cut."""
     out.mkdir(parents=True, exist_ok=True)
     for old in out.glob("*.webp"):
         old.unlink()
-    screens = screens_of(sc, regions, _cutter(pdf, out), lang)
+    cut = _cutter(pdf, out)
+    if progress:
+        done = [0]
+
+        def counted(*a, **k):
+            done[0] += 1
+            progress(min(done[0], len(regions)), len(regions))
+            return cut(*a, **k)
+    screens = screens_of(sc, regions, counted if progress else cut, lang)
     path = out / "screens.json"
     path.write_text(json.dumps({"steps": len(sc.steps), "lang": lang, "screens": screens}, ensure_ascii=False, indent=1),
                     encoding="utf-8")
