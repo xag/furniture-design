@@ -260,6 +260,21 @@
     "digest": "563e4f03a2e3"
   },
   {
+    "path": "a-package-module-makes-its-examples-when-asked",
+    "kind": "decision",
+    "digest": "0e28d92ad411"
+  },
+  {
+    "path": "a-package-module-makes-its-examples-when-asked/examples-in-a-file",
+    "kind": "alternative",
+    "digest": "5e3327df91c0"
+  },
+  {
+    "path": "a-package-module-makes-its-examples-when-asked/examples-shared-between-counter-examples",
+    "kind": "alternative",
+    "digest": "6e286470d792"
+  },
+  {
     "path": "a-panel-bent-two-ways-is-two-materials",
     "kind": "decision",
     "digest": "911d07e4e9f4"

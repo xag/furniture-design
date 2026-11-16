@@ -653,8 +653,6 @@ def _world(*, chest: Node | None = None, sag_limit: float = 4.0, clearance: floa
         _notched(cut_with, sawn_with, side_thickness)])]
 
 
-EXAMPLES = _world()
-
 _UNQUOTED = Node(id="sources", kind="", children=[
     Node(id="somewhere", kind="source", children=[
         Node(id="said", kind="clause", payload={"locator": "p. 1"})])])
@@ -670,123 +668,148 @@ _STALE = Node(id="guidance", kind="", children=[
     Node(id="a-saw-that-left", kind="guidance", name="The saw the shop lends",
          payload={"text": "Cut with tools/the-shops-saw."}, links={"about": ["tools/the-shops-saw"]})])
 
-COUNTER_EXAMPLES = [
-    CounterExample(rule="a-guidance-speaks-of-what-exists", nodes=[_STALE],
-                   because="a guidance sending people to a tool the package no longer holds"),
-    CounterExample(rule="a-source-says-its-authority", nodes=[_UNSAID],
-                   because="a source that does not say who stands behind it cannot be weighed"),
-    CounterExample(rule="a-clause-with-no-authority-is-verified", nodes=[_UNVERIFIED],
-                   because="a trick from a person's video, taken in unchecked, would be followed "
-                           "as if its maker had said it"),
-    CounterExample(rule="a-clause-quotes-its-source", nodes=[_UNQUOTED],
-                   because="a clause with no quote states nothing anyone can check"),
-    CounterExample(rule="a-part-with-cuts-is-cut-with-tools-that-rest-on-clauses",
-                   nodes=_world(cut_with="tools/drill"),
-                   because="a notch said to be cut with a drill no clause says how to use: the "
-                           "instructions could say where the notch is, not how to make it"),
-    CounterExample(rule="a-part-is-sawn-with-a-saw-that-states-its-cut",
-                   nodes=_world(sawn_with="tools/drill"),
-                   because="a side said to be cut out with a tool that states no cut: the cutting "
-                           "sheet would leave a guess between the parts"),
-    CounterExample(rule="a-part-is-no-narrower-than-its-saw-cuts",
-                   nodes=_world(sawn_with="tools/example-shop"),
-                   because="a side 300 mm wide, cut by a shop that cuts nothing narrower than 350"),
-    CounterExample(rule="a-part-is-cut-by-a-saw-that-cuts-its-material",
-                   nodes=_world(sawn_with="tools/example-shop"),
-                   because="a birch side handed to a shop that does not cut birch"),
-    CounterExample(rule="a-part-is-no-thicker-than-its-saw-cuts",
-                   nodes=_world(side_thickness=60),
-                   because="a 60 mm side cut out with a saw that cuts through 55"),
-    CounterExample(rule="a-step-closes-each-joint-the-way-its-connector-engages",
-                   nodes=_world(seat_steps=SEAT_BACK_SLID_IN),
-                   because="a back slid in from the front between two sides and under a top "
-                           "already up: its connectors engage square, so it would have to be "
-                           "forced along every face it meets"),
-    CounterExample(rule="a-requirement-rests-on-clauses",
-                   nodes=[Node(id="requirements", kind="", children=[
-                       Node(id="a-wish", kind="requirement", payload={"measure": "overturning"})])],
-                   because="a requirement that rests on no clause is an opinion"),
-    CounterExample(rule="a-material-rests-on-clauses",
-                   nodes=[Node(id="materials", kind="", children=[
-                       Node(id="mystery-wood", kind="material",
-                            params={"density": _target(600, "kg/m3", "a guess")})])],
-                   because="a material whose properties come from nowhere"),
-    CounterExample(rule="a-load-acts-on-a-part",
-                   nodes=[Node(id="pieces", kind="", children=[
-                       Node(id="books", kind="load", params={"mass": _target(30, "kg", "")})])],
-                   because="a load on nothing is counted nowhere"),
-    CounterExample(rule="a-piece-is-held-to-what-applies-to-it",
-                   nodes=_world(chest=_chest(links={})),
-                   because="a chest in the clothing-storage-unit scope that links to neither "
-                           "stability test, so neither is run"),
-    CounterExample(rule="a-piece-stands-in-its-stability-cases",
-                   nodes=_world(chest=Node(**{**_chest().model_dump(), "children": [
-                       Node(id="carcass", kind="part",
-                            params={"mass": _target(15, "kg", "a light carcass")},
-                            payload={"shape": {"op": "box", "size": [1000, 400, 1200]}}),
-                       Node(id="drawer", kind="part",
-                            params={"mass": _target(5, "kg", ""),
-                                    "storage_volume": _target(60e6, "mm3", "")},
-                            payload={"extends": 380,
-                                     "shape": {"op": "box", "size": [900, 380, 200]},
-                                     "transform": {"translate": [50, 0, 1000]}})]})),
-                   because="a light, tall chest whose top drawer, open, carries 60 pounds "
-                           "well in front of its feet: it tips"),
-    CounterExample(rule="a-beam-sags-within-its-limit", nodes=_world(sag_limit=1.0),
-                   because="the oak shelf deflects about 1.1 mm at once, more than two-thirds "
-                           "of a 1 mm longtime limit"),
-    CounterExample(rule="a-piece-takes-its-sideways-load", nodes=_world(back_count=1),
-                   because="one connector along the back's top edge, good for 600 N in "
-                           "birch, takes the whole 890 N of the light sidethrust"),
-    CounterExample(rule="a-beam-is-strong-enough", nodes=_world(books_kg=600),
-                   because="600 kg on the oak shelf bends it to about 39 MPa, past oak's design "
-                           "stress of about 34.7"),
-    CounterExample(rule="a-part-bends-the-way-its-material-was-tested",
-                   nodes=_world(span_along="across the grain"),
-                   because="a board spanning across its grain, judged with values measured "
-                           "along it"),
-    CounterExample(rule="a-moving-part-stays-where-its-equation-holds", nodes=_world(rh_max=0.90),
-                   because="at 90% relative humidity oak settles near 20.5% moisture, beyond the "
-                           "14% where the movement equation holds"),
-    CounterExample(rule="a-moving-part-has-room-to-move", nodes=_world(clearance=4.0),
-                   because="400 mm of flat-sawn oak moves about 7.1 mm between 30% and 65% "
-                           "humidity, and the groove leaves it 4"),
-    CounterExample(rule="a-connector-rests-on-clauses", nodes=_world(cited=False),
-                   because="a connector whose limits come from no clause"),
-    CounterExample(rule="a-joined-part-is-thick-enough-for-the-cut", nodes=_world(thickness=12),
-                   because="12 mm sides joined with a surface cut that needs 15"),
-    CounterExample(rule="a-joined-part-is-wide-enough", nodes=_world(width=60),
-                   because="60 mm wide sides, where the connector needs 75"),
-    CounterExample(rule="a-joint-is-cut-with-a-tool-its-connector-takes",
-                   nodes=_world(tool="tools/drill"),
-                   because="a joint cut with a drill, for a connector whose seat only the "
-                           "groove cutter makes"),
-    CounterExample(rule="a-joint-is-cut-at-its-connectors-setting", nodes=_world(setting="S-2"),
-                   because="the seat cut at the wrong machine setting"),
-]
+def _counter_examples() -> list[CounterExample]:
+    return [
+        CounterExample(rule="a-guidance-speaks-of-what-exists", nodes=[_STALE],
+                       because="a guidance sending people to a tool the package no longer holds"),
+        CounterExample(rule="a-source-says-its-authority", nodes=[_UNSAID],
+                       because="a source that does not say who stands behind it cannot be weighed"),
+        CounterExample(rule="a-clause-with-no-authority-is-verified", nodes=[_UNVERIFIED],
+                       because="a trick from a person's video, taken in unchecked, would be followed "
+                               "as if its maker had said it"),
+        CounterExample(rule="a-clause-quotes-its-source", nodes=[_UNQUOTED],
+                       because="a clause with no quote states nothing anyone can check"),
+        CounterExample(rule="a-part-with-cuts-is-cut-with-tools-that-rest-on-clauses",
+                       nodes=_world(cut_with="tools/drill"),
+                       because="a notch said to be cut with a drill no clause says how to use: the "
+                               "instructions could say where the notch is, not how to make it"),
+        CounterExample(rule="a-part-is-sawn-with-a-saw-that-states-its-cut",
+                       nodes=_world(sawn_with="tools/drill"),
+                       because="a side said to be cut out with a tool that states no cut: the cutting "
+                               "sheet would leave a guess between the parts"),
+        CounterExample(rule="a-part-is-no-narrower-than-its-saw-cuts",
+                       nodes=_world(sawn_with="tools/example-shop"),
+                       because="a side 300 mm wide, cut by a shop that cuts nothing narrower than 350"),
+        CounterExample(rule="a-part-is-cut-by-a-saw-that-cuts-its-material",
+                       nodes=_world(sawn_with="tools/example-shop"),
+                       because="a birch side handed to a shop that does not cut birch"),
+        CounterExample(rule="a-part-is-no-thicker-than-its-saw-cuts",
+                       nodes=_world(side_thickness=60),
+                       because="a 60 mm side cut out with a saw that cuts through 55"),
+        CounterExample(rule="a-step-closes-each-joint-the-way-its-connector-engages",
+                       nodes=_world(seat_steps=SEAT_BACK_SLID_IN),
+                       because="a back slid in from the front between two sides and under a top "
+                               "already up: its connectors engage square, so it would have to be "
+                               "forced along every face it meets"),
+        CounterExample(rule="a-requirement-rests-on-clauses",
+                       nodes=[Node(id="requirements", kind="", children=[
+                           Node(id="a-wish", kind="requirement", payload={"measure": "overturning"})])],
+                       because="a requirement that rests on no clause is an opinion"),
+        CounterExample(rule="a-material-rests-on-clauses",
+                       nodes=[Node(id="materials", kind="", children=[
+                           Node(id="mystery-wood", kind="material",
+                                params={"density": _target(600, "kg/m3", "a guess")})])],
+                       because="a material whose properties come from nowhere"),
+        CounterExample(rule="a-load-acts-on-a-part",
+                       nodes=[Node(id="pieces", kind="", children=[
+                           Node(id="books", kind="load", params={"mass": _target(30, "kg", "")})])],
+                       because="a load on nothing is counted nowhere"),
+        CounterExample(rule="a-piece-is-held-to-what-applies-to-it",
+                       nodes=_world(chest=_chest(links={})),
+                       because="a chest in the clothing-storage-unit scope that links to neither "
+                               "stability test, so neither is run"),
+        CounterExample(rule="a-piece-stands-in-its-stability-cases",
+                       nodes=_world(chest=Node(**{**_chest().model_dump(), "children": [
+                           Node(id="carcass", kind="part",
+                                params={"mass": _target(15, "kg", "a light carcass")},
+                                payload={"shape": {"op": "box", "size": [1000, 400, 1200]}}),
+                           Node(id="drawer", kind="part",
+                                params={"mass": _target(5, "kg", ""),
+                                        "storage_volume": _target(60e6, "mm3", "")},
+                                payload={"extends": 380,
+                                         "shape": {"op": "box", "size": [900, 380, 200]},
+                                         "transform": {"translate": [50, 0, 1000]}})]})),
+                       because="a light, tall chest whose top drawer, open, carries 60 pounds "
+                               "well in front of its feet: it tips"),
+        CounterExample(rule="a-beam-sags-within-its-limit", nodes=_world(sag_limit=1.0),
+                       because="the oak shelf deflects about 1.1 mm at once, more than two-thirds "
+                               "of a 1 mm longtime limit"),
+        CounterExample(rule="a-piece-takes-its-sideways-load", nodes=_world(back_count=1),
+                       because="one connector along the back's top edge, good for 600 N in "
+                               "birch, takes the whole 890 N of the light sidethrust"),
+        CounterExample(rule="a-beam-is-strong-enough", nodes=_world(books_kg=600),
+                       because="600 kg on the oak shelf bends it to about 39 MPa, past oak's design "
+                               "stress of about 34.7"),
+        CounterExample(rule="a-part-bends-the-way-its-material-was-tested",
+                       nodes=_world(span_along="across the grain"),
+                       because="a board spanning across its grain, judged with values measured "
+                               "along it"),
+        CounterExample(rule="a-moving-part-stays-where-its-equation-holds", nodes=_world(rh_max=0.90),
+                       because="at 90% relative humidity oak settles near 20.5% moisture, beyond the "
+                               "14% where the movement equation holds"),
+        CounterExample(rule="a-moving-part-has-room-to-move", nodes=_world(clearance=4.0),
+                       because="400 mm of flat-sawn oak moves about 7.1 mm between 30% and 65% "
+                               "humidity, and the groove leaves it 4"),
+        CounterExample(rule="a-connector-rests-on-clauses", nodes=_world(cited=False),
+                       because="a connector whose limits come from no clause"),
+        CounterExample(rule="a-joined-part-is-thick-enough-for-the-cut", nodes=_world(thickness=12),
+                       because="12 mm sides joined with a surface cut that needs 15"),
+        CounterExample(rule="a-joined-part-is-wide-enough", nodes=_world(width=60),
+                       because="60 mm wide sides, where the connector needs 75"),
+        CounterExample(rule="a-joint-is-cut-with-a-tool-its-connector-takes",
+                       nodes=_world(tool="tools/drill"),
+                       because="a joint cut with a drill, for a connector whose seat only the "
+                               "groove cutter makes"),
+        CounterExample(rule="a-joint-is-cut-at-its-connectors-setting", nodes=_world(setting="S-2"),
+                       because="the seat cut at the wrong machine setting"),
+    ]
 
-PACKAGE = Package(
-    name="furniture-design",
-    version="0.22.6",
-    description=(
-        "Furniture designs and the published knowledge they are judged against. Kinds: "
-        "source and clause (a publication and its verbatim, located statements, with the "
-        "quantities they state), material (properties derived from clauses), requirement "
-        "(a demand resting on clauses, with its limits and test conditions), piece, assembly, part and "
-        "load; guidance (what whoever designs with a package is told before reading its nodes, which a "
-        "reader gives its assistant and never writes itself). Rules: every clause quotes its source; requirements and materials rest on "
-        "clauses; a piece in a requirement's scope is held to it; a piece stands in its "
-        "stability cases (furniture/tipping_cases); a part bends within its longtime sag "
-        "limit (Wood Handbook Eq. 9-2 to 9-4 and its creep guidance, furniture/deflection, with no shear term for a panel whose modulus was measured on the panel); a part is strong enough (Eq. 9-13 against the near-minimum modulus of rupture over the Handbook's factor for 10-year duration of load and safety); a part bends the way its material's values were measured; a seat carries the light-service sidethrust of GSA's FNAE-80-214A through a panel in the push's plane (furniture/sideways_margin); a part that swells and "
-        "shrinks with the air has room to (Eq. 13-3, the moisture content of its climate from "
-        "Eq. 4-5, kind climate), and is judged only where that equation holds; a joint is cut with a tool its connector takes, at its setting, in parts thick and wide enough for it (kinds tool, connector, joint; a maker's products are data in a package of their own); a part with cuts is cut with tools that rest on clauses saying how they are used; a part is cut out of its board with saws that state, from their makers' clauses, the width they take out (which the cutting sheet leaves between parts) and that cut through each of its sheets, and no narrower than or of a material its saws refuse (a shop's cutting service's rules, furniture/narrow_margin); an assembly step brings each part in square to the face of every joint it closes whose connector engages square, never sliding it along that face (furniture/misfit_closings). The rules carry no "
-        "number a source states: limits and properties are read from the knowledge base. "
-        "Every published shelf and beam deflection limit found is a clause a design chooses its own "
-        "sag limit from; none is a requirement every part is held to."),
-    publisher="xag/furniture-design",
-    vocabulary=VOCABULARY,
-    rules=RULES,
-    solvers=SOLVERS,
-    examples=EXAMPLES,
-    counter_examples=COUNTER_EXAMPLES,
-)
+
+VERSION = "0.22.7"
+
+
+def _package() -> Package:
+    return Package(
+        name="furniture-design",
+        version=VERSION,
+        description=(
+            "Furniture designs and the published knowledge they are judged against. Kinds: "
+            "source and clause (a publication and its verbatim, located statements, with the "
+            "quantities they state), material (properties derived from clauses), requirement "
+            "(a demand resting on clauses, with its limits and test conditions), piece, assembly, part and "
+            "load; guidance (what whoever designs with a package is told before reading its nodes, which a "
+            "reader gives its assistant and never writes itself). Rules: every clause quotes its source; requirements and materials rest on "
+            "clauses; a piece in a requirement's scope is held to it; a piece stands in its "
+            "stability cases (furniture/tipping_cases); a part bends within its longtime sag "
+            "limit (Wood Handbook Eq. 9-2 to 9-4 and its creep guidance, furniture/deflection, with no shear term for a panel whose modulus was measured on the panel); a part is strong enough (Eq. 9-13 against the near-minimum modulus of rupture over the Handbook's factor for 10-year duration of load and safety); a part bends the way its material's values were measured; a seat carries the light-service sidethrust of GSA's FNAE-80-214A through a panel in the push's plane (furniture/sideways_margin); a part that swells and "
+            "shrinks with the air has room to (Eq. 13-3, the moisture content of its climate from "
+            "Eq. 4-5, kind climate), and is judged only where that equation holds; a joint is cut with a tool its connector takes, at its setting, in parts thick and wide enough for it (kinds tool, connector, joint; a maker's products are data in a package of their own); a part with cuts is cut with tools that rest on clauses saying how they are used; a part is cut out of its board with saws that state, from their makers' clauses, the width they take out (which the cutting sheet leaves between parts) and that cut through each of its sheets, and no narrower than or of a material its saws refuse (a shop's cutting service's rules, furniture/narrow_margin); an assembly step brings each part in square to the face of every joint it closes whose connector engages square, never sliding it along that face (furniture/misfit_closings). The rules carry no "
+            "number a source states: limits and properties are read from the knowledge base. "
+            "Every published shelf and beam deflection limit found is a clause a design chooses its own "
+            "sag limit from; none is a requirement every part is held to."),
+        publisher="xag/furniture-design",
+        vocabulary=VOCABULARY,
+        rules=RULES,
+        solvers=SOLVERS,
+        examples=_made("EXAMPLES"),
+        counter_examples=_made("COUNTER_EXAMPLES"),
+    )
+
+
+_MAKERS = {"EXAMPLES": _world, "COUNTER_EXAMPLES": _counter_examples, "PACKAGE": _package}
+
+
+def _made(name: str):
+    value = globals().get(name)
+    if value is None:
+        value = globals()[name] = _MAKERS[name]()
+    return value
+
+
+def __getattr__(name: str):
+    """PACKAGE, EXAMPLES and COUNTER_EXAMPLES are made the first time one is asked for: the
+    examples are the whole knowledge base several times over, and a reader that judges a tree
+    needs only VOCABULARY, RULES, SOLVERS and VERSION."""
+    if name in _MAKERS:
+        return _made(name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

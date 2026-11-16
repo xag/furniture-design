@@ -1685,6 +1685,26 @@ def entries() -> list[Node]:
                      "what is left."),
             ],
         ),
+        Node(
+            id="a-package-module-makes-its-examples-when-asked", kind="decision",
+            name="A package module makes its PACKAGE, EXAMPLES and COUNTER_EXAMPLES the first time one is asked for; "
+                 "what a reader judges a tree with (VOCABULARY, RULES, SOLVERS, VERSION) is made at import",
+            payload={"decided_on": "2026-11-16",
+                     "the_owner": "Still this is a lot of memory. [...] Yes, don't hesitate to aggressively make quern "
+                                  "more efficient",
+                     "why": "The examples are the whole knowledge base several times over (each counter-example is a "
+                            "world of its own): importing furniture_design.package held 25 MB, in every process "
+                            "that only reads its kinds and rules, among them a web server on a 512 MB machine. Made "
+                            "when asked, the import holds 0.1 MB."},
+            children=[
+                _alt("examples-shared-between-counter-examples", "Counter-examples sharing one world",
+                     "A counter-example changes its world; sharing them would let one case leak into another, and "
+                     "it would still be made by every reader of the kinds."),
+                _alt("examples-in-a-file", "Examples read from a JSON file beside the module",
+                     "They are made by the same functions the tests call with other arguments; a file would be a "
+                     "second copy to keep in step."),
+            ],
+        ),
     ]
 
 

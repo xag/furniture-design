@@ -537,7 +537,9 @@ RULES = [r.model_copy(update={"messages": words.messages(r.name)}) for r in RULE
 
 register()
 
-EXAMPLES = _world() + piece.piece_world() + [drawn.example_pages()]
+
+def _examples() -> list[Node]:
+    return _world() + piece.piece_world() + [drawn.example_pages()]
 
 
 def _piece_case(pages: dict | None = None, **kw) -> list[Node]:
@@ -549,111 +551,138 @@ _BAD_STANDARD = Node(id=STANDARDS, kind="", children=[
     Node(id="says-nothing", kind="criterion", payload={"applies_to": "tool", "measures": "completeness"}),
     Node(id="needs-nothing", kind="level", payload={"of": "tool"}, links={"requires": ["standards/ghost"]})])
 
-COUNTER_EXAMPLES = [
-    CounterExample(rule="a-criterion-names-what-it-judges", nodes=_world(standards=_BAD_STANDARD),
-                   because="a criterion that names no rule judges nothing"),
-    CounterExample(rule="a-level-requires-criteria", nodes=_world(standards=_BAD_STANDARD),
-                   because="a level requiring a criterion that does not exist"),
-    CounterExample(rule="a-tool-names-its-maker", nodes=_world(example_tool(maker="")),
-                   because="a tool whose maker nobody named"),
-    CounterExample(rule="a-tool-rests-on-clauses", nodes=_world(example_tool(per=False)),
-                   because="a tool linked to no clause"),
-    CounterExample(rule="a-tool-says-itself-in-every-language", nodes=_world(example_tool(say={"en": _SAY["en"]})),
-                   because="a tool said in English only"),
-    CounterExample(rule="a-tool-has-a-model-that-draws", nodes=_world(example_tool(model={})),
-                   because="a tool with figures, sources and a method, and no model: a name with no drawing"),
-    CounterExample(rule="a-tools-model-shows-its-figures", nodes=_world(example_tool(pad=150.0),
-                   documents=[_document("manual", 150.0), _document("page", 150.0)]),
-                   because="the pad drawn is 125 where both documents print 150"),
-    CounterExample(rule="a-tools-figures-are-in-order", nodes=_world(example_tool(speed_min=20000)),
-                   because="a slowest speed above the fastest"),
-    CounterExample(rule="a-tools-figures-each-rest-on-an-observation",
-                   nodes=_world(documents=[_document("manual", grounded=False), _document("page", grounded=False)]),
-                   because="a pad diameter nobody found printed in either document"),
-    CounterExample(rule="a-tools-figures-each-rest-on-two-observations", nodes=_world(example_tool(documents=("manual",))),
-                   because="every figure read from one manual: one reading each"),
-    CounterExample(rule="a-tools-figures-agree-with-what-they-are-read-from",
-                   nodes=_world(documents=[_document("manual"), _document("page", 150.0)]),
-                   because="the manual prints 125 and the product page 150"),
-    CounterExample(rule="a-saw-states-its-cut", nodes=_world(example_tool(saw=True, drop=("kerf",))),
-                   because="a saw whose cut nobody stated"),
-    CounterExample(rule="a-saw-states-its-depth", nodes=_world(example_tool(saw=True, drop=("max_cut_depth",))),
-                   because="a saw whose depth nobody stated"),
-    CounterExample(rule="a-pieces-steps-bring-in-every-part", nodes=_piece_case(piece=piece.example_piece(steps=piece.STEPS[:1])),
-                   because="instructions that stop once the rail is up, the doors never hung"),
-    CounterExample(rule="a-pieces-steps-close-every-joint",
-                   nodes=_piece_case(piece=piece.example_piece(steps=[{"add": ["angle", "channel", "back-panel", "front-panel"]}])),
-                   because="one step that shows every part arriving and nothing fixing the rail"),
-    CounterExample(rule="a-pieces-pages-carry-no-sentence",
-                   nodes=_piece_case(pages={"sentence": "Glue the channel to the angle."}),
-                   because="a step that says in a sentence what its picture should show"),
-    CounterExample(rule="a-pieces-steps-attach-one-kind-of-part", nodes=_piece_case(pages={"rail_kinds": ("R", "S")}),
-                   because="an angle and a channel of two kinds brought in by one step"),
-    CounterExample(rule="a-pieces-new-parts-are-drawn-apart-with-a-line",
-                   nodes=_piece_case(pages={"doors_guided": ("front-panel",)}),
-                   because="a door drawn in its rail, with nothing showing that it goes in or how"),
-    CounterExample(rule="a-pieces-fastenings-are-shown", nodes=_piece_case(pages={"fastened": ()}),
-                   because="a rail shown arriving, and nothing of the screws and glue that hold it"),
-    CounterExample(rule="a-pieces-new-parts-are-visible", nodes=_piece_case(pages={"door_shows": 0.2}),
-                   because="a back door four fifths hidden behind the front one"),
-    CounterExample(rule="a-pieces-steps-keep-their-context", nodes=_piece_case(pages={"context": 0.02}),
-                   because="doors drawn over the whole rail they go in"),
-    CounterExample(rule="a-pieces-parts-say-how-they-are-cut", nodes=_piece_case(piece=piece.example_piece(made=False)),
-                   because="a channel nobody said what to cut from, or with what"),
-    CounterExample(rule="a-pieces-joints-say-what-fastens-them",
-                   nodes=_piece_case(piece=piece.example_piece(fastened=False)),
-                   because="a rail fixed to a lintel by nothing anyone named or counted"),
-    CounterExample(rule="a-pieces-turning-parts-are-carried",
-                   nodes=_piece_case(piece=piece.example_piece(flap={"pivot": [-108, 1200]})),
-                   because="a flap said to turn about a line in mid-air, where no hinge can be"),
-    CounterExample(rule="a-pieces-turning-parts-have-room",
-                   nodes=_piece_case(piece=piece.example_piece(flap={"travel": [0, 90]})),
-                   because="a flap that opens inwards, through the rail and the door behind it"),
-    CounterExample(rule="a-pieces-purpose-is-answered", nodes=_piece_case(ledger=piece.example_ledger(answers=False)),
-                   because="doors said to slide in one rail, and no decision on how"),
-    CounterExample(rule="a-pieces-decisions-name-what-realises-them",
-                   nodes=_piece_case(ledger=piece.example_ledger(realised=False)),
-                   because="a decision about the rail that names no part, joint or motion"),
-    CounterExample(rule="a-pieces-stated-numbers-are-checked", nodes=_piece_case(ledger=piece.example_ledger(figure=None)),
-                   because="an overlap of 50 mm stated in words, that nothing compares with the model"),
-    CounterExample(rule="a-pieces-figures-are-those-of-its-model", nodes=_piece_case(piece=piece.example_piece(overlap=47.0)),
-                   because="the ledger says the doors overlap by 50 mm, and the model gives 47"),
-    CounterExample(rule="a-pieces-parts-are-fixed-or-guided", nodes=_piece_case(piece=piece.example_piece(joints=False)),
-                   because="an angle and a channel that nothing fixes"),
-    CounterExample(rule="a-pieces-motions-are-stated", nodes=_piece_case(piece=piece.example_piece(travel=[600])),
-                   because="a slide whose travel is one number"),
-    CounterExample(rule="a-pieces-sliding-parts-are-held",
-                   nodes=_piece_case(piece=piece.example_piece(back_guides=("channel",))),
-                   because="a back door with the channel in front of it and nothing behind"),
-    CounterExample(rule="a-pieces-sliding-parts-have-room", nodes=_piece_case(piece=piece.example_piece(channel_at=7.0)),
-                   because="the channel glued in the angle, where the back door was to run between the channel "
-                           "and the angle's leg: no room is left for it"),
-]
+def _counter_examples() -> list[CounterExample]:
+    return [
+        CounterExample(rule="a-criterion-names-what-it-judges", nodes=_world(standards=_BAD_STANDARD),
+                       because="a criterion that names no rule judges nothing"),
+        CounterExample(rule="a-level-requires-criteria", nodes=_world(standards=_BAD_STANDARD),
+                       because="a level requiring a criterion that does not exist"),
+        CounterExample(rule="a-tool-names-its-maker", nodes=_world(example_tool(maker="")),
+                       because="a tool whose maker nobody named"),
+        CounterExample(rule="a-tool-rests-on-clauses", nodes=_world(example_tool(per=False)),
+                       because="a tool linked to no clause"),
+        CounterExample(rule="a-tool-says-itself-in-every-language", nodes=_world(example_tool(say={"en": _SAY["en"]})),
+                       because="a tool said in English only"),
+        CounterExample(rule="a-tool-has-a-model-that-draws", nodes=_world(example_tool(model={})),
+                       because="a tool with figures, sources and a method, and no model: a name with no drawing"),
+        CounterExample(rule="a-tools-model-shows-its-figures", nodes=_world(example_tool(pad=150.0),
+                       documents=[_document("manual", 150.0), _document("page", 150.0)]),
+                       because="the pad drawn is 125 where both documents print 150"),
+        CounterExample(rule="a-tools-figures-are-in-order", nodes=_world(example_tool(speed_min=20000)),
+                       because="a slowest speed above the fastest"),
+        CounterExample(rule="a-tools-figures-each-rest-on-an-observation",
+                       nodes=_world(documents=[_document("manual", grounded=False), _document("page", grounded=False)]),
+                       because="a pad diameter nobody found printed in either document"),
+        CounterExample(rule="a-tools-figures-each-rest-on-two-observations", nodes=_world(example_tool(documents=("manual",))),
+                       because="every figure read from one manual: one reading each"),
+        CounterExample(rule="a-tools-figures-agree-with-what-they-are-read-from",
+                       nodes=_world(documents=[_document("manual"), _document("page", 150.0)]),
+                       because="the manual prints 125 and the product page 150"),
+        CounterExample(rule="a-saw-states-its-cut", nodes=_world(example_tool(saw=True, drop=("kerf",))),
+                       because="a saw whose cut nobody stated"),
+        CounterExample(rule="a-saw-states-its-depth", nodes=_world(example_tool(saw=True, drop=("max_cut_depth",))),
+                       because="a saw whose depth nobody stated"),
+        CounterExample(rule="a-pieces-steps-bring-in-every-part", nodes=_piece_case(piece=piece.example_piece(steps=piece.STEPS[:1])),
+                       because="instructions that stop once the rail is up, the doors never hung"),
+        CounterExample(rule="a-pieces-steps-close-every-joint",
+                       nodes=_piece_case(piece=piece.example_piece(steps=[{"add": ["angle", "channel", "back-panel", "front-panel"]}])),
+                       because="one step that shows every part arriving and nothing fixing the rail"),
+        CounterExample(rule="a-pieces-pages-carry-no-sentence",
+                       nodes=_piece_case(pages={"sentence": "Glue the channel to the angle."}),
+                       because="a step that says in a sentence what its picture should show"),
+        CounterExample(rule="a-pieces-steps-attach-one-kind-of-part", nodes=_piece_case(pages={"rail_kinds": ("R", "S")}),
+                       because="an angle and a channel of two kinds brought in by one step"),
+        CounterExample(rule="a-pieces-new-parts-are-drawn-apart-with-a-line",
+                       nodes=_piece_case(pages={"doors_guided": ("front-panel",)}),
+                       because="a door drawn in its rail, with nothing showing that it goes in or how"),
+        CounterExample(rule="a-pieces-fastenings-are-shown", nodes=_piece_case(pages={"fastened": ()}),
+                       because="a rail shown arriving, and nothing of the screws and glue that hold it"),
+        CounterExample(rule="a-pieces-new-parts-are-visible", nodes=_piece_case(pages={"door_shows": 0.2}),
+                       because="a back door four fifths hidden behind the front one"),
+        CounterExample(rule="a-pieces-steps-keep-their-context", nodes=_piece_case(pages={"context": 0.02}),
+                       because="doors drawn over the whole rail they go in"),
+        CounterExample(rule="a-pieces-parts-say-how-they-are-cut", nodes=_piece_case(piece=piece.example_piece(made=False)),
+                       because="a channel nobody said what to cut from, or with what"),
+        CounterExample(rule="a-pieces-joints-say-what-fastens-them",
+                       nodes=_piece_case(piece=piece.example_piece(fastened=False)),
+                       because="a rail fixed to a lintel by nothing anyone named or counted"),
+        CounterExample(rule="a-pieces-turning-parts-are-carried",
+                       nodes=_piece_case(piece=piece.example_piece(flap={"pivot": [-108, 1200]})),
+                       because="a flap said to turn about a line in mid-air, where no hinge can be"),
+        CounterExample(rule="a-pieces-turning-parts-have-room",
+                       nodes=_piece_case(piece=piece.example_piece(flap={"travel": [0, 90]})),
+                       because="a flap that opens inwards, through the rail and the door behind it"),
+        CounterExample(rule="a-pieces-purpose-is-answered", nodes=_piece_case(ledger=piece.example_ledger(answers=False)),
+                       because="doors said to slide in one rail, and no decision on how"),
+        CounterExample(rule="a-pieces-decisions-name-what-realises-them",
+                       nodes=_piece_case(ledger=piece.example_ledger(realised=False)),
+                       because="a decision about the rail that names no part, joint or motion"),
+        CounterExample(rule="a-pieces-stated-numbers-are-checked", nodes=_piece_case(ledger=piece.example_ledger(figure=None)),
+                       because="an overlap of 50 mm stated in words, that nothing compares with the model"),
+        CounterExample(rule="a-pieces-figures-are-those-of-its-model", nodes=_piece_case(piece=piece.example_piece(overlap=47.0)),
+                       because="the ledger says the doors overlap by 50 mm, and the model gives 47"),
+        CounterExample(rule="a-pieces-parts-are-fixed-or-guided", nodes=_piece_case(piece=piece.example_piece(joints=False)),
+                       because="an angle and a channel that nothing fixes"),
+        CounterExample(rule="a-pieces-motions-are-stated", nodes=_piece_case(piece=piece.example_piece(travel=[600])),
+                       because="a slide whose travel is one number"),
+        CounterExample(rule="a-pieces-sliding-parts-are-held",
+                       nodes=_piece_case(piece=piece.example_piece(back_guides=("channel",))),
+                       because="a back door with the channel in front of it and nothing behind"),
+        CounterExample(rule="a-pieces-sliding-parts-have-room", nodes=_piece_case(piece=piece.example_piece(channel_at=7.0)),
+                       because="the channel glued in the angle, where the back door was to run between the channel "
+                               "and the angle's leg: no room is left for it"),
+    ]
 
-PACKAGE = Package(
-    name="furniture-standards",
-    version="0.9.1",
-    description=(
-        "What a tool's entry is held to for each use it may be put to, as criteria and levels a certificate "
-        "is run from (quern.certify). Criteria: the tool is identified, drawn, its drawing true to its "
-        "figures, said in every language, a saw's cut and depth stated, its figures consistent, each found "
-        "printed in a document, each resting on two observations that agree. Levels: shown in a person's "
-        "tools, cuts the parts of a piece, drawn at work in assembly instructions, taken into the shared "
-        "packages. And what a piece's design is held to: every sentence of its purpose answered by a decision "
-        "of its ledger that names what realises it, the numbers the ledger states given by the model, every part "
-        "fixed by a joint or moved by a motion (kind motion: a slide's or a turn's axis and travel, a turn's pivot, "
-        "what moves and what guides or carries it), what slides held on both sides, what turns carried where "
-        "it turns, each with room along its travel; levels: its design says what the "
-        "person asked for, it holds together and what moves in it works, its assembly instructions are shown (the "
-        "steps bring in every part and close every joint once its parts are in, and the pages as drawn carry no "
-        "sentence, attach one kind of part a step with a line to where it goes and what fastens it, and show "
-        "the parts brought in and enough of those already there: Agrawala et al. 2003 and IKEA, as clauses of "
-        "the knowledge). The rules grade and refuse nothing."),
-    publisher="xag/furniture-design",
-    vocabulary=VOCABULARY,
-    rules=RULES,
-    solvers=[SolverDef(name=name, native=True, reads=[""], description=(fn.__doc__ or "").strip().split("\n\n")[0])
-             for name, fn in NATIVES.items()],
-    examples=EXAMPLES,
-    counter_examples=COUNTER_EXAMPLES,
-)
+
+VERSION = "0.9.2"
+
+
+SOLVERS = [SolverDef(name=name, native=True, reads=[""], description=(fn.__doc__ or "").strip().split("\n\n")[0])
+           for name, fn in NATIVES.items()]
+
+
+def _package() -> Package:
+    return Package(
+        name="furniture-standards",
+        version=VERSION,
+        description=(
+            "What a tool's entry is held to for each use it may be put to, as criteria and levels a certificate "
+            "is run from (quern.certify). Criteria: the tool is identified, drawn, its drawing true to its "
+            "figures, said in every language, a saw's cut and depth stated, its figures consistent, each found "
+            "printed in a document, each resting on two observations that agree. Levels: shown in a person's "
+            "tools, cuts the parts of a piece, drawn at work in assembly instructions, taken into the shared "
+            "packages. And what a piece's design is held to: every sentence of its purpose answered by a decision "
+            "of its ledger that names what realises it, the numbers the ledger states given by the model, every part "
+            "fixed by a joint or moved by a motion (kind motion: a slide's or a turn's axis and travel, a turn's pivot, "
+            "what moves and what guides or carries it), what slides held on both sides, what turns carried where "
+            "it turns, each with room along its travel; levels: its design says what the "
+            "person asked for, it holds together and what moves in it works, its assembly instructions are shown (the "
+            "steps bring in every part and close every joint once its parts are in, and the pages as drawn carry no "
+            "sentence, attach one kind of part a step with a line to where it goes and what fastens it, and show "
+            "the parts brought in and enough of those already there: Agrawala et al. 2003 and IKEA, as clauses of "
+            "the knowledge). The rules grade and refuse nothing."),
+        publisher="xag/furniture-design",
+        vocabulary=VOCABULARY,
+        rules=RULES,
+        solvers=SOLVERS,
+        examples=_made("EXAMPLES"),
+        counter_examples=_made("COUNTER_EXAMPLES"),
+    )
+
+
+_MAKERS = {"EXAMPLES": _examples, "COUNTER_EXAMPLES": _counter_examples, "PACKAGE": _package}
+
+
+def _made(name: str):
+    value = globals().get(name)
+    if value is None:
+        value = globals()[name] = _MAKERS[name]()
+    return value
+
+
+def __getattr__(name: str):
+    """PACKAGE, EXAMPLES and COUNTER_EXAMPLES are made the first time one is asked for: a reader
+    that judges a tree needs only VOCABULARY, RULES, NATIVES and VERSION."""
+    if name in _MAKERS:
+        return _made(name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
