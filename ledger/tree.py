@@ -1247,6 +1247,33 @@ def entries() -> list[Node]:
             ],
         ),
         Node(
+            id="a-question-to-the-person-asks-one-thing-and-names-its-answers", kind="decision",
+            name="A rule of furniture-standards@ that waits on what only the person knows checks one thing, so "
+                 "its question (messages ask) is put only when that thing is missing: what a part is cut from "
+                 "(a-pieces-parts-say-what-they-are-cut-from, Which boards do you buy?) and what cuts it out "
+                 "(a-pieces-parts-say-how-they-are-cut, What do you cut the boards with, or which shop cuts "
+                 "them?) are two rules. When the person's tools answer a question, the rule says which "
+                 "(messages offers: the payload key such a tool states, saw_kind for what cuts a part); whoever "
+                 "shows the question offers only those tools, and none when the rule names none",
+            links={"rests_on": ["a-part-names-the-saw-that-cuts-it-out",
+                                "a-shops-cutting-service-is-a-saw-with-its-rules",
+                                "a-pieces-instructions-have-a-level-to-reach"]},
+            payload={"decided_on": "2026-11-16",
+                     "why": "One rule held both links and asked both questions: a bench whose parts all named "
+                            "their board was still asked which boards the person buys, and the person's sander, "
+                            "clamps, tape and vacuum were offered as what they cut with. A reader may not "
+                            "recognise a rule by its name, so which tools answer is the rule's to say."},
+            children=[
+                _alt("one-rule-two-questions", "Keep one rule for both links, its question asking both",
+                     "The person is asked what the model already says."),
+                _alt("reader-filters-by-rule", "The app offers saws when it sees the cutting rule",
+                     "A reader would then name a rule of the standard, which whoever shows a certificate does not."),
+                _alt("no-tools-offered", "Offer no tools as answers, only a line to type",
+                     "The person's tools are the answer most of the time, and ticking one names it as the "
+                     "piece links it."),
+            ],
+        ),
+        Node(
             id="a-caller-names-the-tools-drawn-at-work", kind="decision",
             name="Whoever draws a piece's documents may name the tools its assembly instructions draw at work "
                  "(at_work, by path), overriding the payload's full or short tool by tool: a block draws its tool "

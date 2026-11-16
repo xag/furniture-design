@@ -210,9 +210,31 @@ def test_a_rule_that_waits_on_the_person_says_the_question_in_every_language():
     words: the rules on what cuts and fastens a piece say a question beside what is wrong, in each
     language they speak; a rule whoever edits the model can put right alone asks nothing."""
     by = {r.name: r.messages for r in standards.RULES}
-    for name in ("a-pieces-parts-say-how-they-are-cut", "a-pieces-joints-say-what-fastens-them"):
+    for name in ("a-pieces-parts-say-what-they-are-cut-from", "a-pieces-parts-say-how-they-are-cut",
+                 "a-pieces-joints-say-what-fastens-them"):
         assert set(by[name]) == {"en", "fr"} and all(m["ask"].rstrip().endswith("?") for m in by[name].values())
     assert all("ask" not in m for m in by["a-pieces-pages-carry-no-sentence"].values())
+
+
+def test_only_the_persons_saws_answer_what_they_cut_with():
+    """The question on what cuts the parts is answered by a saw (sawn_with), so it offers the person's
+    tools that state a saw kind, and not their sander, clamps or tape; nothing the person holds as a
+    tool fastens a joint, so that question offers none of them."""
+    by = {r.name: r.messages for r in standards.RULES}
+    assert all(m["offers"] == "saw_kind" for m in by["a-pieces-parts-say-how-they-are-cut"].values())
+    assert all("offers" not in m for m in by["a-pieces-joints-say-what-fastens-them"].values())
+    assert all("offers" not in m for m in by["a-pieces-parts-say-what-they-are-cut-from"].values())
+
+
+def test_a_part_that_names_its_board_is_not_asked_which_board():
+    """A part that names the board it is cut from and not the saw is asked only what cuts it: the
+    person is not asked again what the model already says."""
+    c = piece_cert(piece=sp.example_piece(unsaid=("sawn_with",)))
+    assert "channel: it does not say what cuts it out (sawn_with)" in whys(c)
+    assert "(uses)" not in whys(c)
+    asked = [m["ask"] for cr in c["criteria"] for red in cr["reds"] for m in (red["messages"] or {}).values()
+             if "ask" in m]
+    assert asked and not any("buy" in q or "achetez" in q for q in asked)
 
 
 def test_with_no_pages_drawn_only_the_criteria_judged_on_the_pages_fail():

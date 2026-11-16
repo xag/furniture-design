@@ -281,21 +281,24 @@ def _parts(tree: Quern, piece: str) -> list[tuple[str, Node]]:
     return [(b.path, get_node(tree, b.path)) for b in natives.bodies(tree, piece)]
 
 
-def _uncut(tree: Quern, piece: str) -> list[str]:
-    out = []
-    for path, node in _parts(tree, piece):
-        if not node.links.get("uses"):
-            out.append(f"{path}: it does not say what it is cut from (uses)")
-        if not node.links.get("sawn_with"):
-            out.append(f"{path}: it does not say what cuts it out (sawn_with)")
-    return out
+def _unsourced(tree: Quern, piece: str) -> list[str]:
+    return [f"{path}: it does not say what it is cut from (uses)"
+            for path, node in _parts(tree, piece) if not node.links.get("uses")]
 
 
-def parts_uncut(tree: Quern, piece: str) -> float:
-    """How many things the piece's parts leave unsaid about how they are made: a part that names no
-    material it is cut from (the link uses), a part that names no saw or service that cuts it out
-    (the link sawn_with)."""
-    return float(len(_uncut(tree, piece)))
+def parts_unsourced(tree: Quern, piece: str) -> float:
+    """How many of the piece's parts name no material they are cut from (the link uses)."""
+    return float(len(_unsourced(tree, piece)))
+
+
+def _unsawn(tree: Quern, piece: str) -> list[str]:
+    return [f"{path}: it does not say what cuts it out (sawn_with)"
+            for path, node in _parts(tree, piece) if not node.links.get("sawn_with")]
+
+
+def parts_unsawn(tree: Quern, piece: str) -> float:
+    """How many of the piece's parts name no saw or service that cuts them out (the link sawn_with)."""
+    return float(len(_unsawn(tree, piece)))
 
 
 def _unfastened(tree: Quern, piece: str) -> list[str]:
@@ -466,7 +469,8 @@ def joints_misclosed(tree: Quern, piece: str) -> float:
 
 
 NATIVES = {
-    "furniture/parts_uncut": parts_uncut,
+    "furniture/parts_unsourced": parts_unsourced,
+    "furniture/parts_unsawn": parts_unsawn,
     "furniture/joints_unfastened": joints_unfastened,
     "furniture/unheld_turns": unheld_turns,
     "furniture/turn_crossings": turn_crossings,
@@ -483,7 +487,8 @@ NATIVES = {
 }
 
 EXPLAINERS = {
-    "furniture/parts_uncut": _uncut,
+    "furniture/parts_unsourced": _unsourced,
+    "furniture/parts_unsawn": _unsawn,
     "furniture/joints_unfastened": _unfastened,
     "furniture/unheld_turns": _uncarried,
     "furniture/turn_crossings": _swept,
@@ -511,25 +516,28 @@ _PIECE = "pieces/doors"
 _ANGLE = [[0, 19], [20, 19], [20, 20], [0, 20]], [[19, 0], [20, 0], [20, 20], [19, 20]]   # flange, leg
 
 
-def _part(id_: str, size: list, at: list, section: list | None = None, made: bool = True) -> Node:
+def _part(id_: str, size: list, at: list, section: list | None = None, unsaid: tuple[str, ...] = ()) -> Node:
+    """A part cut from the example profile with the example saw, but for the links `unsaid` leaves out."""
     payload = {"shape": {"op": "box", "size": size}, "transform": {"translate": at}}
     if section:
         payload["section"] = section
-    return Node(id=id_, kind="part", payload=payload,
-                links={"uses": ["materials/example-profile"], "sawn_with": ["tools/example-saw"]} if made else {},
+    links = {"uses": ["materials/example-profile"], "sawn_with": ["tools/example-saw"]}
+    return Node(id=id_, kind="part", payload=payload, links={k: v for k, v in links.items() if k not in unsaid},
                 params={"mass": Quantity(value=1.0, unit="kg", provenance="design-target", grounded=False)})
 
 
 def example_piece(*, channel_at: float = 0.0, joints: bool = True, back_guides: tuple[str, ...] = ("channel", "angle"),
                   overlap: float = 50.0, travel: list | None = None, motions: bool = True,
                   steps: list | None = None, flap: dict | None = None, made: bool = True,
-                  fastened: bool = True) -> Node:
+                  fastened: bool = True, unsaid: tuple[str, ...] = ()) -> Node:
     """Two doors, 600 wide, in an opening `2 * 600 - overlap` wide; the channel `channel_at` mm from the
-    flange's front edge (0: at the edge, as designed; 7: glued in the angle)."""
+    flange's front edge (0: at the edge, as designed; 7: glued in the angle). The channel says neither
+    what it is cut from nor with what when not `made`, and leaves out the links `unsaid` otherwise."""
     angle = _part("angle", ["width", 20, 20], [0, 0, 1180],
                   [[0, 19], [19, 19], [19, 0], [20, 0], [20, 20], [0, 20]])
     channel = _part("channel", ["width", 12, 12], [0, channel_at, 1187],
-                    [[0, 0], [1, 0], [1, 11], [11, 11], [11, 0], [12, 0], [12, 12], [0, 12]], made=made)
+                    [[0, 0], [1, 0], [1, 11], [11, 11], [11, 0], [12, 0], [12, 12], [0, 12]],
+                    unsaid=unsaid if made else ("uses", "sawn_with"))
     held = {"links": {"uses": ["connectors/example-screw"]},
             "params": {"count": Quantity(value=4, unit="", provenance="design-target", grounded=False)}} if fastened else {}
     front = Node(id="front-door", kind="assembly", children=[_part("front-panel", [600, 8, 1190], [0, channel_at + 2, 5])])
@@ -592,10 +600,15 @@ def _demo(contract: str, expect: float, because: str, **kw):
 
 
 SPEC = {
-    "furniture/parts_uncut": [
-        _demo("furniture/parts_uncut", 0, "each part names the profile or board it is cut from and the saw"),
-        _demo("furniture/parts_uncut", 2, "a channel that says neither what it is cut from nor with what",
-              piece=example_piece(made=False)),
+    "furniture/parts_unsourced": [
+        _demo("furniture/parts_unsourced", 0, "each part names the profile or board it is cut from"),
+        _demo("furniture/parts_unsourced", 1, "a channel that says what saw cuts it, and not what it is cut from",
+              piece=example_piece(unsaid=("uses",))),
+    ],
+    "furniture/parts_unsawn": [
+        _demo("furniture/parts_unsawn", 0, "each part names the saw that cuts it out"),
+        _demo("furniture/parts_unsawn", 1, "a channel that says what it is cut from, and not what cuts it out",
+              piece=example_piece(unsaid=("sawn_with",))),
     ],
     "furniture/joints_unfastened": [
         _demo("furniture/joints_unfastened", 0, "each joint names its screws and how many"),

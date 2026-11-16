@@ -4,8 +4,10 @@ A criterion and a level say their name (payload say: {language: name}); a rule s
 when it does not hold (messages: {language: {"red": sentence}}, quern's messages). They are for the
 person who looks at a certificate, in the language their piece is made in; a rule's description
 stays what it tells whoever must put it right. A rule that waits on what only the person knows also
-says the question to put to them (messages ask). Whoever shows a certificate reads these and writes
-no word of its own.
+says the question to put to them (messages ask), and, when the person's tools answer it, which of
+them do (messages offers: the payload key a tool states when it answers, the same in every language,
+as saw_kind for what cuts a part). Whoever shows a certificate reads these and writes no word of its
+own, and offers as answers only the tools that state that key, none when the rule names none.
 """
 from __future__ import annotations
 
@@ -140,9 +142,12 @@ RED = {
     "a-pieces-steps-close-every-joint": {
         "en": "A joint is closed by no step, or before the parts it joins are in.",
         "fr": "Un assemblage n'est fermé par aucune étape, ou avant que ses pièces soient en place."},
+    "a-pieces-parts-say-what-they-are-cut-from": {
+        "en": "A part does not say what it is cut from.",
+        "fr": "Une pièce ne dit pas dans quoi elle est coupée."},
     "a-pieces-parts-say-how-they-are-cut": {
-        "en": "A part does not say what it is cut from, or what cuts it out.",
-        "fr": "Une pièce ne dit pas dans quoi elle est coupée, ou avec quoi."},
+        "en": "A part does not say what cuts it out.",
+        "fr": "Une pièce ne dit pas avec quoi elle est coupée."},
     "a-pieces-joints-say-what-fastens-them": {
         "en": "A joint does not say what fastens it, or how many it takes.",
         "fr": "Un assemblage ne dit pas ce qui le fixe, ou combien il en faut."},
@@ -168,12 +173,22 @@ RED = {
 
 
 # rule name -> the question it puts to the person, per language: only a rule that waits on what the
-# person alone knows (what they buy, what they cut and fasten with) asks; whoever shows a certificate
+# person alone knows (what they buy, what they cut and fasten with) asks, each rule one thing, so a
+# question is put only when that thing is missing; whoever shows a certificate
 # puts the question to them, and what the others need is work for whoever edits the model
+
+# rule name -> which of the person's tools answer its question: the payload key such a tool states. What
+# cuts a part out is a saw (sawn_with), so only the person's saws answer what they cut with; nothing
+# the person holds as a tool fastens a joint (a connector, screws, a glue do), so that question takes none
+OFFERS = {"a-pieces-parts-say-how-they-are-cut": "saw_kind"}
+
 ASK = {
+    "a-pieces-parts-say-what-they-are-cut-from": {
+        "en": "Which boards do you buy?",
+        "fr": "Quelles planches achetez-vous\u00a0?"},
     "a-pieces-parts-say-how-they-are-cut": {
-        "en": "Which boards do you buy, and what do you cut them with?",
-        "fr": "Quelles planches achetez-vous, et avec quoi les coupez-vous\u00a0?"},
+        "en": "What do you cut the boards with, or which shop cuts them?",
+        "fr": "Avec quoi coupez-vous les planches, ou quel magasin les coupe\u00a0?"},
     "a-pieces-joints-say-what-fastens-them": {
         "en": "What do you fasten the parts together with?",
         "fr": "Avec quoi fixez-vous les pièces entre elles\u00a0?"},
@@ -182,4 +197,5 @@ ASK = {
 
 def messages(rule: str) -> dict:
     return {lang: {"red": text} | ({"ask": ASK[rule][lang]} if rule in ASK else {})
+            | ({"offers": OFFERS[rule]} if rule in OFFERS else {})
             for lang, text in RED[rule].items()}

@@ -257,7 +257,8 @@ def knowledge() -> list[Node]:
                    "once its parts are in", "completeness", "a-pieces-steps-bring-in-every-part",
                    "a-pieces-steps-close-every-joint", of="piece"),
         _criterion("piece-can-be-made", "Every part says what it is cut from and with, and every joint what "
-                   "fastens it and how many", "completeness", "a-pieces-parts-say-how-they-are-cut",
+                   "fastens it and how many", "completeness", "a-pieces-parts-say-what-they-are-cut-from",
+                   "a-pieces-parts-say-how-they-are-cut",
                    "a-pieces-joints-say-what-fastens-them", of="piece"),
         _criterion("pages-are-drawn-not-written", "No page of the instructions carries a sentence",
                    "presentation", "a-pieces-pages-carry-no-sentence", of="piece",
@@ -485,9 +486,12 @@ RULES = [
     Rule(name="a-pieces-steps-close-every-joint", kind="piece", expr="solve('furniture/joints_misclosed', self) == 0",
          description="Close every joint in an assembly step (a step's joints), no sooner than the step that "
                      "brings in the last part it joins."),
-    Rule(name="a-pieces-parts-say-how-they-are-cut", kind="piece", expr="solve('furniture/parts_uncut', self) == 0",
-         description="Link every part uses to the material it is cut from and sawn_with to the saw, or the shop's "
-                     "cutting service, that cuts it out: ask the person what they buy and what they cut with."),
+    Rule(name="a-pieces-parts-say-what-they-are-cut-from", kind="piece",
+         expr="solve('furniture/parts_unsourced', self) == 0",
+         description="Link every part uses to the material it is cut from: ask the person what they buy."),
+    Rule(name="a-pieces-parts-say-how-they-are-cut", kind="piece", expr="solve('furniture/parts_unsawn', self) == 0",
+         description="Link every part sawn_with to the saw, or the shop's cutting service, that cuts it out: ask "
+                     "the person what they cut with, or which shop cuts for them."),
     Rule(name="a-pieces-joints-say-what-fastens-them", kind="piece",
          expr="solve('furniture/joints_unfastened', self) == 0",
          description="Link every joint uses to what fastens it (a connector, screws, a glue: a node of the "
@@ -606,8 +610,12 @@ def _counter_examples() -> list[CounterExample]:
                        because="a back door four fifths hidden behind the front one"),
         CounterExample(rule="a-pieces-steps-keep-their-context", nodes=_piece_case(pages={"context": 0.02}),
                        because="doors drawn over the whole rail they go in"),
-        CounterExample(rule="a-pieces-parts-say-how-they-are-cut", nodes=_piece_case(piece=piece.example_piece(made=False)),
-                       because="a channel nobody said what to cut from, or with what"),
+        CounterExample(rule="a-pieces-parts-say-what-they-are-cut-from",
+                       nodes=_piece_case(piece=piece.example_piece(unsaid=("uses",))),
+                       because="a channel nobody said what to cut from"),
+        CounterExample(rule="a-pieces-parts-say-how-they-are-cut",
+                       nodes=_piece_case(piece=piece.example_piece(unsaid=("sawn_with",))),
+                       because="a channel nobody said what to cut with"),
         CounterExample(rule="a-pieces-joints-say-what-fastens-them",
                        nodes=_piece_case(piece=piece.example_piece(fastened=False)),
                        because="a rail fixed to a lintel by nothing anyone named or counted"),
@@ -639,7 +647,7 @@ def _counter_examples() -> list[CounterExample]:
     ]
 
 
-VERSION = "0.10.0"
+VERSION = "0.10.1"
 
 
 SOLVERS = [SolverDef(name=name, native=True, reads=[""], description=(fn.__doc__ or "").strip().split("\n\n")[0])

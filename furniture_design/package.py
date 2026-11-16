@@ -765,7 +765,7 @@ def _counter_examples() -> list[CounterExample]:
     ]
 
 
-VERSION = "0.22.9"
+VERSION = "0.22.10"
 
 
 def make_package() -> Package:
