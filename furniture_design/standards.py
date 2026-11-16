@@ -20,6 +20,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import quern.grounding  # noqa: F401 - registers the grounding contracts the rules call
+from quern import certification
 from quern.certify import register_explainer
 from quern.grounding import agree
 from quern.library import CounterExample, Library, Package, PackageRef, package_digest
@@ -522,29 +523,24 @@ RULES = [
 RULES = [r.model_copy(update={"messages": words.messages(r.name)}) for r in RULES]
 
 # What a standard is made of, the kinds criterion and level and the two rules that keep them well formed,
-# is certification@'s, pinned by its digest from the public registry; the copy under registry/ travels
-# in the wheel, as a consumer's .quern/library does in its repo. This package requires it and defines
-# neither kind. A reader judges a tree with both: VOCABULARY and RULES are certification@'s then ours.
-CERTIFICATION = PackageRef(name="certification", version="0.1.0",
-                           sha256="db7a6e57beb60d8bdf24afef04a1be05c9fc8cb8293c06391d7ecc1a30d6f7b6")
+# is certification@, quern.certification: this package requires it and defines neither kind. A reader
+# judges a tree with both: VOCABULARY and RULES are certification@'s then this package's.
+CERTIFICATION = PackageRef(name=certification.PACKAGE.name, version=certification.PACKAGE.version,
+                           sha256=package_digest(certification.PACKAGE))
 
 
 def library() -> Library:
-    """The packages this one requires, as a library: certification@ as the public registry holds it."""
-    return Library(Path(__file__).parent / "registry")
+    """The packages this one requires, as a library the publish gate resolves them from: certification@."""
+    import tempfile
 
-
-def _required() -> Package:
-    held = library().get(CERTIFICATION.name, CERTIFICATION.version)
-    if held is None or package_digest(held) != CERTIFICATION.sha256:
-        raise ValueError(f"{CERTIFICATION.name}@{CERTIFICATION.version} under registry/ is not the one pinned")
+    held = Library(Path(tempfile.mkdtemp(prefix="furniture-standards-requires-")))
+    held.publish(certification.PACKAGE, {})
     return held
 
 
 OWN_VOCABULARY, OWN_RULES = VOCABULARY, RULES
-_CERTIFICATION = _required()
-VOCABULARY = list(_CERTIFICATION.vocabulary) + OWN_VOCABULARY
-RULES = list(_CERTIFICATION.rules) + OWN_RULES
+VOCABULARY = list(certification.PACKAGE.vocabulary) + OWN_VOCABULARY
+RULES = list(certification.PACKAGE.rules) + OWN_RULES
 
 register()
 
