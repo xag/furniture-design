@@ -255,7 +255,7 @@ RULES = [
          description="A guidance says something (payload text), and every "
                      "node it speaks of (the link about) exists."),
     Rule(name="a-clause-quotes-its-source", kind="clause",
-         expr="some(s, nodes('source'), s == parent(self)) "
+         expr="kind(parent(self)) == 'source' "
               "and len(payload(self, 'locator', '')) > 0 "
               "and (len(payload(self, 'quote', '')) > 0 "
               "or payload(parent(self), 'licence', '') == 'copyrighted' "
@@ -278,7 +278,7 @@ RULES = [
                      "clause says which check, on what, with what result and when."),
     Rule(name="a-connector-rests-on-clauses", kind="connector",
          expr="len(linked(self, 'per')) > 0 and "
-              "every(c, linked(self, 'per'), some(k, nodes('clause'), k == c))",
+              "every(c, linked(self, 'per'), kind(c) == 'clause')",
          description="A connector links `per` to the clauses its limits come from."),
     Rule(name="a-joined-part-is-thick-enough-for-the-cut", kind="joint",
          expr="every(p, linked(self, 'joins'), "
@@ -339,17 +339,17 @@ RULES = [
                      "engages leaves the check absent."),
     Rule(name="a-requirement-rests-on-clauses", kind="requirement",
          expr="len(linked(self, 'per')) > 0 and "
-              "every(c, linked(self, 'per'), some(k, nodes('clause'), k == c))",
+              "every(c, linked(self, 'per'), kind(c) == 'clause')",
          description="A requirement links `per` to the clauses it rests on, and each is a "
                      "clause in the tree; a target a design sets itself still names the "
                      "clause that makes it a sensible measure."),
     Rule(name="a-material-rests-on-clauses", kind="material",
          expr="len(linked(self, 'per')) > 0 and "
-              "every(c, linked(self, 'per'), some(k, nodes('clause'), k == c))",
+              "every(c, linked(self, 'per'), kind(c) == 'clause')",
          description="A material links `per` to the clauses its properties come from."),
     Rule(name="a-load-acts-on-a-part", kind="load",
          expr="len(linked(self, 'on')) > 0 and "
-              "every(p, linked(self, 'on'), some(k, nodes('part'), k == p))",
+              "every(p, linked(self, 'on'), kind(p) == 'part')",
          description="A load names the part it acts on."),
     Rule(name="a-piece-is-held-to-what-applies-to-it", kind="piece",
          expr="solve('furniture/unheld', self) == 0",
@@ -767,7 +767,7 @@ COUNTER_EXAMPLES = [
 
 PACKAGE = Package(
     name="furniture-design",
-    version="0.22.5",
+    version="0.22.6",
     description=(
         "Furniture designs and the published knowledge they are judged against. Kinds: "
         "source and clause (a publication and its verbatim, located statements, with the "

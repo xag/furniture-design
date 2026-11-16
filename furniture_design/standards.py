@@ -424,12 +424,12 @@ RULES = [
                      "completeness, reliability, consistency or presentation it measures."),
     Rule(name="a-level-requires-criteria", kind="level",
          expr="len(payload(self, 'of', '')) > 0 and len(linked(self, 'requires')) > 0 and "
-              "every(c, linked(self, 'requires'), some(k, nodes('criterion'), k == c))",
+              "every(c, linked(self, 'requires'), kind(c) == 'criterion')",
          description="A level says the kind of subject it is a use of and requires criteria that exist."),
     Rule(name="a-tool-names-its-maker", kind="tool", expr="len(payload(self, 'maker', '')) > 0",
          description="Name the tool's maker (payload maker)."),
     Rule(name="a-tool-rests-on-clauses", kind="tool",
-         expr="len(linked(self, 'per')) > 0 and every(c, linked(self, 'per'), some(k, nodes('clause'), k == c))",
+         expr="len(linked(self, 'per')) > 0 and every(c, linked(self, 'per'), kind(c) == 'clause')",
          description="Link the tool per to the clauses of its maker's documents it is read from."),
     Rule(name="a-tool-says-itself-in-every-language", kind="tool",
          expr="solve('furniture/unsaid_languages', self) == 0",
@@ -632,7 +632,7 @@ COUNTER_EXAMPLES = [
 
 PACKAGE = Package(
     name="furniture-standards",
-    version="0.9.0",
+    version="0.9.1",
     description=(
         "What a tool's entry is held to for each use it may be put to, as criteria and levels a certificate "
         "is run from (quern.certify). Criteria: the tool is identified, drawn, its drawing true to its "
