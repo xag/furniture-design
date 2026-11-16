@@ -1,0 +1,9 @@
+[
+ {
+  "group": "Affichage",
+  "alts": [
+   {"name": "A", "screens": ["play-A.html"]},
+   {"name": "B", "screens": ["play-B.html"]}
+  ]
+ }
+]

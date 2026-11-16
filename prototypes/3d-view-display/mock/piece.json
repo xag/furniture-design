@@ -1,0 +1,2094 @@
+{
+ "id": "portes-des-penderies",
+ "kind": "piece",
+ "name": "Portes des penderies",
+ "params": {
+  "g_h": {
+   "value": 1153,
+   "provenance": "measured",
+   "grounded": true,
+   "source": "laser DTAPE DT50, 15/11/2026",
+   "note": "grande penderie : hauteur du dessus de la commode au linteau, à l'avant, gauche et droite",
+   "tolerance": 1
+  },
+  "g_l_haut": {
+   "value": 1153,
+   "provenance": "measured",
+   "grounded": true,
+   "source": "laser DTAPE DT50, 15/11/2026",
+   "note": "grande penderie : largeur sous le linteau, à l'avant",
+   "tolerance": 1
+  },
+  "g_l_bas": {
+   "value": 1156,
+   "provenance": "measured",
+   "grounded": true,
+   "source": "laser DTAPE DT50, 15/11/2026",
+   "note": "grande penderie : largeur sur la commode, au chant avant (1156-1157)",
+   "tolerance": 1
+  },
+  "p_h": {
+   "value": 1152,
+   "provenance": "measured",
+   "grounded": true,
+   "source": "laser DTAPE DT50, 15/11/2026",
+   "note": "petite penderie : hauteur côté droit, le plus bas (1154 à gauche)",
+   "tolerance": 1
+  },
+  "p_l_haut": {
+   "value": 948,
+   "provenance": "measured",
+   "grounded": true,
+   "source": "laser DTAPE DT50, 15/11/2026",
+   "note": "petite penderie : largeur sous le linteau",
+   "tolerance": 1
+  },
+  "p_l_bas": {
+   "value": 949,
+   "provenance": "measured",
+   "grounded": true,
+   "source": "laser DTAPE DT50, 15/11/2026",
+   "note": "petite penderie : largeur sur la commode",
+   "tolerance": 1
+  },
+  "porte_h": {
+   "value": 1143.5,
+   "provenance": "measured",
+   "grounded": true,
+   "source": "mètre ruban, photos du 15/11/2026",
+   "note": "hauteur hors tout des portes déjà faites, cadre compris (lue 1143-1144)",
+   "tolerance": 1
+  },
+  "g_porte_l": {
+   "value": 600,
+   "provenance": "design-target",
+   "grounded": false,
+   "source": "Xavier, 15/11/2026",
+   "note": "largeur d'une porte de la grande penderie, cadre compris"
+  },
+  "p_porte_l": {
+   "value": 500,
+   "provenance": "design-target",
+   "grounded": false,
+   "source": "Xavier, 15/11/2026",
+   "note": "largeur d'une porte de la petite penderie, cadre compris"
+  },
+  "decalage_x": {
+   "value": 1453,
+   "provenance": "design-target",
+   "grounded": false,
+   "source": "dessin",
+   "note": "écart entre l'origine de la grande et de la petite penderie sur le plan (dessin seulement)"
+  },
+  "g_h_arriere": {
+   "grounded": true,
+   "note": "grande penderie : hauteur au milieu de la largeur, 3 à 5 cm derrière le chant avant (lue 1148-1149) ; la porte arrière n'y a que 0,5 à 1,5 mm de jeu, à recouper de 2 mm si elle force",
+   "provenance": "measured",
+   "source": "laser DTAPE DT50, 15/11/2026",
+   "tolerance": 1,
+   "value": 1148
+  },
+  "p_h_arriere": {
+   "grounded": true,
+   "note": "petite penderie : hauteur au milieu de la largeur, 3 à 5 cm derrière le chant avant (lue 1150-1151)",
+   "provenance": "measured",
+   "source": "laser DTAPE DT50, 15/11/2026",
+   "tolerance": 1,
+   "value": 1150
+  },
+  "g_l_bas_arriere": {
+   "grounded": true,
+   "note": "grande penderie : largeur sur la commode, quelques cm derrière le chant avant (deux lectures à 1158 ; une lecture à 1165 écartée)",
+   "provenance": "measured",
+   "source": "laser DTAPE DT50, 15/11/2026",
+   "tolerance": 1,
+   "value": 1158
+  },
+  "p_h_gauche": {
+   "grounded": true,
+   "note": "petite penderie : hauteur côté gauche, à l'avant (1153-1154)",
+   "provenance": "measured",
+   "source": "laser DTAPE DT50, 15/11/2026",
+   "tolerance": 1,
+   "value": 1154
+  }
+ },
+ "links": {},
+ "payload": {
+  "category": "door-set",
+  "authors": [
+   "Xavier"
+  ],
+  "date": "2026-11-15",
+  "material_names": {
+   "materials/standers-profile-aluminium-anodise-blanc-satine-20x20x1": "Cornière alu blanc satiné 20×20×1 (87477760)",
+   "materials/standers-u-aluminium-brut-12x12x1": "U alu brut 12×12×1 (87477962)",
+   "materials/standers-u-pvc-transparent-12x12x1": "U PVC transparent 12×12×1 (87477510)",
+   "materials/standers-u-pvc-blanc-mat-8x8x1": "U PVC blanc 8×8×1 (87477517)",
+   "materials/lexan-thermoclear-lt2uv62rs13-opal": "Plaque polycarbonate alvéolaire 6 mm"
+  },
+  "steps": [
+   {
+    "add": [
+     "g-rail-haut-avant-corniere",
+     "g-rail-haut-avant-u",
+     "g-rail-haut-arriere-corniere",
+     "g-rail-haut-arriere-u",
+     "p-rail-haut-avant-corniere",
+     "p-rail-haut-avant-u",
+     "p-rail-haut-arriere-corniere",
+     "p-rail-haut-arriere-u"
+    ],
+    "text": "Coller chaque U haut dans l'angle de sa cornière, puis visser les deux cornières hautes sous le linteau, l'avant au ras du linteau."
+   },
+   {
+    "add": [
+     "g-porte-avant-cadre-bas",
+     "g-porte-avant-cadre-haut",
+     "g-porte-avant-cadre-gauche",
+     "g-porte-avant-cadre-droit",
+     "g-porte-avant-plaque",
+     "g-porte-arriere-cadre-bas",
+     "g-porte-arriere-cadre-haut",
+     "g-porte-arriere-cadre-gauche",
+     "g-porte-arriere-cadre-droit",
+     "g-porte-arriere-plaque",
+     "p-porte-avant-cadre-bas",
+     "p-porte-avant-cadre-haut",
+     "p-porte-avant-cadre-gauche",
+     "p-porte-avant-cadre-droit",
+     "p-porte-avant-plaque",
+     "p-porte-arriere-cadre-bas",
+     "p-porte-arriere-cadre-haut",
+     "p-porte-arriere-cadre-gauche",
+     "p-porte-arriere-cadre-droit",
+     "p-porte-arriere-plaque"
+    ],
+    "direction": {
+     "g-porte-avant-cadre-bas": "up",
+     "g-porte-avant-cadre-haut": "up",
+     "g-porte-avant-cadre-gauche": "up",
+     "g-porte-avant-cadre-droit": "up",
+     "g-porte-avant-plaque": "up",
+     "g-porte-arriere-cadre-bas": "up",
+     "g-porte-arriere-cadre-haut": "up",
+     "g-porte-arriere-cadre-gauche": "up",
+     "g-porte-arriere-cadre-droit": "up",
+     "g-porte-arriere-plaque": "up",
+     "p-porte-avant-cadre-bas": "up",
+     "p-porte-avant-cadre-haut": "up",
+     "p-porte-avant-cadre-gauche": "up",
+     "p-porte-avant-cadre-droit": "up",
+     "p-porte-avant-plaque": "up",
+     "p-porte-arriere-cadre-bas": "up",
+     "p-porte-arriere-cadre-haut": "up",
+     "p-porte-arriere-cadre-gauche": "up",
+     "p-porte-arriere-cadre-droit": "up",
+     "p-porte-arriere-plaque": "up"
+    },
+    "text": "Engager le haut de chaque porte dans sa gorge haute : la porte arrière dans le rail arrière, la porte avant dans le rail avant. Les tenir levées."
+   },
+   {
+    "add": [
+     "g-rail-bas-avant-corniere",
+     "g-rail-bas-avant-u",
+     "g-rail-bas-arriere-corniere",
+     "g-rail-bas-arriere-u",
+     "p-rail-bas-avant-corniere",
+     "p-rail-bas-avant-u",
+     "p-rail-bas-arriere-corniere",
+     "p-rail-bas-arriere-u"
+    ],
+    "text": "Coller chaque U bas dans l'angle de sa cornière. Glisser les rails bas sous les portes en les décalant à gauche puis à droite pour faire de la place, poser les portes dans les gorges, puis visser les cornières sur la commode."
+   }
+  ],
+  "version": "V7",
+  "instructions": "full"
+ },
+ "children": [
+  {
+   "id": "g",
+   "kind": "assembly",
+   "name": "Grande penderie",
+   "params": {},
+   "links": {},
+   "payload": {},
+   "children": [
+    {
+     "id": "g-rail-bas-avant",
+     "kind": "assembly",
+     "name": "Rail bas avant",
+     "params": {},
+     "links": {},
+     "payload": {},
+     "children": [
+      {
+       "id": "g-rail-bas-avant-corniere",
+       "kind": "part",
+       "name": "Cornière bas avant (grande)",
+       "params": {
+        "mass": {
+         "value": 0.1217,
+         "unit": "kg",
+         "provenance": "derived"
+        }
+       },
+       "links": {
+        "uses": [
+         "materials/standers-profile-aluminium-anodise-blanc-satine-20x20x1"
+        ]
+       },
+       "payload": {
+        "shape": {
+         "op": "box",
+         "size": [
+          "g_l_bas",
+          20,
+          20
+         ]
+        },
+        "section": [
+         [
+          0,
+          0
+         ],
+         [
+          20,
+          0
+         ],
+         [
+          20,
+          20
+         ],
+         [
+          19,
+          20
+         ],
+         [
+          19,
+          1
+         ],
+         [
+          0,
+          1
+         ]
+        ],
+        "transform": {
+         "translate": [
+          0,
+          0,
+          0
+         ]
+        }
+       }
+      },
+      {
+       "id": "g-rail-bas-avant-u",
+       "kind": "part",
+       "name": "U bas avant (grande)",
+       "params": {
+        "mass": {
+         "value": 0.1061,
+         "unit": "kg",
+         "provenance": "derived"
+        }
+       },
+       "links": {
+        "uses": [
+         "materials/standers-u-aluminium-brut-12x12x1"
+        ]
+       },
+       "payload": {
+        "shape": {
+         "op": "box",
+         "size": [
+          "g_l_bas",
+          12,
+          12
+         ]
+        },
+        "section": [
+         [
+          0,
+          0
+         ],
+         [
+          12,
+          0
+         ],
+         [
+          12,
+          12
+         ],
+         [
+          11,
+          12
+         ],
+         [
+          11,
+          1
+         ],
+         [
+          1,
+          1
+         ],
+         [
+          1,
+          12
+         ],
+         [
+          0,
+          12
+         ]
+        ],
+        "transform": {
+         "translate": [
+          0,
+          7,
+          1
+         ]
+        }
+       }
+      }
+     ]
+    },
+    {
+     "id": "g-rail-bas-arriere",
+     "kind": "assembly",
+     "name": "Rail bas arrière",
+     "params": {},
+     "links": {},
+     "payload": {},
+     "children": [
+      {
+       "id": "g-rail-bas-arriere-corniere",
+       "kind": "part",
+       "name": "Cornière bas arrière (grande)",
+       "params": {
+        "mass": {
+         "value": 0.1217,
+         "unit": "kg",
+         "provenance": "derived"
+        }
+       },
+       "links": {
+        "uses": [
+         "materials/standers-profile-aluminium-anodise-blanc-satine-20x20x1"
+        ]
+       },
+       "payload": {
+        "shape": {
+         "op": "box",
+         "size": [
+          "g_l_bas",
+          20,
+          20
+         ]
+        },
+        "section": [
+         [
+          0,
+          0
+         ],
+         [
+          20,
+          0
+         ],
+         [
+          20,
+          20
+         ],
+         [
+          19,
+          20
+         ],
+         [
+          19,
+          1
+         ],
+         [
+          0,
+          1
+         ]
+        ],
+        "transform": {
+         "translate": [
+          0,
+          20,
+          0
+         ]
+        }
+       }
+      },
+      {
+       "id": "g-rail-bas-arriere-u",
+       "kind": "part",
+       "name": "U bas arrière (grande)",
+       "params": {
+        "mass": {
+         "value": 0.1061,
+         "unit": "kg",
+         "provenance": "derived"
+        }
+       },
+       "links": {
+        "uses": [
+         "materials/standers-u-aluminium-brut-12x12x1"
+        ]
+       },
+       "payload": {
+        "shape": {
+         "op": "box",
+         "size": [
+          "g_l_bas",
+          12,
+          12
+         ]
+        },
+        "section": [
+         [
+          0,
+          0
+         ],
+         [
+          12,
+          0
+         ],
+         [
+          12,
+          12
+         ],
+         [
+          11,
+          12
+         ],
+         [
+          11,
+          1
+         ],
+         [
+          1,
+          1
+         ],
+         [
+          1,
+          12
+         ],
+         [
+          0,
+          12
+         ]
+        ],
+        "transform": {
+         "translate": [
+          0,
+          27,
+          1
+         ]
+        }
+       }
+      }
+     ]
+    },
+    {
+     "id": "g-rail-haut-avant",
+     "kind": "assembly",
+     "name": "Rail haut avant",
+     "params": {},
+     "links": {},
+     "payload": {},
+     "children": [
+      {
+       "id": "g-rail-haut-avant-corniere",
+       "kind": "part",
+       "name": "Cornière haut avant (grande)",
+       "params": {
+        "mass": {
+         "value": 0.1214,
+         "unit": "kg",
+         "provenance": "derived"
+        }
+       },
+       "links": {
+        "uses": [
+         "materials/standers-profile-aluminium-anodise-blanc-satine-20x20x1"
+        ]
+       },
+       "payload": {
+        "shape": {
+         "op": "box",
+         "size": [
+          "g_l_haut",
+          20,
+          20
+         ]
+        },
+        "section": [
+         [
+          0,
+          19
+         ],
+         [
+          19,
+          19
+         ],
+         [
+          19,
+          0
+         ],
+         [
+          20,
+          0
+         ],
+         [
+          20,
+          20
+         ],
+         [
+          0,
+          20
+         ]
+        ],
+        "transform": {
+         "translate": [
+          0,
+          0,
+          "g_h - 20"
+         ]
+        }
+       }
+      },
+      {
+       "id": "g-rail-haut-avant-u",
+       "kind": "part",
+       "name": "U haut avant (grande)",
+       "params": {
+        "mass": {
+         "value": 0.1058,
+         "unit": "kg",
+         "provenance": "derived"
+        }
+       },
+       "links": {
+        "uses": [
+         "materials/standers-u-aluminium-brut-12x12x1"
+        ]
+       },
+       "payload": {
+        "shape": {
+         "op": "box",
+         "size": [
+          "g_l_haut",
+          12,
+          12
+         ]
+        },
+        "section": [
+         [
+          0,
+          0
+         ],
+         [
+          1,
+          0
+         ],
+         [
+          1,
+          11
+         ],
+         [
+          11,
+          11
+         ],
+         [
+          11,
+          0
+         ],
+         [
+          12,
+          0
+         ],
+         [
+          12,
+          12
+         ],
+         [
+          0,
+          12
+         ]
+        ],
+        "transform": {
+         "translate": [
+          0,
+          7,
+          "g_h - 13"
+         ]
+        }
+       }
+      }
+     ]
+    },
+    {
+     "id": "g-rail-haut-arriere",
+     "kind": "assembly",
+     "name": "Rail haut arrière",
+     "params": {},
+     "links": {},
+     "payload": {},
+     "children": [
+      {
+       "id": "g-rail-haut-arriere-corniere",
+       "kind": "part",
+       "name": "Cornière haut arrière (grande)",
+       "params": {
+        "mass": {
+         "value": 0.1214,
+         "unit": "kg",
+         "provenance": "derived"
+        }
+       },
+       "links": {
+        "uses": [
+         "materials/standers-profile-aluminium-anodise-blanc-satine-20x20x1"
+        ]
+       },
+       "payload": {
+        "shape": {
+         "op": "box",
+         "size": [
+          "g_l_haut",
+          20,
+          20
+         ]
+        },
+        "section": [
+         [
+          0,
+          19
+         ],
+         [
+          19,
+          19
+         ],
+         [
+          19,
+          0
+         ],
+         [
+          20,
+          0
+         ],
+         [
+          20,
+          20
+         ],
+         [
+          0,
+          20
+         ]
+        ],
+        "transform": {
+         "translate": [
+          0,
+          20,
+          "g_h - 20"
+         ]
+        }
+       }
+      },
+      {
+       "id": "g-rail-haut-arriere-u",
+       "kind": "part",
+       "name": "U haut arrière (grande)",
+       "params": {
+        "mass": {
+         "value": 0.1058,
+         "unit": "kg",
+         "provenance": "derived"
+        }
+       },
+       "links": {
+        "uses": [
+         "materials/standers-u-aluminium-brut-12x12x1"
+        ]
+       },
+       "payload": {
+        "shape": {
+         "op": "box",
+         "size": [
+          "g_l_haut",
+          12,
+          12
+         ]
+        },
+        "section": [
+         [
+          0,
+          0
+         ],
+         [
+          1,
+          0
+         ],
+         [
+          1,
+          11
+         ],
+         [
+          11,
+          11
+         ],
+         [
+          11,
+          0
+         ],
+         [
+          12,
+          0
+         ],
+         [
+          12,
+          12
+         ],
+         [
+          0,
+          12
+         ]
+        ],
+        "transform": {
+         "translate": [
+          0,
+          27,
+          "g_h - 13"
+         ]
+        }
+       }
+      }
+     ]
+    },
+    {
+     "id": "g-porte-avant",
+     "kind": "assembly",
+     "name": "Porte avant",
+     "params": {},
+     "links": {},
+     "payload": {},
+     "children": [
+      {
+       "id": "g-porte-avant-cadre",
+       "kind": "assembly",
+       "name": "Cadre",
+       "params": {},
+       "links": {},
+       "payload": {},
+       "children": [
+        {
+         "id": "g-porte-avant-cadre-bas",
+         "kind": "part",
+         "name": "Porte avant (grande), cadre bas",
+         "params": {
+          "mass": {
+           "value": 0.0538,
+           "unit": "kg",
+           "provenance": "derived"
+          }
+         },
+         "links": {
+          "uses": [
+           "materials/standers-u-pvc-blanc-mat-8x8x1"
+          ]
+         },
+         "payload": {
+          "shape": {
+           "op": "box",
+           "size": [
+            "g_porte_l",
+            8,
+            8
+           ]
+          },
+          "transform": {
+           "translate": [
+            0,
+            9,
+            2
+           ]
+          }
+         }
+        },
+        {
+         "id": "g-porte-avant-cadre-haut",
+         "kind": "part",
+         "name": "Porte avant (grande), cadre haut",
+         "params": {
+          "mass": {
+           "value": 0.0538,
+           "unit": "kg",
+           "provenance": "derived"
+          }
+         },
+         "links": {
+          "uses": [
+           "materials/standers-u-pvc-blanc-mat-8x8x1"
+          ]
+         },
+         "payload": {
+          "shape": {
+           "op": "box",
+           "size": [
+            "g_porte_l",
+            8,
+            8
+           ]
+          },
+          "transform": {
+           "translate": [
+            0,
+            9,
+            "porte_h - 6"
+           ]
+          }
+         }
+        },
+        {
+         "id": "g-porte-avant-cadre-gauche",
+         "kind": "part",
+         "name": "Porte avant (grande), cadre gauche",
+         "params": {
+          "mass": {
+           "value": 0.101,
+           "unit": "kg",
+           "provenance": "derived"
+          }
+         },
+         "links": {
+          "uses": [
+           "materials/standers-u-pvc-blanc-mat-8x8x1"
+          ]
+         },
+         "payload": {
+          "shape": {
+           "op": "box",
+           "size": [
+            8,
+            8,
+            "porte_h - 16"
+           ]
+          },
+          "transform": {
+           "translate": [
+            0,
+            9,
+            10
+           ]
+          }
+         }
+        },
+        {
+         "id": "g-porte-avant-cadre-droit",
+         "kind": "part",
+         "name": "Porte avant (grande), cadre droit",
+         "params": {
+          "mass": {
+           "value": 0.101,
+           "unit": "kg",
+           "provenance": "derived"
+          }
+         },
+         "links": {
+          "uses": [
+           "materials/standers-u-pvc-blanc-mat-8x8x1"
+          ]
+         },
+         "payload": {
+          "shape": {
+           "op": "box",
+           "size": [
+            8,
+            8,
+            "porte_h - 16"
+           ]
+          },
+          "transform": {
+           "translate": [
+            "g_porte_l - 8",
+            9,
+            10
+           ]
+          }
+         }
+        }
+       ]
+      },
+      {
+       "id": "g-porte-avant-plaque",
+       "kind": "part",
+       "name": "Porte avant (grande), plaque alvéolée",
+       "params": {
+        "mass": {
+         "value": 0.8874,
+         "unit": "kg",
+         "provenance": "derived"
+        }
+       },
+       "links": {
+        "uses": [
+         "materials/lexan-thermoclear-lt2uv62rs13-opal"
+        ]
+       },
+       "payload": {
+        "shape": {
+         "op": "box",
+         "size": [
+          "g_porte_l - 2",
+          6,
+          "porte_h - 2"
+         ]
+        },
+        "transform": {
+         "translate": [
+          1,
+          10,
+          3
+         ]
+        }
+       }
+      }
+     ]
+    },
+    {
+     "id": "g-porte-arriere",
+     "kind": "assembly",
+     "name": "Porte arrière",
+     "params": {},
+     "links": {},
+     "payload": {},
+     "children": [
+      {
+       "id": "g-porte-arriere-cadre",
+       "kind": "assembly",
+       "name": "Cadre",
+       "params": {},
+       "links": {},
+       "payload": {},
+       "children": [
+        {
+         "id": "g-porte-arriere-cadre-bas",
+         "kind": "part",
+         "name": "Porte arriere (grande), cadre bas",
+         "params": {
+          "mass": {
+           "value": 0.0538,
+           "unit": "kg",
+           "provenance": "derived"
+          }
+         },
+         "links": {
+          "uses": [
+           "materials/standers-u-pvc-blanc-mat-8x8x1"
+          ]
+         },
+         "payload": {
+          "shape": {
+           "op": "box",
+           "size": [
+            "g_porte_l",
+            8,
+            8
+           ]
+          },
+          "transform": {
+           "translate": [
+            "g_l_haut - g_porte_l",
+            29,
+            2
+           ]
+          }
+         }
+        },
+        {
+         "id": "g-porte-arriere-cadre-haut",
+         "kind": "part",
+         "name": "Porte arriere (grande), cadre haut",
+         "params": {
+          "mass": {
+           "value": 0.0538,
+           "unit": "kg",
+           "provenance": "derived"
+          }
+         },
+         "links": {
+          "uses": [
+           "materials/standers-u-pvc-blanc-mat-8x8x1"
+          ]
+         },
+         "payload": {
+          "shape": {
+           "op": "box",
+           "size": [
+            "g_porte_l",
+            8,
+            8
+           ]
+          },
+          "transform": {
+           "translate": [
+            "g_l_haut - g_porte_l",
+            29,
+            "porte_h - 6"
+           ]
+          }
+         }
+        },
+        {
+         "id": "g-porte-arriere-cadre-gauche",
+         "kind": "part",
+         "name": "Porte arriere (grande), cadre gauche",
+         "params": {
+          "mass": {
+           "value": 0.101,
+           "unit": "kg",
+           "provenance": "derived"
+          }
+         },
+         "links": {
+          "uses": [
+           "materials/standers-u-pvc-blanc-mat-8x8x1"
+          ]
+         },
+         "payload": {
+          "shape": {
+           "op": "box",
+           "size": [
+            8,
+            8,
+            "porte_h - 16"
+           ]
+          },
+          "transform": {
+           "translate": [
+            "g_l_haut - g_porte_l",
+            29,
+            10
+           ]
+          }
+         }
+        },
+        {
+         "id": "g-porte-arriere-cadre-droit",
+         "kind": "part",
+         "name": "Porte arriere (grande), cadre droit",
+         "params": {
+          "mass": {
+           "value": 0.101,
+           "unit": "kg",
+           "provenance": "derived"
+          }
+         },
+         "links": {
+          "uses": [
+           "materials/standers-u-pvc-blanc-mat-8x8x1"
+          ]
+         },
+         "payload": {
+          "shape": {
+           "op": "box",
+           "size": [
+            8,
+            8,
+            "porte_h - 16"
+           ]
+          },
+          "transform": {
+           "translate": [
+            "g_l_haut - g_porte_l + g_porte_l - 8",
+            29,
+            10
+           ]
+          }
+         }
+        }
+       ]
+      },
+      {
+       "id": "g-porte-arriere-plaque",
+       "kind": "part",
+       "name": "Porte arriere (grande), plaque alvéolée",
+       "params": {
+        "mass": {
+         "value": 0.8874,
+         "unit": "kg",
+         "provenance": "derived"
+        }
+       },
+       "links": {
+        "uses": [
+         "materials/lexan-thermoclear-lt2uv62rs13-opal"
+        ]
+       },
+       "payload": {
+        "shape": {
+         "op": "box",
+         "size": [
+          "g_porte_l - 2",
+          6,
+          "porte_h - 2"
+         ]
+        },
+        "transform": {
+         "translate": [
+          "g_l_haut - g_porte_l + 1",
+          30,
+          3
+         ]
+        }
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "p",
+   "kind": "assembly",
+   "name": "Petite penderie",
+   "params": {},
+   "links": {},
+   "payload": {},
+   "children": [
+    {
+     "id": "p-rail-bas-avant",
+     "kind": "assembly",
+     "name": "Rail bas avant",
+     "params": {},
+     "links": {},
+     "payload": {},
+     "children": [
+      {
+       "id": "p-rail-bas-avant-corniere",
+       "kind": "part",
+       "name": "Cornière bas avant (petite)",
+       "params": {
+        "mass": {
+         "value": 0.0999,
+         "unit": "kg",
+         "provenance": "derived"
+        }
+       },
+       "links": {
+        "uses": [
+         "materials/standers-profile-aluminium-anodise-blanc-satine-20x20x1"
+        ]
+       },
+       "payload": {
+        "shape": {
+         "op": "box",
+         "size": [
+          "p_l_bas",
+          20,
+          20
+         ]
+        },
+        "section": [
+         [
+          0,
+          0
+         ],
+         [
+          20,
+          0
+         ],
+         [
+          20,
+          20
+         ],
+         [
+          19,
+          20
+         ],
+         [
+          19,
+          1
+         ],
+         [
+          0,
+          1
+         ]
+        ],
+        "transform": {
+         "translate": [
+          "decalage_x",
+          0,
+          0
+         ]
+        }
+       }
+      },
+      {
+       "id": "p-rail-bas-avant-u",
+       "kind": "part",
+       "name": "U bas avant (petite)",
+       "params": {
+        "mass": {
+         "value": 0.0451,
+         "unit": "kg",
+         "provenance": "derived"
+        }
+       },
+       "links": {
+        "uses": [
+         "materials/standers-u-pvc-transparent-12x12x1"
+        ]
+       },
+       "payload": {
+        "shape": {
+         "op": "box",
+         "size": [
+          "p_l_bas",
+          12,
+          12
+         ]
+        },
+        "section": [
+         [
+          0,
+          0
+         ],
+         [
+          12,
+          0
+         ],
+         [
+          12,
+          12
+         ],
+         [
+          11,
+          12
+         ],
+         [
+          11,
+          1
+         ],
+         [
+          1,
+          1
+         ],
+         [
+          1,
+          12
+         ],
+         [
+          0,
+          12
+         ]
+        ],
+        "transform": {
+         "translate": [
+          "decalage_x",
+          7,
+          1
+         ]
+        }
+       }
+      }
+     ]
+    },
+    {
+     "id": "p-rail-bas-arriere",
+     "kind": "assembly",
+     "name": "Rail bas arrière",
+     "params": {},
+     "links": {},
+     "payload": {},
+     "children": [
+      {
+       "id": "p-rail-bas-arriere-corniere",
+       "kind": "part",
+       "name": "Cornière bas arrière (petite)",
+       "params": {
+        "mass": {
+         "value": 0.0999,
+         "unit": "kg",
+         "provenance": "derived"
+        }
+       },
+       "links": {
+        "uses": [
+         "materials/standers-profile-aluminium-anodise-blanc-satine-20x20x1"
+        ]
+       },
+       "payload": {
+        "shape": {
+         "op": "box",
+         "size": [
+          "p_l_bas",
+          20,
+          20
+         ]
+        },
+        "section": [
+         [
+          0,
+          0
+         ],
+         [
+          20,
+          0
+         ],
+         [
+          20,
+          20
+         ],
+         [
+          19,
+          20
+         ],
+         [
+          19,
+          1
+         ],
+         [
+          0,
+          1
+         ]
+        ],
+        "transform": {
+         "translate": [
+          "decalage_x",
+          20,
+          0
+         ]
+        }
+       }
+      },
+      {
+       "id": "p-rail-bas-arriere-u",
+       "kind": "part",
+       "name": "U bas arrière (petite)",
+       "params": {
+        "mass": {
+         "value": 0.0451,
+         "unit": "kg",
+         "provenance": "derived"
+        }
+       },
+       "links": {
+        "uses": [
+         "materials/standers-u-pvc-transparent-12x12x1"
+        ]
+       },
+       "payload": {
+        "shape": {
+         "op": "box",
+         "size": [
+          "p_l_bas",
+          12,
+          12
+         ]
+        },
+        "section": [
+         [
+          0,
+          0
+         ],
+         [
+          12,
+          0
+         ],
+         [
+          12,
+          12
+         ],
+         [
+          11,
+          12
+         ],
+         [
+          11,
+          1
+         ],
+         [
+          1,
+          1
+         ],
+         [
+          1,
+          12
+         ],
+         [
+          0,
+          12
+         ]
+        ],
+        "transform": {
+         "translate": [
+          "decalage_x",
+          27,
+          1
+         ]
+        }
+       }
+      }
+     ]
+    },
+    {
+     "id": "p-rail-haut-avant",
+     "kind": "assembly",
+     "name": "Rail haut avant",
+     "params": {},
+     "links": {},
+     "payload": {},
+     "children": [
+      {
+       "id": "p-rail-haut-avant-corniere",
+       "kind": "part",
+       "name": "Cornière haut avant (petite)",
+       "params": {
+        "mass": {
+         "value": 0.0998,
+         "unit": "kg",
+         "provenance": "derived"
+        }
+       },
+       "links": {
+        "uses": [
+         "materials/standers-profile-aluminium-anodise-blanc-satine-20x20x1"
+        ]
+       },
+       "payload": {
+        "shape": {
+         "op": "box",
+         "size": [
+          "p_l_haut",
+          20,
+          20
+         ]
+        },
+        "section": [
+         [
+          0,
+          19
+         ],
+         [
+          19,
+          19
+         ],
+         [
+          19,
+          0
+         ],
+         [
+          20,
+          0
+         ],
+         [
+          20,
+          20
+         ],
+         [
+          0,
+          20
+         ]
+        ],
+        "transform": {
+         "translate": [
+          "decalage_x",
+          0,
+          "p_h - 20"
+         ]
+        }
+       }
+      },
+      {
+       "id": "p-rail-haut-avant-u",
+       "kind": "part",
+       "name": "U haut avant (petite)",
+       "params": {
+        "mass": {
+         "value": 0.0451,
+         "unit": "kg",
+         "provenance": "derived"
+        }
+       },
+       "links": {
+        "uses": [
+         "materials/standers-u-pvc-transparent-12x12x1"
+        ]
+       },
+       "payload": {
+        "shape": {
+         "op": "box",
+         "size": [
+          "p_l_haut",
+          12,
+          12
+         ]
+        },
+        "section": [
+         [
+          0,
+          0
+         ],
+         [
+          1,
+          0
+         ],
+         [
+          1,
+          11
+         ],
+         [
+          11,
+          11
+         ],
+         [
+          11,
+          0
+         ],
+         [
+          12,
+          0
+         ],
+         [
+          12,
+          12
+         ],
+         [
+          0,
+          12
+         ]
+        ],
+        "transform": {
+         "translate": [
+          "decalage_x",
+          7,
+          "p_h - 13"
+         ]
+        }
+       }
+      }
+     ]
+    },
+    {
+     "id": "p-rail-haut-arriere",
+     "kind": "assembly",
+     "name": "Rail haut arrière",
+     "params": {},
+     "links": {},
+     "payload": {},
+     "children": [
+      {
+       "id": "p-rail-haut-arriere-corniere",
+       "kind": "part",
+       "name": "Cornière haut arrière (petite)",
+       "params": {
+        "mass": {
+         "value": 0.0998,
+         "unit": "kg",
+         "provenance": "derived"
+        }
+       },
+       "links": {
+        "uses": [
+         "materials/standers-profile-aluminium-anodise-blanc-satine-20x20x1"
+        ]
+       },
+       "payload": {
+        "shape": {
+         "op": "box",
+         "size": [
+          "p_l_haut",
+          20,
+          20
+         ]
+        },
+        "section": [
+         [
+          0,
+          19
+         ],
+         [
+          19,
+          19
+         ],
+         [
+          19,
+          0
+         ],
+         [
+          20,
+          0
+         ],
+         [
+          20,
+          20
+         ],
+         [
+          0,
+          20
+         ]
+        ],
+        "transform": {
+         "translate": [
+          "decalage_x",
+          20,
+          "p_h - 20"
+         ]
+        }
+       }
+      },
+      {
+       "id": "p-rail-haut-arriere-u",
+       "kind": "part",
+       "name": "U haut arrière (petite)",
+       "params": {
+        "mass": {
+         "value": 0.0451,
+         "unit": "kg",
+         "provenance": "derived"
+        }
+       },
+       "links": {
+        "uses": [
+         "materials/standers-u-pvc-transparent-12x12x1"
+        ]
+       },
+       "payload": {
+        "shape": {
+         "op": "box",
+         "size": [
+          "p_l_haut",
+          12,
+          12
+         ]
+        },
+        "section": [
+         [
+          0,
+          0
+         ],
+         [
+          1,
+          0
+         ],
+         [
+          1,
+          11
+         ],
+         [
+          11,
+          11
+         ],
+         [
+          11,
+          0
+         ],
+         [
+          12,
+          0
+         ],
+         [
+          12,
+          12
+         ],
+         [
+          0,
+          12
+         ]
+        ],
+        "transform": {
+         "translate": [
+          "decalage_x",
+          27,
+          "p_h - 13"
+         ]
+        }
+       }
+      }
+     ]
+    },
+    {
+     "id": "p-porte-avant",
+     "kind": "assembly",
+     "name": "Porte avant",
+     "params": {},
+     "links": {},
+     "payload": {},
+     "children": [
+      {
+       "id": "p-porte-avant-cadre",
+       "kind": "assembly",
+       "name": "Cadre",
+       "params": {},
+       "links": {},
+       "payload": {},
+       "children": [
+        {
+         "id": "p-porte-avant-cadre-bas",
+         "kind": "part",
+         "name": "Porte avant (petite), cadre bas",
+         "params": {
+          "mass": {
+           "value": 0.0448,
+           "unit": "kg",
+           "provenance": "derived"
+          }
+         },
+         "links": {
+          "uses": [
+           "materials/standers-u-pvc-blanc-mat-8x8x1"
+          ]
+         },
+         "payload": {
+          "shape": {
+           "op": "box",
+           "size": [
+            "p_porte_l",
+            8,
+            8
+           ]
+          },
+          "transform": {
+           "translate": [
+            "decalage_x",
+            9,
+            2
+           ]
+          }
+         }
+        },
+        {
+         "id": "p-porte-avant-cadre-haut",
+         "kind": "part",
+         "name": "Porte avant (petite), cadre haut",
+         "params": {
+          "mass": {
+           "value": 0.0448,
+           "unit": "kg",
+           "provenance": "derived"
+          }
+         },
+         "links": {
+          "uses": [
+           "materials/standers-u-pvc-blanc-mat-8x8x1"
+          ]
+         },
+         "payload": {
+          "shape": {
+           "op": "box",
+           "size": [
+            "p_porte_l",
+            8,
+            8
+           ]
+          },
+          "transform": {
+           "translate": [
+            "decalage_x",
+            9,
+            "porte_h - 6"
+           ]
+          }
+         }
+        },
+        {
+         "id": "p-porte-avant-cadre-gauche",
+         "kind": "part",
+         "name": "Porte avant (petite), cadre gauche",
+         "params": {
+          "mass": {
+           "value": 0.101,
+           "unit": "kg",
+           "provenance": "derived"
+          }
+         },
+         "links": {
+          "uses": [
+           "materials/standers-u-pvc-blanc-mat-8x8x1"
+          ]
+         },
+         "payload": {
+          "shape": {
+           "op": "box",
+           "size": [
+            8,
+            8,
+            "porte_h - 16"
+           ]
+          },
+          "transform": {
+           "translate": [
+            "decalage_x",
+            9,
+            10
+           ]
+          }
+         }
+        },
+        {
+         "id": "p-porte-avant-cadre-droit",
+         "kind": "part",
+         "name": "Porte avant (petite), cadre droit",
+         "params": {
+          "mass": {
+           "value": 0.101,
+           "unit": "kg",
+           "provenance": "derived"
+          }
+         },
+         "links": {
+          "uses": [
+           "materials/standers-u-pvc-blanc-mat-8x8x1"
+          ]
+         },
+         "payload": {
+          "shape": {
+           "op": "box",
+           "size": [
+            8,
+            8,
+            "porte_h - 16"
+           ]
+          },
+          "transform": {
+           "translate": [
+            "decalage_x + p_porte_l - 8",
+            9,
+            10
+           ]
+          }
+         }
+        }
+       ]
+      },
+      {
+       "id": "p-porte-avant-plaque",
+       "kind": "part",
+       "name": "Porte avant (petite), plaque alvéolée",
+       "params": {
+        "mass": {
+         "value": 0.739,
+         "unit": "kg",
+         "provenance": "derived"
+        }
+       },
+       "links": {
+        "uses": [
+         "materials/lexan-thermoclear-lt2uv62rs13-opal"
+        ]
+       },
+       "payload": {
+        "shape": {
+         "op": "box",
+         "size": [
+          "p_porte_l - 2",
+          6,
+          "porte_h - 2"
+         ]
+        },
+        "transform": {
+         "translate": [
+          "decalage_x + 1",
+          10,
+          3
+         ]
+        }
+       }
+      }
+     ]
+    },
+    {
+     "id": "p-porte-arriere",
+     "kind": "assembly",
+     "name": "Porte arrière",
+     "params": {},
+     "links": {},
+     "payload": {},
+     "children": [
+      {
+       "id": "p-porte-arriere-cadre",
+       "kind": "assembly",
+       "name": "Cadre",
+       "params": {},
+       "links": {},
+       "payload": {},
+       "children": [
+        {
+         "id": "p-porte-arriere-cadre-bas",
+         "kind": "part",
+         "name": "Porte arriere (petite), cadre bas",
+         "params": {
+          "mass": {
+           "value": 0.0448,
+           "unit": "kg",
+           "provenance": "derived"
+          }
+         },
+         "links": {
+          "uses": [
+           "materials/standers-u-pvc-blanc-mat-8x8x1"
+          ]
+         },
+         "payload": {
+          "shape": {
+           "op": "box",
+           "size": [
+            "p_porte_l",
+            8,
+            8
+           ]
+          },
+          "transform": {
+           "translate": [
+            "decalage_x + p_l_haut - p_porte_l",
+            29,
+            2
+           ]
+          }
+         }
+        },
+        {
+         "id": "p-porte-arriere-cadre-haut",
+         "kind": "part",
+         "name": "Porte arriere (petite), cadre haut",
+         "params": {
+          "mass": {
+           "value": 0.0448,
+           "unit": "kg",
+           "provenance": "derived"
+          }
+         },
+         "links": {
+          "uses": [
+           "materials/standers-u-pvc-blanc-mat-8x8x1"
+          ]
+         },
+         "payload": {
+          "shape": {
+           "op": "box",
+           "size": [
+            "p_porte_l",
+            8,
+            8
+           ]
+          },
+          "transform": {
+           "translate": [
+            "decalage_x + p_l_haut - p_porte_l",
+            29,
+            "porte_h - 6"
+           ]
+          }
+         }
+        },
+        {
+         "id": "p-porte-arriere-cadre-gauche",
+         "kind": "part",
+         "name": "Porte arriere (petite), cadre gauche",
+         "params": {
+          "mass": {
+           "value": 0.101,
+           "unit": "kg",
+           "provenance": "derived"
+          }
+         },
+         "links": {
+          "uses": [
+           "materials/standers-u-pvc-blanc-mat-8x8x1"
+          ]
+         },
+         "payload": {
+          "shape": {
+           "op": "box",
+           "size": [
+            8,
+            8,
+            "porte_h - 16"
+           ]
+          },
+          "transform": {
+           "translate": [
+            "decalage_x + p_l_haut - p_porte_l",
+            29,
+            10
+           ]
+          }
+         }
+        },
+        {
+         "id": "p-porte-arriere-cadre-droit",
+         "kind": "part",
+         "name": "Porte arriere (petite), cadre droit",
+         "params": {
+          "mass": {
+           "value": 0.101,
+           "unit": "kg",
+           "provenance": "derived"
+          }
+         },
+         "links": {
+          "uses": [
+           "materials/standers-u-pvc-blanc-mat-8x8x1"
+          ]
+         },
+         "payload": {
+          "shape": {
+           "op": "box",
+           "size": [
+            8,
+            8,
+            "porte_h - 16"
+           ]
+          },
+          "transform": {
+           "translate": [
+            "decalage_x + p_l_haut - p_porte_l + p_porte_l - 8",
+            29,
+            10
+           ]
+          }
+         }
+        }
+       ]
+      },
+      {
+       "id": "p-porte-arriere-plaque",
+       "kind": "part",
+       "name": "Porte arriere (petite), plaque alvéolée",
+       "params": {
+        "mass": {
+         "value": 0.739,
+         "unit": "kg",
+         "provenance": "derived"
+        }
+       },
+       "links": {
+        "uses": [
+         "materials/lexan-thermoclear-lt2uv62rs13-opal"
+        ]
+       },
+       "payload": {
+        "shape": {
+         "op": "box",
+         "size": [
+          "p_porte_l - 2",
+          6,
+          "porte_h - 2"
+         ]
+        },
+        "transform": {
+         "translate": [
+          "decalage_x + p_l_haut - p_porte_l + 1",
+          30,
+          3
+         ]
+        }
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

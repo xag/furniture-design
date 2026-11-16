@@ -32,7 +32,7 @@ html, body { margin:0; height:100%; background:var(--bg); color:var(--ink);
 canvas { display:block; width:100%; height:100%; touch-action:none; }
 #nav, #tools { grid-column:2; background:var(--panel); border-left:1px solid var(--line); overflow:auto; }
 #nav { grid-row:1; padding:16px 16px 0; max-height:60vh; }
-#tools { grid-row:2; padding:0 16px 16px; }
+#tools { grid-row:2; padding:0 16px 16px; border-top:1px solid var(--line); }
 #nav.more { -webkit-mask-image:linear-gradient(to bottom, #000 calc(100% - 40px), transparent);
   mask-image:linear-gradient(to bottom, #000 calc(100% - 40px), transparent); }
 h1 { font-size:18px; margin:0 0 2px; }
@@ -56,12 +56,39 @@ li .group { width:24px; flex:none; }
 .row { display:flex; gap:8px; align-items:center; margin-top:10px; font-size:13px; }
 button { font:inherit; font-size:13px; padding:6px 10px; border-radius:6px; border:1px solid var(--line);
   background:var(--bg); color:var(--ink); cursor:pointer; }
+.row.end { justify-content:flex-end; }
+/* what is drawn: under the tree on a wide screen, in a sheet the layers button opens on a narrow one */
+#display { padding-top:4px; }
+label.opt { display:flex; align-items:center; gap:10px; min-height:44px; margin:0; color:var(--ink); cursor:pointer; }
+label.opt input { width:18px; height:18px; margin:0; accent-color:var(--ink); }
+#restrow > span { display:block; font-size:13px; color:var(--muted); margin:6px 0 6px; }
+.seg { display:flex; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+.seg label { flex:1; margin:0; position:relative; color:var(--ink); cursor:pointer; }
+.seg label + label { border-left:1px solid var(--line); }
+.seg input { position:absolute; inset:0; opacity:0; margin:0; cursor:pointer; }
+.seg span { display:flex; align-items:center; justify-content:center; min-height:44px; padding:0 4px; text-align:center; }
+.seg input:checked + span { background:var(--ink); color:var(--panel); }
+.seg input:focus-visible + span { outline:2px solid var(--accent); outline-offset:-2px; }
+#marks { position:absolute; inset:0; pointer-events:none; }
+#layers, #close { display:none; }
 @media (max-width: 720px) {
   #app { display:flex; flex-direction:column; }
   #nav { max-height:38%; padding:12px 16px 4px; border-left:none; border-bottom:1px solid var(--line); }
   #stage { flex:1; min-height:34%; }
   #tools { max-height:30%; padding:0 16px 12px; border-left:none; border-top:1px solid var(--line); }
+  #layers { display:grid; place-items:center; position:absolute; top:12px; right:12px; width:44px; height:44px;
+    padding:0; border-radius:50%; background:var(--panel); color:var(--ink); border:1px solid var(--line); }
+  #layers[aria-expanded="true"] { background:var(--ink); color:var(--panel); border-color:var(--ink); }
+  #display { position:fixed; left:0; right:0; bottom:0; z-index:5; padding:8px 16px 12px;
+    background:var(--panel); border-top:1px solid var(--line); border-radius:12px 12px 0 0;
+    box-shadow:0 -4px 16px rgba(0,0,0,.12); transform:translateY(100%); visibility:hidden;
+    transition:transform .2s ease-out, visibility .2s; }
+  #display.open { transform:none; visibility:visible; }
+  #display label.opt { padding-right:48px; }
+  #close { display:grid; place-items:center; position:absolute; top:8px; right:8px; width:44px; height:44px;
+    padding:0; border:none; background:none; color:var(--ink); font-size:22px; line-height:1; z-index:1; }
 }
+@media (prefers-reduced-motion: reduce) { #display { transition:none; } }
 </style>
 </head>
 <body>
@@ -72,8 +99,22 @@ button { font:inherit; font-size:13px; padding:6px 10px; border-radius:6px; bord
     <label>__L_PARTS__</label>
     <ul id="parts"></ul>
   </div>
-  <div id="stage"><div id="tip"></div></div>
+  <div id="stage"><canvas id="marks"></canvas><div id="tip"></div>
+    <button id="layers" type="button" aria-label="__L_DISPLAY__" aria-expanded="false" aria-controls="display"><svg
+      width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M11.99 18.54l-7.37-5.73L3 14.07l9 7 9-7-1.63-1.27-7.38 5.74zM12 16l7.36-5.73L21 9l-9-7-9 7 1.63 1.27L12 16z"/></svg></button></div>
   <div id="tools">
+    <div id="display">
+      <button id="close" type="button" aria-label="__L_CLOSE__">×</button>
+      <label class="opt"><input id="showc" type="checkbox" checked>__L_CONNECTORS__</label>
+      <label class="opt"><input id="showd" type="checkbox">__L_DIMENSIONS__</label>
+      <div id="restrow" hidden><span id="restlab">__L_REST__</span>
+        <div class="seg" role="radiogroup" aria-labelledby="restlab">
+          <label><input type="radio" name="rest" value="hidden" checked><span>__L_HIDDEN__</span></label>
+          <label><input type="radio" name="rest" value="see"><span>__L_SEE__</span></label>
+          <label><input type="radio" name="rest" value="solid"><span>__L_SOLID__</span></label>
+        </div>
+      </div>
+    </div>
     <div id="assembly">
       <label for="steps">__L_STEPS__ <span id="stepn"></span></label>
       <input id="steps" type="range" min="0" value="0">
@@ -81,8 +122,7 @@ button { font:inherit; font-size:13px; padding:6px 10px; border-radius:6px; bord
     </div>
     <label for="explode">__L_EXPLODE__</label>
     <input id="explode" type="range" min="0" max="100" value="0">
-    <div class="row"><input id="showc" type="checkbox" checked><span>__L_CONNECTORS__</span>
-      <span style="flex:1"></span><button id="reset">__L_RESET__</button></div>
+    <div class="row end"><button id="reset">__L_RESET__</button></div>
   </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -107,6 +147,9 @@ const lo = DATA.lo, hi = DATA.hi;
 const mid = T((lo[0]+hi[0])/2, (lo[1]+hi[1])/2, (lo[2]+hi[2])/2);
 const size = Math.max(hi[0]-lo[0], hi[1]-lo[1], hi[2]-lo[2]);
 const woodColor = new THREE.Color(0xe6cfa4), newColor = new THREE.Color(0xb07a3c), pick = new THREE.Color(0xf0b45a);
+const restColor = new THREE.Color(0xc9c6c0);
+// how the rest of the piece is drawn while a group is shown: hidden, see, solid
+const rest = () => here.length ? document.querySelector('input[name=rest]:checked').value : 'hidden';
 
 const meshes = [], tip = document.getElementById('tip'), byId = {};
 DATA.parts.forEach(p => byId[p.id] = p);
@@ -205,9 +248,19 @@ function apply() {
   const n = +stepIn.value, k = n ? mine[n-1] : 0, e = +document.getElementById('explode').value / 100;
   document.getElementById('stepn').textContent = n ? `${n} / ${mine.length}` : '';
   document.getElementById('steptext').textContent = k ? steps[k-1].text : DATA.finished;
+  const mode = rest();
   meshes.forEach(m => {
     const p = m.userData.part, at = placedAt[p.id] || 0;
-    const visible = (!k || at <= k) && under(p);
+    if (!under(p)) {
+      // the rest of the piece, finished and in its place: see-through, solid in grey, or not drawn
+      m.visible = mode !== 'hidden';
+      look(m, mode === 'see' ? 0.15 : 1, mode === 'see' ? 0.25 : 1);
+      m.material.color.copy(restColor);
+      m.position.set(0, 0, 0);
+      return;
+    }
+    look(m, 1, 1);
+    const visible = (!k || at <= k);
     m.visible = visible;
     const isNew = k && at === k;
     m.material.color.copy(m.userData.selected ? pick : (isNew ? newColor : woodColor));
@@ -224,6 +277,25 @@ function apply() {
   });
 }
 ['steps', 'explode', 'showc'].forEach(id => document.getElementById(id).addEventListener('input', apply));
+document.querySelectorAll('input[name=rest]').forEach(r => r.addEventListener('change', apply));
+// a part drawn at an opacity; see-through parts write no depth, so what is shown is seen through them
+function look(m, a, edge) {
+  const see = a < 1;
+  if (m.material.depthWrite === see) { m.material.depthWrite = !see; m.material.needsUpdate = true; }
+  m.material.opacity = a; m.children[0].material.opacity = edge;
+  m.renderOrder = see ? 1 : 0;
+}
+// on a narrow screen the layers button opens what is drawn in a sheet over the sliders; the model
+// stays in view and in hand while it is open
+const layers = document.getElementById('layers'), display = document.getElementById('display');
+function sheet(open) {
+  display.classList.toggle('open', open);
+  layers.setAttribute('aria-expanded', String(open));
+  if (!open && display.contains(document.activeElement)) layers.focus();
+}
+layers.onclick = () => sheet(!display.classList.contains('open'));
+document.getElementById('close').onclick = () => sheet(false);
+document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && display.classList.contains('open')) sheet(false); });
 document.getElementById('reset').onclick = () => { stepIn.value = 0; document.getElementById('explode').value = 0; go([]); };
 
 const list = document.getElementById('parts'), title = document.getElementById('title');
@@ -318,6 +390,7 @@ function nested() {
 }
 function go(to) {
   here = to; view = shown(); selected = null; nested(); follow();
+  document.getElementById('restrow').hidden = !here.length;
   meshes.forEach(m => m.userData.selected = false);
   tip.style.display = 'none';
   listing(); home(); apply();
@@ -336,7 +409,7 @@ const strike = ev => {
   const r = renderer.domElement.getBoundingClientRect();
   ptr.set(((ev.clientX - r.left) / r.width) * 2 - 1, -((ev.clientY - r.top) / r.height) * 2 + 1);
   ray.setFromCamera(ptr, camera);
-  return ray.intersectObjects(meshes.filter(m => m.visible), false)[0];
+  return ray.intersectObjects(meshes.filter(m => m.visible && under(m.userData.part)), false)[0];
 };
 // a second tap at the same place within 0.35 s: on the piece, the view turns around that point and
 // comes close to it; beside the piece, it shows the whole of what is shown again
@@ -365,12 +438,124 @@ renderer.domElement.addEventListener('pointerup', ev => {
 });
 nested(); follow(); listing(); more();
 apply();
+
+// Dimensions on what is shown, as the plans dimension a view: along each axis the chain of the
+// parts' edges and the whole, on the edge of its box that is nearest the bottom of the screen
+// (the leftmost for the height), off the box. A dimension is drawn only when its line is longer
+// than its number and its number meets no number already drawn: the whole first, then the
+// longest; so coming closer brings the short ones in. Nothing is measured while the parts are
+// pulled apart, since none is where its dimension would put it.
+const DIMS = 'chain';
+const markCv = document.getElementById('marks'), mk = markCv.getContext('2d');
+const showd = document.getElementById('showd'), explodeIn = document.getElementById('explode');
+let ink = '#1d1d1b', paper = '#fffdf9';
+function colours() {
+  const s = getComputedStyle(document.documentElement);
+  ink = s.getPropertyValue('--ink').trim(); paper = s.getPropertyValue('--panel').trim();
+}
+colours(); matchMedia('(prefers-color-scheme: dark)').addEventListener('change', colours);
+// the parts dimensioned: what is shown, as far as the assembly step has brought it
+function measured() {
+  const n = +stepIn.value, k = n ? mine[n-1] : 0;
+  return DATA.parts.filter(p => under(p) && (!k || (placedAt[p.id] || 0) <= k));
+}
+const W3 = (q) => T(q[0], q[1], q[2]);
+function toScreen(v, w, h) {
+  const q = v.clone().project(camera);
+  return q.z > 1 || q.z < -1 ? null : [(q.x + 1) / 2 * w, (1 - q.y) / 2 * h];
+}
+// the edge of a box (lo, hi) along axis a on which its dimensions stand, as [from, to] corners
+// and the side away from the box on screen
+function edgeFor(lo, hi, a, w, h) {
+  const [b, c] = [0, 1, 2].filter(i => i !== a), eye = camera.position;
+  const toPiece = [eye.x, -eye.z, eye.y];          // three -> piece frame
+  const facing = (i, s) => s ? toPiece[i] > hi[i] : toPiece[i] < lo[i];
+  let best = null;
+  for (const sb of [0, 1]) for (const sc of [0, 1]) {
+    if (facing(b, sb) === facing(c, sc)) continue;  // on the outline: one face turned to the eye
+    const p0 = [0, 0, 0]; p0[a] = lo[a]; p0[b] = sb ? hi[b] : lo[b]; p0[c] = sc ? hi[c] : lo[c];
+    const p1 = p0.slice(); p1[a] = hi[a];
+    const s0 = toScreen(W3(p0), w, h), s1 = toScreen(W3(p1), w, h);
+    if (!s0 || !s1) continue;
+    const score = a === 2 ? -(s0[0] + s1[0]) : (s0[1] + s1[1]);
+    if (!best || score > best.score) best = {score, p0, p1, s0, s1};
+  }
+  if (!best) return null;
+  const mid = W3([0, 1, 2].map(i => (lo[i] + hi[i]) / 2)), m = toScreen(mid, w, h);
+  let dx = best.s1[0] - best.s0[0], dy = best.s1[1] - best.s0[1];
+  const len = Math.hypot(dx, dy) || 1;
+  let nx = -dy / len, ny = dx / len;
+  const ex = (best.s0[0] + best.s1[0]) / 2 - (m ? m[0] : 0), ey = (best.s0[1] + best.s1[1]) / 2 - (m ? m[1] : 0);
+  if (nx * ex + ny * ey < 0) { nx = -nx; ny = -ny; }
+  return {...best, nx, ny};
+}
+function candidates(w, h) {
+  const ps = measured(), out = [];
+  if (!ps.length) return out;
+  if (DIMS === 'part') {
+    ps.forEach(p => [0, 1, 2].forEach(a => {
+      const e = edgeFor(p.lo, p.hi, a, w, h);
+      if (e) out.push({e, a, from: p.lo[a], to: p.hi[a], gap: 10, rank: 1, size: p.hi[a] - p.lo[a]});
+    }));
+    return out.sort((x, y) => y.size - x.size);
+  }
+  const lo = [0, 1, 2].map(i => Math.min(...ps.map(p => p.lo[i]))), hi = [0, 1, 2].map(i => Math.max(...ps.map(p => p.hi[i])));
+  [0, 1, 2].forEach(a => {
+    const e = edgeFor(lo, hi, a, w, h);
+    if (!e) return;
+    const at = [...new Set(ps.flatMap(p => [p.lo[a], p.hi[a]]).map(v => Math.round(v * 10) / 10))].sort((x, y) => x - y);
+    const chained = at.length > 2;
+    out.push({e, a, from: at[0], to: at[at.length - 1], gap: chained ? 40 : 18, rank: 0, size: at[at.length - 1] - at[0]});
+    if (chained) at.slice(1).forEach((v, i) => out.push({e, a, from: at[i], to: v, gap: 18, rank: 1, size: v - at[i]}));
+  });
+  return out.sort((x, y) => x.rank - y.rank || y.size - x.size);
+}
+function marks() {
+  const w = stage.clientWidth, h = stage.clientHeight, r = Math.min(window.devicePixelRatio, 2);
+  if (markCv.width !== Math.round(w * r) || markCv.height !== Math.round(h * r)) {
+    markCv.width = Math.round(w * r); markCv.height = Math.round(h * r);
+  }
+  mk.setTransform(r, 0, 0, r, 0, 0); mk.clearRect(0, 0, w, h);
+  if (!showd.checked || +explodeIn.value > 0) return;
+  mk.font = '12px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+  mk.lineWidth = 1; mk.strokeStyle = ink; mk.fillStyle = ink;
+  const placed = [];
+  candidates(w, h).forEach(d => {
+    const {e, a} = d, p0 = e.p0.slice(), p1 = e.p0.slice();
+    p0[a] = d.from; p1[a] = d.to;
+    const s0 = toScreen(W3(p0), w, h), s1 = toScreen(W3(p1), w, h);
+    if (!s0 || !s1) return;
+    const len = Math.hypot(s1[0] - s0[0], s1[1] - s0[1]), text = fmt(d.size);
+    const tw = mk.measureText(text).width, box = {w: tw + 8, h: 16};
+    if (len < tw + 16) return;
+    const ox = e.nx * d.gap, oy = e.ny * d.gap;
+    const a0 = [s0[0] + ox, s0[1] + oy], a1 = [s1[0] + ox, s1[1] + oy];
+    const cx = (a0[0] + a1[0]) / 2, cy = (a0[1] + a1[1]) / 2;
+    box.x = cx - box.w / 2; box.y = cy - box.h / 2;
+    if (box.x < 0 || box.y < 0 || box.x + box.w > w || box.y + box.h > h) return;
+    if (placed.some(o => box.x < o.x + o.w && o.x < box.x + box.w && box.y < o.y + o.h && o.y < box.y + box.h)) return;
+    placed.push(box);
+    mk.globalAlpha = 0.55; mk.beginPath();
+    [[s0, a0], [s1, a1]].forEach(([s, t]) => { mk.moveTo(s[0] + e.nx * 3, s[1] + e.ny * 3); mk.lineTo(t[0] + e.nx * 4, t[1] + e.ny * 4); });
+    mk.stroke(); mk.globalAlpha = 1;
+    mk.beginPath(); mk.moveTo(a0[0], a0[1]); mk.lineTo(a1[0], a1[1]); mk.stroke();
+    const ux = (a1[0] - a0[0]) / len, uy = (a1[1] - a0[1]) / len;
+    [[a0, 1], [a1, -1]].forEach(([t, s]) => {           // an arrowhead at each end, pointing out
+      mk.beginPath(); mk.moveTo(t[0], t[1]);
+      mk.lineTo(t[0] + s * ux * 6 - uy * 2.5, t[1] + s * uy * 6 + ux * 2.5);
+      mk.lineTo(t[0] + s * ux * 6 + uy * 2.5, t[1] + s * uy * 6 - ux * 2.5); mk.closePath(); mk.fill();
+    });
+    mk.fillStyle = paper; mk.fillRect(box.x, box.y, box.w, box.h);
+    mk.fillStyle = ink; mk.textAlign = 'center'; mk.textBaseline = 'middle'; mk.fillText(text, cx, cy + 0.5);
+  });
+}
 (function loop() {
   requestAnimationFrame(loop); controls.update();
   // the nearest thing drawn follows the distance, so the view can come right up to a part
   const near = Math.max(0.2, camera.position.distanceTo(controls.target) / 200);
   if (near !== camera.near) { camera.near = near; camera.updateProjectionMatrix(); }
   renderer.render(scene, camera);
+  marks();
 })();
 </script>
 </body>
@@ -380,10 +565,14 @@ apply();
 WORDS = {
     "fr": {"steps": "Étape de montage", "explode": "Écarter les pièces", "connectors": "Connecteurs",
            "reset": "Réinitialiser", "parts": "Pièces", "finished": "Meuble monté. Glisser pour suivre "
-           "le montage étape par étape."},
+           "le montage étape par étape.", "dimensions": "Cotes", "rest": "Reste du meuble",
+           "hidden": "Masqué", "see": "Transparent", "solid": "Plein", "display": "Affichage",
+           "close": "Fermer"},
     "en": {"steps": "Assembly step", "explode": "Pull the parts apart", "connectors": "Connectors",
            "reset": "Reset", "parts": "Parts", "finished": "Finished piece. Slide to follow the "
-           "assembly step by step."},
+           "assembly step by step.", "dimensions": "Dimensions", "rest": "Rest of the piece",
+           "hidden": "Hidden", "see": "See-through", "solid": "Solid", "display": "Display",
+           "close": "Close"},
 }
 
 
@@ -411,5 +600,7 @@ def viewer_html(sc: Scene, path: Path, lang: str = "fr") -> Path:
             .replace("__L_STEPS__", W["steps"]).replace("__L_EXPLODE__", W["explode"])
             .replace("__L_CONNECTORS__", W["connectors"]).replace("__L_RESET__", W["reset"])
             .replace("__L_PARTS__", W["parts"]))
+    for key in ("dimensions", "rest", "hidden", "see", "solid", "display", "close"):
+        page = page.replace(f"__L_{key.upper()}__", html.escape(W[key]))
     path.write_text(page, encoding="utf-8")
     return path
