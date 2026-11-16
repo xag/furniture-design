@@ -12,7 +12,7 @@ const AxeBuilder = require('@axe-core/playwright').default;
 const [out, ...groups] = process.argv.slice(2);
 fs.mkdirSync(out, { recursive: true });
 const CELLS = [{ w: 390, h: 844, s: 'light' }, { w: 390, h: 844, s: 'dark' }, { w: 320, h: 640, s: 'light' },
-  { w: 320, h: 640, s: 'dark' }, { w: 1280, h: 800, s: 'light' }, { w: 1280, h: 800, s: 'dark' }];
+  { w: 320, h: 640, s: 'dark' }, { w: 1280, h: 800, s: 'light' }, { w: 1280, h: 800, s: 'dark' }, { w: 844, h: 390, s: 'light' }];
 const only = process.env.CELLS ? process.env.CELLS.split(',').map(Number) : null;
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const report = [];
