@@ -280,3 +280,64 @@ def document(tree: Quern, piece: str, out_dir: Path, what: str, *, lang: str = "
     if progress:
         progress(1.0)
     return {**out, "pages": drawn}
+
+
+def tool_pages(tree: Quern, piece: str, out_dir: Path, tool: str, *, lang: str = "fr", stem: str | None = None,
+               progress=None, sc=None) -> dict[str, Path]:
+    """The pages of a piece's assembly instructions where `tool` (a path) is drawn at work, beside the
+    instructions drawn without it: the blocks that show it, drawn as document() draws them with at_work
+    {tool}, as a PDF of their pages and as screens (screens.json in a folder named as that PDF), each block
+    screen carrying `step` and `index`, its place among its step's blocks, which is its place in the
+    instructions drawn with any tools at work. {tool: the PDF, steps: screens.json}. Refused (ValueError)
+    when no block of the instructions shows the tool."""
+    import json
+    import shutil
+    import tempfile
+
+    import pymupdf
+
+    from .scene import scene
+    from .sheets import assembly_instructions
+    from .steps import instruction_screens
+
+    out_dir.mkdir(parents=True, exist_ok=True)
+    sc = sc or scene(tree, piece)
+    stem = stem or piece.rsplit("/", 1)[-1]
+    names = {"fr": "montage", "en": "assembly"}[lang]
+    name = f"{stem}-{names}-{tool.rsplit('/', 1)[-1]}"
+    half = (lambda d, n: progress(0.5 * d / max(n, 1))) if progress else None
+    rest = (lambda d, n: progress(0.5 + 0.5 * d / max(n, 1))) if progress else None
+    with tempfile.TemporaryDirectory() as tmp:
+        regions: list[dict] = []
+        full = Path(tmp) / "full.pdf"
+        assembly_instructions(sc, full, lang, regions, [], {tool}, half)
+        shown = [r for r in regions if r.get("kind") == "block" and r.get("tool") == tool]
+        if not shown:
+            raise ValueError(f"no block of {piece}'s instructions shows {tool} at work")
+        folder = out_dir / name
+        listed = json.loads(instruction_screens(sc, full, regions, Path(tmp) / "screens", lang, rest)
+                            .read_text(encoding="utf-8"))
+        kept, seen = [], {}
+        for screen in listed["screens"]:
+            if screen["kind"] != "block":
+                continue
+            index = seen[screen["step"]] = seen.get(screen["step"], -1) + 1
+            if screen.get("tool") == tool:
+                kept.append({**screen, "index": index})
+        if folder.exists():
+            shutil.rmtree(folder)
+        folder.mkdir(parents=True)
+        for screen in kept:
+            for image in screen["images"]:
+                shutil.copyfile(Path(tmp) / "screens" / image["file"], folder / image["file"])
+        steps = folder / "screens.json"
+        steps.write_text(json.dumps({"tool": tool, "lang": lang, "screens": kept}, ensure_ascii=False, indent=1),
+                         encoding="utf-8")
+        doc = pymupdf.open(str(full))
+        doc.select(sorted({r["page"] for r in shown}))
+        pdf = out_dir / f"{name}.pdf"
+        doc.save(str(pdf))
+        doc.close()
+    if progress:
+        progress(1.0)
+    return {"tool": pdf, "steps": steps}

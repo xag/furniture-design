@@ -1230,6 +1230,23 @@ def entries() -> list[Node]:
             ],
         ),
         Node(
+            id="a-tools-pages-are-the-blocks-that-show-it-at-work", kind="decision",
+            name="A tool's pages (drawings.tool_pages) are the blocks of a piece's assembly instructions that show "
+                 "it at work, drawn with it at work, as a PDF of their pages and as screens: each block names the "
+                 "tool it shows (by path), and each block screen carries its step and its place among the step's "
+                 "blocks, which is its place in the instructions drawn with or without any tool at work, so a "
+                 "reader sets a tool's blocks in the place of the ones that leave it out",
+            links={"rests_on": ["a-caller-names-the-tools-drawn-at-work",
+                                "a-screen-takes-its-drawing-from-the-instructions-and-its-words-from-the-piece"]},
+            payload={"decided_on": "2026-11-16",
+                     "why": "Instructions already drawn are not drawn again to add one tool: the tool's pages come "
+                            "beside them, and a block's place in its step does not change with what it shows."},
+            children=[
+                _alt("draw-all-again", "Draw the whole instructions again with the tool at work",
+                     "The instructions already made would change, and every page be drawn again for a few."),
+            ],
+        ),
+        Node(
             id="a-caller-names-the-tools-drawn-at-work", kind="decision",
             name="Whoever draws a piece's documents may name the tools its assembly instructions draw at work "
                  "(at_work, by path), overriding the payload's full or short tool by tool: a block draws its tool "

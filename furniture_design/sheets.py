@@ -1050,10 +1050,10 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list
                 c.showPage()
             else:
                 pen.line(15, 148, W - 15, 148, 0.2, THIN, [1.5, 1.5])
-            from .sawing import sawing_frames
-            pen.note("block", slots[slot % 2], step=step.number, part=p.id, count=qty)
-            from .sawing import SAW
+            from .sawing import SAW, sawing_frames
             saw = next((t for t in p.tools if t.model and SAW in t.follows), None)
+            pen.note("block", slots[slot % 2], step=step.number, part=p.id, count=qty,
+                     **({"tool": saw.path} if saw else {}))
             sawing_frames(pen, slots[slot % 2], p, qty, brief(saw))
             slot += 1
         if grooved:            # the grooving step's pages, drawn to IKEA's rules, after its picture

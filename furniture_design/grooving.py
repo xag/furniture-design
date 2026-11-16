@@ -519,7 +519,8 @@ def grooving_pages(c, pen, sc: Scene, step, L: dict, W_: float = 210, H_: float 
     tx = 37
     for t in step.tools:
         tx += _tool_badge(pen, tx, H_ - 31, t) + 3
-    pen.note("block", (15, H_ - 78, 180, 38), step=step.number, head=True)
+    by = {"tool": j0.machine} if j0.machine else {}   # the tool the block shows at work, by its path
+    pen.note("block", (15, H_ - 78, 180, 38), step=step.number, head=True, **by)
     settings(pen, (15, H_ - 78, 180, 38), mach_model, j0.setting, gs[0]["e"].spacer, j0.spacers,
              None if short else j0.test_recess)
     fw, fh = (W_ - 30 - 4) / 2, 62.0
@@ -538,7 +539,7 @@ def grooving_pages(c, pen, sc: Scene, step, L: dict, W_: float = 210, H_: float 
         j = jt(sc, e.joint)
         offset = j.groove_offset or e.offset
         pen.note("block", (15, y_top - 8 - 2 * fh - 4, 180, 2 * fh + 4), step=step.number,
-                 **({"count": g["n"]} if g["n"] > 1 else {}))
+                 **({"count": g["n"]} if g["n"] > 1 else {}), **by)
         if g["n"] > 1:
             pen.text(15, y_top - 6, f"{g['n']} ×", 5, INK, bold=True)
         boxes = [(15 + (i % 2) * (fw + 4), y_top - 8 - (i // 2 + 1) * fh - (i // 2) * 4, fw, fh) for i in range(4)]

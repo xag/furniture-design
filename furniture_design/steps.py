@@ -124,6 +124,8 @@ def screens_of(sc: Scene, regions: list[dict], cut, lang: str) -> list[dict]:
                 block["head"] = _head(sc, r["step"])
             if r.get("count"):
                 block["count"] = r["count"]
+            if r.get("tool"):
+                block["tool"] = r["tool"]    # the tool whose use it shows, by path: drawn at work or left out
             if r.get("part"):
                 block["card"] = _card_words(sc, r["part"], LABELS[lang], lang)
             out.append(block)

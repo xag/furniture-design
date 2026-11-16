@@ -479,3 +479,25 @@ def test_one_document_is_drawn_as_the_four_are_and_says_how_far_it_has_got(tmp_p
     assert seen and seen == sorted(seen) and seen[0] >= 0 and seen[-1] == 1.0
     with pytest.raises(ValueError, match="viewer, design, assembly, cutting"):
         drawings.document(tree, BENCH, tmp_path, "poster")
+
+
+def test_a_tools_pages_are_the_blocks_that_show_it_at_work_keyed_by_their_place(tmp_path):
+    """tool_pages draws the instructions with the tool at work and keeps the blocks that show it, each keyed by
+    its step and its place among the step's blocks, the place it has in the instructions drawn without it."""
+    import json
+    tree = _tree()
+    tree.get("pieces/bench-side").payload["steps"] = [
+        {"text": "Cut the notch.", "prepare": True, "add": ["side"], "cuts": ["side"]}]
+    _with_a_makers_saw(tree)
+    saw = next(t for t in scene(tree, "pieces/bench-side").part("side").tools if t.model)
+    short = drawings.document(tree, "pieces/bench-side", tmp_path / "short", "assembly", at_work=set())
+    base = [s for s in json.loads(short["steps"].read_text(encoding="utf-8"))["screens"] if s["kind"] == "block"]
+    made = drawings.tool_pages(tree, "pieces/bench-side", tmp_path / "tool", saw.path)
+    kept = json.loads(made["steps"].read_text(encoding="utf-8"))
+    assert made["tool"].is_file() and kept["tool"] == saw.path and kept["screens"]
+    for screen in kept["screens"]:
+        assert screen["tool"] == saw.path and (made["steps"].parent / screen["images"][0]["file"]).is_file()
+        same = [b for b in base if b["step"] == screen["step"]][screen["index"]]
+        assert same["tool"] == saw.path
+    with pytest.raises(ValueError, match="no block"):
+        drawings.tool_pages(tree, "pieces/bench-side", tmp_path / "none", "tools/another")
