@@ -38,6 +38,11 @@ STATE = {
 }
 
 
+# the page to play opens where the change shows: a wardrobe opened, its dimensions drawn, the
+# other wardrobe transparent, the settings open where they sit behind the button
+PLAY = {"go": ["g"], "dims": True, "rest": "see", "sheet": True}
+
+
 def stateful(page: str, s: dict) -> str:
     js = f"""<script>
 (function () {{
@@ -72,7 +77,7 @@ def main():
         # the page to play: the playable page moves to the next screen on a tap unless the
         # screen holds a form, and a tap on the model must turn it, never reload it
         (HERE / f"play-{alt}.html").write_text(
-            stateful(f(base["fr"]), {}).replace("</body>", "<form hidden></form></body>", 1), encoding="utf-8")
+            stateful(f(base["fr"]), PLAY).replace("</body>", "<form hidden></form></body>", 1), encoding="utf-8")
     before = (HERE / "before.html").read_text(encoding="utf-8")
     for name in ("s01-rest", "s04-branch-hidden"):
         (STATES / f"before-{name}.html").write_text(stateful(before, STATE[name]), encoding="utf-8")

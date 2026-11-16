@@ -584,7 +584,7 @@ function marks() {
 </script>
 <script>
 (function () {
-  const s = {};
+  const s = {"go": ["g"], "dims": true, "rest": "see", "sheet": true};
   if (s.go) go(s.go);
   if (s.rest) document.querySelector('input[name=rest][value=' + s.rest + ']').checked = true;
   if (s.dims) document.getElementById('showd').checked = true;
