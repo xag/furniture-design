@@ -213,3 +213,15 @@ def test_a_rule_that_waits_on_the_person_says_the_question_in_every_language():
     for name in ("a-pieces-parts-say-how-they-are-cut", "a-pieces-joints-say-what-fastens-them"):
         assert set(by[name]) == {"en", "fr"} and all(m["ask"].rstrip().endswith("?") for m in by[name].values())
     assert all("ask" not in m for m in by["a-pieces-pages-carry-no-sentence"].values())
+
+
+def test_with_no_pages_drawn_only_the_criteria_judged_on_the_pages_fail():
+    """A design at the instructions' level, judged before its instructions are drawn, holds every criterion of
+    the level but those standards.ON_THE_PAGES names, which are criteria of that level."""
+    t = Quern(vocabulary=standards.VOCABULARY, rules=standards.RULES, solvers=standards.SOLVERS)
+    t.root.children = _world() + sp.piece_world()
+    c = certificate(t, PIECE)
+    level = next(lv for lv in c["levels"] if lv["level"].endswith("piece-instructions"))
+    failing = {k["criterion"].rpartition("/")[2] for k in c["criteria"] if not k["held"]}
+    assert failing == set(standards.ON_THE_PAGES)
+    assert {f"{standards.STANDARDS}/{x}" for x in standards.ON_THE_PAGES} <= set(level["requires"])

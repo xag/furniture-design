@@ -32,6 +32,9 @@ from . import standards_piece as piece
 from . import standards_words as words
 
 STANDARDS = "standards"
+# The criteria judged on a piece's assembly instructions as they were drawn (pages.model): until they are
+# drawn these cannot hold, so whoever offers to draw them asks every other criterion of the level first.
+ON_THE_PAGES = ("pages-are-drawn-not-written", "steps-show-how-parts-attach", "steps-show-their-parts")
 
 
 # --- the contracts ------------------------------------------------------------------------
