@@ -1404,9 +1404,8 @@ def entries() -> list[Node]:
                             "they would have judged every tool of the knowledge and turned its own examples red "
                             "(a hand saw has no model), so the standard is a package of its own, proved by its "
                             "own example and counter-examples.",
-                     "not_yet": "The kinds criterion and level are declared here until certification@ is "
-                                "published; the standards for a buildable piece and for assembly instructions; "
-                                "the rules' sentences per language (messages)."},
+                     "not_yet": "The standards for a buildable piece and for assembly instructions; the rules' "
+                                "sentences per language (messages)."},
             links={"rests_on": ["the-rules-read-the-knowledge", "makers-products-are-in-packages-outside-furniture-design"]},
             children=[
                 _alt("rules-of-furniture-design", "Add the grading rules to furniture-design@",
@@ -1414,6 +1413,33 @@ def entries() -> list[Node]:
                      "examples would not pass."),
                 _alt("in-the-apps-code", "Leave the grade in the app that keeps people's tools",
                      "Turned down by the owner: the standard must improve without the code."),
+            ],
+        ),
+        Node(
+            id="furniture-standards-requires-certification", kind="decision",
+            name="furniture-standards@ requires certification@ (exact version, pinned by digest) and defines neither "
+                 "kind criterion nor level, nor the rules that keep them well formed. The copy it reads, "
+                 "certification@ as the public registry holds it, travels in the wheel under "
+                 "furniture_design/registry/ and is refused when its digest is not the pinned one. What a reader "
+                 "judges a tree with, standards.VOCABULARY and standards.RULES, is certification@'s then this "
+                 "package's. That a criterion measures completeness, reliability, consistency or presentation is "
+                 "this package's own rule (a-criterion-measures-one-of-the-four-qualities), since certification@ "
+                 "leaves the word free",
+            payload={"decided_on": "2026-11-16",
+                     "the_owner": "remove the stupid comment and solve the issue (xag/furniture-design#2)",
+                     "why": "certification@0.1.0 is in the public registry (xag/quern-registry) since 2026-11-16. "
+                            "The kinds and rules declared here were a copy of it, and the copies had already "
+                            "drifted: four words for measures against any word, another expression for a level's "
+                            "criteria, no sentences per language."},
+            links={"rests_on": ["a-tool-is-certified-by-a-standard-that-is-a-package", "the-package-is-in-the-open-registry"]},
+            children=[
+                _alt("keep-the-copy", "Keep criterion, level and their rules declared here",
+                     "Two definitions of one name drift, and a tree pinning both packages is refused for the clash."),
+                _alt("import-the-python", "Import certification@ as Python from the repo it is authored in",
+                     "That repo is private; this one is public and installed from git."),
+                _alt("read-the-registry-at-run-time", "Fetch certification@ from the registry when the module loads",
+                     "A wheel installed from git cannot count on a registry checkout beside it, and the app "
+                     "would load nothing offline."),
             ],
         ),
         Node(

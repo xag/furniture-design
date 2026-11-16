@@ -12,7 +12,7 @@ TOOL = "tools/example-sander"
 
 
 def cert(*args, **kw) -> dict:
-    t = Quern(vocabulary=PACKAGE.vocabulary, rules=PACKAGE.rules, solvers=PACKAGE.solvers)
+    t = Quern(vocabulary=standards.VOCABULARY, rules=standards.RULES, solvers=standards.SOLVERS)
     t.root.children = _world(*args, **kw)
     return certificate(t, TOOL)
 
@@ -22,7 +22,7 @@ def reached(c: dict) -> list[str]:
 
 
 def test_the_package_passes_the_publish_gate(tmp_path):
-    log = validate_package(PACKAGE, tmp_path)
+    log = validate_package(PACKAGE, tmp_path, standards.library())
     assert any("a-tools-figures-each-rest-on-two-observations" in line for line in log)
 
 
@@ -77,7 +77,7 @@ PIECE = "pieces/doors"
 def piece_cert(pages: dict | None = None, **kw) -> dict:
     from furniture_design.standards_pages import example_pages
 
-    t = Quern(vocabulary=PACKAGE.vocabulary, rules=PACKAGE.rules, solvers=PACKAGE.solvers)
+    t = Quern(vocabulary=standards.VOCABULARY, rules=standards.RULES, solvers=standards.SOLVERS)
     t.root.children = _world() + sp.piece_world(**kw) + [example_pages(**(pages or {}))]
     return certificate(t, PIECE)
 
@@ -159,7 +159,7 @@ def test_how_much_of_a_part_must_show_is_read_from_the_paper():
 
     assert "piece-instructions" in reached(piece_cert(pages={"door_shows": 0.5}))
     assert "piece-instructions" not in reached(piece_cert(pages={"door_shows": 0.49}))
-    t = Quern(vocabulary=PACKAGE.vocabulary, rules=PACKAGE.rules, solvers=PACKAGE.solvers)
+    t = Quern(vocabulary=standards.VOCABULARY, rules=standards.RULES, solvers=standards.SOLVERS)
     from furniture_design.standards_pages import example_pages
     t.root.children = _world() + sp.piece_world() + [example_pages(door_shows=0.5)]
     get_node(t, "sources/agrawala-2003/visibility-scores").params["current_parts"].value = 0.75

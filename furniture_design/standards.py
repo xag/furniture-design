@@ -17,10 +17,12 @@ languages it says itself in.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import quern.grounding  # noqa: F401 - registers the grounding contracts the rules call
 from quern.certify import register_explainer
 from quern.grounding import agree
-from quern.library import CounterExample, Package
+from quern.library import CounterExample, Library, Package, PackageRef, package_digest
 from quern.provenance import Quantity
 from quern.solver import SolverDef
 from quern.tree import Demonstration, KindDef, Node, Quern, Rule, get_node, register_native
@@ -391,17 +393,6 @@ def register() -> None:
 # --- the package: kinds, rules, criteria and levels ------------------------------------------
 
 VOCABULARY = [
-    KindDef(kind="criterion", description=(
-        "One thing a standard judges about a subject: payload applies_to (the kind of node it judges), "
-        "rules (the names of the rules that judge it) and measures (completeness, reliability, "
-        "consistency or presentation). Held when every rule it names holds on the subject and beneath "
-        "it. Read by quern.certify.")),
-    KindDef(kind="level", description=(
-        "A use a subject may be put to: payload of (the kind of subject) and allows (what reaching it "
-        "opens, by the names its readers ask by: assembly, a piece's assembly instructions shown to "
-        "people), and the link requires to the criteria that use needs. Reached when every criterion it "
-        "requires is held. Read by quern.certify."),
-        links={"requires": "the criteria this use needs"}),
     KindDef(kind="motion", description=(
         "Something of a piece that moves, beneath the piece: payload type (slide, or turn for what is hinged), "
         "axis (x, y or z: the way it slides, or the line it turns about) and travel ([from, to] from where the "
@@ -417,15 +408,10 @@ VOCABULARY = [
 _MEASURES = ("completeness", "reliability", "consistency", "presentation")
 
 RULES = [
-    Rule(name="a-criterion-names-what-it-judges", kind="criterion",
-         expr="len(payload(self, 'rules', '')) > 0 and len(payload(self, 'applies_to', '')) > 0 and ("
-              + " or ".join(f"payload(self, 'measures', '') == '{m}'" for m in _MEASURES) + ")",
-         description="A criterion names the kind of node it judges, the rules that judge it, and which of "
-                     "completeness, reliability, consistency or presentation it measures."),
-    Rule(name="a-level-requires-criteria", kind="level",
-         expr="len(payload(self, 'of', '')) > 0 and len(linked(self, 'requires')) > 0 and "
-              "every(c, linked(self, 'requires'), kind(c) == 'criterion')",
-         description="A level says the kind of subject it is a use of and requires criteria that exist."),
+    Rule(name="a-criterion-measures-one-of-the-four-qualities", kind="criterion",
+         expr=" or ".join(f"payload(self, 'measures', '') == '{m}'" for m in _MEASURES),
+         description="A criterion of these standards measures completeness, reliability, consistency or "
+                     "presentation."),
     Rule(name="a-tool-names-its-maker", kind="tool", expr="len(payload(self, 'maker', '')) > 0",
          description="Name the tool's maker (payload maker)."),
     Rule(name="a-tool-rests-on-clauses", kind="tool",
@@ -535,6 +521,31 @@ RULES = [
 # what each rule says to people when it does not hold, per language (standards_words.RED): every rule says it
 RULES = [r.model_copy(update={"messages": words.messages(r.name)}) for r in RULES]
 
+# What a standard is made of, the kinds criterion and level and the two rules that keep them well formed,
+# is certification@'s, pinned by its digest from the public registry; the copy under registry/ travels
+# in the wheel, as a consumer's .quern/library does in its repo. This package requires it and defines
+# neither kind. A reader judges a tree with both: VOCABULARY and RULES are certification@'s then ours.
+CERTIFICATION = PackageRef(name="certification", version="0.1.0",
+                           sha256="db7a6e57beb60d8bdf24afef04a1be05c9fc8cb8293c06391d7ecc1a30d6f7b6")
+
+
+def library() -> Library:
+    """The packages this one requires, as a library: certification@ as the public registry holds it."""
+    return Library(Path(__file__).parent / "registry")
+
+
+def _required() -> Package:
+    held = library().get(CERTIFICATION.name, CERTIFICATION.version)
+    if held is None or package_digest(held) != CERTIFICATION.sha256:
+        raise ValueError(f"{CERTIFICATION.name}@{CERTIFICATION.version} under registry/ is not the one pinned")
+    return held
+
+
+OWN_VOCABULARY, OWN_RULES = VOCABULARY, RULES
+_CERTIFICATION = _required()
+VOCABULARY = list(_CERTIFICATION.vocabulary) + OWN_VOCABULARY
+RULES = list(_CERTIFICATION.rules) + OWN_RULES
+
 register()
 
 
@@ -548,15 +559,13 @@ def _piece_case(pages: dict | None = None, **kw) -> list[Node]:
 
 
 _BAD_STANDARD = Node(id=STANDARDS, kind="", children=[
-    Node(id="says-nothing", kind="criterion", payload={"applies_to": "tool", "measures": "completeness"}),
-    Node(id="needs-nothing", kind="level", payload={"of": "tool"}, links={"requires": ["standards/ghost"]})])
+    Node(id="measures-beauty", kind="criterion",
+         payload={"applies_to": "tool", "measures": "beauty", "rules": ["a-tool-names-its-maker"]})])
 
 def _counter_examples() -> list[CounterExample]:
     return [
-        CounterExample(rule="a-criterion-names-what-it-judges", nodes=_world(standards=_BAD_STANDARD),
-                       because="a criterion that names no rule judges nothing"),
-        CounterExample(rule="a-level-requires-criteria", nodes=_world(standards=_BAD_STANDARD),
-                       because="a level requiring a criterion that does not exist"),
+        CounterExample(rule="a-criterion-measures-one-of-the-four-qualities", nodes=_world(standards=_BAD_STANDARD),
+                       because="a criterion that measures a word these standards do not measure by"),
         CounterExample(rule="a-tool-names-its-maker", nodes=_world(example_tool(maker="")),
                        because="a tool whose maker nobody named"),
         CounterExample(rule="a-tool-rests-on-clauses", nodes=_world(example_tool(per=False)),
@@ -634,7 +643,7 @@ def _counter_examples() -> list[CounterExample]:
     ]
 
 
-VERSION = "0.9.3"
+VERSION = "0.10.0"
 
 
 SOLVERS = [SolverDef(name=name, native=True, reads=[""], description=(fn.__doc__ or "").strip().split("\n\n")[0])
@@ -664,8 +673,9 @@ def make_package() -> Package:
             "the parts brought in and enough of those already there: Agrawala et al. 2003 and IKEA, as clauses of "
             "the knowledge). The rules grade and refuse nothing."),
         publisher="xag/furniture-design",
-        vocabulary=VOCABULARY,
-        rules=RULES,
+        requires=[CERTIFICATION],
+        vocabulary=OWN_VOCABULARY,
+        rules=OWN_RULES,
         solvers=SOLVERS,
         examples=_examples(),
         counter_examples=_counter_examples(),

@@ -1,0 +1,214 @@
+{
+  "name": "certification",
+  "version": "0.1.0",
+  "description": "What a standard is made of: a criterion names the rules that judge one thing about a subject and what it measures; a level is a use the subject may be put to, requires criteria, and says what reaching it allows. A certificate (quern.certify) is run from these two kinds and the rules a standard's own package carries, so a standard improves by republishing, with no reader changed.",
+  "publisher": "standard library",
+  "requires": [],
+  "vocabulary": [
+    {
+      "kind": "criterion",
+      "description": "One thing a standard judges about a subject. Payload: `applies_to` (the kind of node it judges, or several), `rules` (the names of the rules that judge it) and `measures` (what it is a measure of, in the standard's own word: completeness, reliability, consistency, presentation). Held when every rule it names holds on the subject and beneath it. Payload `say`, per language, is its name for people.",
+      "params": {},
+      "links": {},
+      "operations": {},
+      "messages": {
+        "fr": {
+          "heading": "Critère"
+        },
+        "en": {
+          "heading": "Criterion"
+        }
+      }
+    },
+    {
+      "kind": "level",
+      "description": "A use a subject may be put to. Payload: `of` (the kind of subject) and `allows` (what reaching it opens, as the names its readers ask by: a document shown, an entry shared; may be empty); the link `requires` to the criteria that use needs. Reached when every criterion it requires is held. Payload `say`, per language, is its name for people.",
+      "params": {},
+      "links": {
+        "requires": "the criteria this use needs"
+      },
+      "operations": {},
+      "messages": {
+        "fr": {
+          "heading": "Niveau"
+        },
+        "en": {
+          "heading": "Level"
+        }
+      }
+    }
+  ],
+  "rules": [
+    {
+      "name": "a-criterion-names-what-it-judges",
+      "expr": "len(payload(self, 'rules', '')) > 0 and len(payload(self, 'applies_to', '')) > 0 and len(payload(self, 'measures', '')) > 0",
+      "description": "A criterion names the kind of node it judges, the rules that judge it, and what it measures.",
+      "kind": "criterion",
+      "messages": {
+        "fr": {
+          "red": "Ce critère ne dit pas ce qu'il juge, par quelles règles, ou ce qu'il mesure."
+        },
+        "en": {
+          "red": "This criterion does not say what it judges, by which rules, or what it measures."
+        }
+      }
+    },
+    {
+      "name": "a-level-requires-criteria",
+      "expr": "len(payload(self, 'of', '')) > 0 and len(linked(self, 'requires')) > 0 and every(c, linked(self, 'requires'), some(k, nodes('criterion'), k == c))",
+      "description": "A level says the kind of subject it is a use of and requires criteria that exist.",
+      "kind": "level",
+      "messages": {
+        "fr": {
+          "red": "Ce niveau ne dit pas de quoi il est un usage, ou exige un critère qui n'existe pas."
+        },
+        "en": {
+          "red": "This level does not say what it is a use of, or requires a criterion that does not exist."
+        }
+      }
+    }
+  ],
+  "solvers": [],
+  "examples": [
+    {
+      "id": "standards",
+      "kind": "",
+      "name": "",
+      "params": {},
+      "links": {},
+      "meta": {},
+      "payload": {},
+      "children": [
+        {
+          "id": "states-its-size",
+          "kind": "criterion",
+          "name": "Its size is stated",
+          "params": {},
+          "links": {},
+          "meta": {},
+          "payload": {
+            "applies_to": "box",
+            "measures": "completeness",
+            "rules": [
+              "a-box-states-its-size"
+            ]
+          },
+          "children": []
+        },
+        {
+          "id": "can-be-shipped",
+          "kind": "level",
+          "name": "Can be shipped",
+          "params": {},
+          "links": {
+            "requires": [
+              "standards/states-its-size"
+            ]
+          },
+          "meta": {},
+          "payload": {
+            "of": "box",
+            "allows": [
+              "shipping-label"
+            ]
+          },
+          "children": []
+        }
+      ]
+    }
+  ],
+  "counter_examples": [
+    {
+      "rule": "a-criterion-names-what-it-judges",
+      "nodes": [
+        {
+          "id": "standards",
+          "kind": "",
+          "name": "",
+          "params": {},
+          "links": {},
+          "meta": {},
+          "payload": {},
+          "children": [
+            {
+              "id": "says-nothing",
+              "kind": "criterion",
+              "name": "",
+              "params": {},
+              "links": {},
+              "meta": {},
+              "payload": {
+                "applies_to": "box",
+                "measures": "completeness"
+              },
+              "children": []
+            },
+            {
+              "id": "needs-nothing",
+              "kind": "level",
+              "name": "",
+              "params": {},
+              "links": {
+                "requires": [
+                  "standards/ghost"
+                ]
+              },
+              "meta": {},
+              "payload": {
+                "of": "box"
+              },
+              "children": []
+            }
+          ]
+        }
+      ],
+      "because": "a criterion that names no rule judges nothing"
+    },
+    {
+      "rule": "a-level-requires-criteria",
+      "nodes": [
+        {
+          "id": "standards",
+          "kind": "",
+          "name": "",
+          "params": {},
+          "links": {},
+          "meta": {},
+          "payload": {},
+          "children": [
+            {
+              "id": "says-nothing",
+              "kind": "criterion",
+              "name": "",
+              "params": {},
+              "links": {},
+              "meta": {},
+              "payload": {
+                "applies_to": "box",
+                "measures": "completeness"
+              },
+              "children": []
+            },
+            {
+              "id": "needs-nothing",
+              "kind": "level",
+              "name": "",
+              "params": {},
+              "links": {
+                "requires": [
+                  "standards/ghost"
+                ]
+              },
+              "meta": {},
+              "payload": {
+                "of": "box"
+              },
+              "children": []
+            }
+          ]
+        }
+      ],
+      "because": "a level requiring a criterion that does not exist"
+    }
+  ]
+}

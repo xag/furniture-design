@@ -72,12 +72,9 @@ SAY = {
 
 # rule name -> what is wrong when it does not hold, per language
 RED = {
-    "a-criterion-names-what-it-judges": {
-        "en": "This criterion does not say what it judges, by which rules, or what it measures.",
-        "fr": "Ce critère ne dit pas ce qu'il juge, par quelles règles, ou ce qu'il mesure."},
-    "a-level-requires-criteria": {
-        "en": "This level does not say what it is a use of, or requires a criterion that does not exist.",
-        "fr": "Ce niveau ne dit pas de quoi il est un usage, ou exige un critère qui n'existe pas."},
+    "a-criterion-measures-one-of-the-four-qualities": {
+        "en": "This criterion measures neither completeness, reliability, consistency nor presentation.",
+        "fr": "Ce critère ne mesure ni la complétude, ni la fiabilité, ni la cohérence, ni la présentation."},
     "a-tool-names-its-maker": {"en": "The tool's maker is not named.", "fr": "Le fabricant de l'outil n'est pas nommé."},
     "a-tool-rests-on-clauses": {
         "en": "The tool is read from no passage of its maker's documents.",
