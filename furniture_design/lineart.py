@@ -207,7 +207,10 @@ def draw(meshes: list[Mesh], view: View, *, px: int = 1600, crease: float = 28.0
                 continue
             tris.append((xa, ya, za, u0, u1, v0, v1, den))
         faces.append(tris)
-    edges = []   # every edge to consider, sampled along its length, with the depth seen around each sample
+    # Every edge to consider, sampled along its length: the samples of all edges in one array, kept
+    # in the order of their rows, so that a strip finds its own by a search and reads the depth seen
+    # around them all at once (one pass a strip, where a pass an edge a strip made 300,000 calls).
+    qs, weights, starts = [], [], [0]
     for m, p in zip(meshes, P):
         found, _n, _f = _edges(m, view, crease)
         for a, b, kind in found:
@@ -215,10 +218,15 @@ def draw(meshes: list[Mesh], view: View, *, px: int = 1600, crease: float = 28.0
             length = math.hypot(*(pb[:2] - pa[:2])) * s
             k = max(int(length / 1.5), 2)
             t = np.linspace(0, 1, k + 1)
-            q = pa[None, :] * (1 - t[:, None]) + pb[None, :] * t[:, None]
-            ix = np.clip(((q[:, 0] - x0) * s + 2).astype(int), 0, W - 1)
-            iy = np.clip(((q[:, 1] - y0) * s + 2).astype(int), 0, H - 1)
-            edges.append((q, ix, iy, np.empty(k + 1, dtype=np.float32), (1.0 if kind == "out" else 0.55) * m.weight))
+            qs.append(pa[None, :] * (1 - t[:, None]) + pb[None, :] * t[:, None])
+            weights.append((1.0 if kind == "out" else 0.55) * m.weight)
+            starts.append(starts[-1] + k + 1)
+    Q = np.vstack(qs) if qs else np.zeros((0, 3))
+    IX = np.clip(((Q[:, 0] - x0) * s + 2).astype(int), 0, W - 1)
+    IY = np.clip(((Q[:, 1] - y0) * s + 2).astype(int), 0, H - 1)
+    by_row = np.argsort(IY, kind="stable")
+    rows_of = IY[by_row]
+    near = np.empty(len(Q), dtype=np.float32)   # the nearest depth seen around each sample
     STRIP = 64
     for r0 in range(0, H, STRIP):
         r1 = min(r0 + STRIP, H) - 1
@@ -230,11 +238,12 @@ def draw(meshes: list[Mesh], view: View, *, px: int = 1600, crease: float = 28.0
                 w0, w1 = max(v0, h0), min(v1, h1)
                 if w1 < w0:
                     continue
-                gx, gy = np.meshgrid(np.arange(u0, u1 + 1) + 0.5, np.arange(w0, w1 + 1) + 0.5)
+                gx = (np.arange(u0, u1 + 1) + 0.5)[None, :]   # broadcast against gy: no grid is made
+                gy = (np.arange(w0, w1 + 1) + 0.5)[:, None]
                 l0 = ((ya[1] - ya[2]) * (gx - xa[2]) + (xa[2] - xa[1]) * (gy - ya[2])) / den
                 l1 = ((ya[2] - ya[0]) * (gx - xa[2]) + (xa[0] - xa[2]) * (gy - ya[2])) / den
                 l2 = 1 - l0 - l1
-                inside = (l0 >= -1e-6) & (l1 >= -1e-6) & (l2 >= -1e-6)
+                inside = (l0 >= -1e-6) & (l1 >= -1e-6) & (l2 >= -1e-6)   # (rows, columns)
                 if not inside.any():
                     continue
                 z = np.where(inside, l0 * za[0] + l1 * za[1] + l2 * za[2], np.inf).astype(np.float32)
@@ -250,24 +259,22 @@ def draw(meshes: list[Mesh], view: View, *, px: int = 1600, crease: float = 28.0
         else:
             for mi in np.unique(seen[seen >= 0]):
                 rows[seen == mi] = fills[mi]
-        for q, ix, iy, near, _w in edges:
-            here = (iy >= r0) & (iy <= r1)
-            if here.any():
-                jx, jy = ix[here], iy[here]
-                near[here] = np.maximum.reduce([zb[np.clip(jy + dy, 0, H - 1) - h0, np.clip(jx + dx, 0, W - 1)]
-                                                for dx in (-1, 0, 1) for dy in (-1, 0, 1)])
+        here = by_row[np.searchsorted(rows_of, r0, "left"):np.searchsorted(rows_of, r1, "right")]
+        if len(here):
+            jx, jy = IX[here], IY[here]
+            near[here] = np.maximum.reduce([zb[np.clip(jy + dy, 0, H - 1) - h0, np.clip(jx + dx, 0, W - 1)]
+                                            for dx in (-1, 0, 1) for dy in (-1, 0, 1)])
     dr.image = img
-    for q, _ix, _iy, near, w in edges:
-        run = []
-        for i, vis in enumerate(q[:, 2] <= near + eps):
-            if vis:
-                run.append((q[i, 0], q[i, 1]))
-            elif run:
-                if len(run) > 1:
-                    dr.lines.append((run, w))
-                run = []
-        if len(run) > 1:
-            dr.lines.append((run, w))
+    # An edge is straight: what is seen of it is drawn as the ends of each run of seen samples, the
+    # samples between them lying on the line those ends draw.
+    seen = Q[:, 2] <= near + eps
+    for e, w in enumerate(weights):
+        a, b = starts[e], starts[e + 1]
+        step = np.diff(np.concatenate(([0], seen[a:b].view(np.int8), [0])))
+        for first, after in zip(np.flatnonzero(step == 1), np.flatnonzero(step == -1)):
+            if after - first > 1:
+                dr.lines.append(([(float(Q[a + first, 0]), float(Q[a + first, 1])),
+                                  (float(Q[a + after - 1, 0]), float(Q[a + after - 1, 1]))], w))
     return dr
 
 

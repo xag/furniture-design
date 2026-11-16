@@ -32,6 +32,11 @@ from reportlab.lib.colors import HexColor, white
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.pdfgen.canvas import Canvas
+from reportlab import rl_config
+
+# Streams written as binary, not as ASCII85 text: a picture is then one copy less to hold while it
+# is put in, and the file a fifth smaller.
+rl_config.useA85 = 0
 
 from .scene import Scene
 

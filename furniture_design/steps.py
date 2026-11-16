@@ -57,7 +57,7 @@ def _cutter(pdf: Path, out: Path):
         im = im.crop((max(0, l - pad), max(0, t - pad), min(im.width, r + pad), min(im.height, b + pad)))
         count[0] += 1
         name = f"{count[0]:02d}.webp"
-        im.save(out / name, "WEBP", quality=82, method=6)
+        im.save(out / name, "WEBP", quality=82, method=4)   # as small as 6 for the bench, in two thirds of the time
         return {"file": name, "mm": round(im.width / DPI * 25.4, 1)}
 
     return cut
