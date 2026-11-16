@@ -20,10 +20,9 @@ from __future__ import annotations
 from pathlib import Path
 
 import quern.grounding  # noqa: F401 - registers the grounding contracts the rules call
-from quern import certification
 from quern.certify import register_explainer
 from quern.grounding import agree
-from quern.library import CounterExample, Library, Package, PackageRef, package_digest
+from quern.library import CounterExample, Library, Package, PackageRef, cache_dir, require
 from quern.provenance import Quantity
 from quern.solver import SolverDef
 from quern.tree import Demonstration, KindDef, Node, Quern, Rule, get_node, register_native
@@ -523,24 +522,22 @@ RULES = [
 RULES = [r.model_copy(update={"messages": words.messages(r.name)}) for r in RULES]
 
 # What a standard is made of, the kinds criterion and level and the two rules that keep them well formed,
-# is certification@, quern.certification: this package requires it and defines neither kind. A reader
-# judges a tree with both: VOCABULARY and RULES are certification@'s then this package's.
-CERTIFICATION = PackageRef(name=certification.PACKAGE.name, version=certification.PACKAGE.version,
-                           sha256=package_digest(certification.PACKAGE))
+# is certification@, which the public registry holds: this package requires it by its pin and defines
+# neither kind. A reader judges a tree with both: VOCABULARY and RULES are certification@'s then ours.
+CERTIFICATION = PackageRef(name="certification", version="0.1.0",
+                           sha256="db7a6e57beb60d8bdf24afef04a1be05c9fc8cb8293c06391d7ecc1a30d6f7b6")
+_CERTIFICATION = require(CERTIFICATION)
 
 
 def library() -> Library:
-    """The packages this one requires, as a library the publish gate resolves them from: certification@."""
-    import tempfile
-
-    held = Library(Path(tempfile.mkdtemp(prefix="furniture-standards-requires-")))
-    held.publish(certification.PACKAGE, {})
-    return held
+    """The packages this one requires, as a library the publish gate resolves them from: quern's cache,
+    which require filled."""
+    return Library(cache_dir())
 
 
 OWN_VOCABULARY, OWN_RULES = VOCABULARY, RULES
-VOCABULARY = list(certification.PACKAGE.vocabulary) + OWN_VOCABULARY
-RULES = list(certification.PACKAGE.rules) + OWN_RULES
+VOCABULARY = list(_CERTIFICATION.vocabulary) + OWN_VOCABULARY
+RULES = list(_CERTIFICATION.rules) + OWN_RULES
 
 register()
 

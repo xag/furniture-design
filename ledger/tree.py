@@ -1418,8 +1418,8 @@ def entries() -> list[Node]:
         Node(
             id="furniture-standards-requires-certification", kind="decision",
             name="furniture-standards@ requires certification@ (exact version, pinned by digest) and defines neither "
-                 "kind criterion nor level, nor the rules that keep them well formed: it takes them from quern, "
-                 "which authors certification@ as quern.certification beside the code that reads them. What a reader "
+                 "kind criterion nor level, nor the rules that keep them well formed: it gets certification@ from "
+                 "the public registry by its pin with quern.library.require, and carries no copy. What a reader "
                  "judges a tree with, standards.VOCABULARY and standards.RULES, is certification@'s then this "
                  "package's. That a criterion measures completeness, reliability, consistency or presentation is "
                  "this package's own rule (a-criterion-measures-one-of-the-four-qualities), since certification@ "
@@ -1435,11 +1435,10 @@ def entries() -> list[Node]:
             children=[
                 _alt("keep-the-copy", "Keep criterion, level and their rules declared here",
                      "Two definitions of one name drift, and a tree pinning both packages is refused for the clash."),
+                _alt("taken-from-quern", "Import certification@ from quern (quern.certification)",
+                     "quern authors no package; the owner: \"only keep it in quern registry\"."),
                 _alt("a-copy-in-the-wheel", "Carry certification@ as the registry holds it under furniture_design/registry/",
                      "Done first. The owner: \"If it's generic, why insist on putting it in furniture design?\""),
-                _alt("read-the-registry-at-run-time", "Fetch certification@ from the registry when the module loads",
-                     "A wheel installed from git cannot count on a registry checkout beside it, and the app "
-                     "would load nothing offline."),
             ],
         ),
         Node(
