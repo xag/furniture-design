@@ -63,17 +63,15 @@ label.opt input { width:18px; height:18px; margin:0; accent-color:var(--ink); }
   #stage { flex:1; min-height:34%; }
   #tools { max-height:30%; padding:0 16px 12px; border-left:none; border-top:1px solid var(--line); }
 }
-/* with no room under the tree (a phone, or a window too low), what is drawn opens in the sliders'
-   place from the Display button at the foot of the tools */
-@media (max-width: 720px), (max-height: 560px) {
-  #opts { display:inline-flex; }
-  #foot { justify-content:space-between; }
-  #display { display:none; padding-top:8px; }
-  #display.open { display:block; }
-  #tools.sheet > :not(#display):not(#foot) { display:none; }
-  .pair { display:flex; gap:24px; }
-  #tools.sheet #foot { position:sticky; bottom:-12px; padding-bottom:12px; margin-bottom:-12px; background:var(--panel); }
-}
+/* with no room for it under the tree (room(): a phone, or a column too short to hold it and the
+   sliders), what is drawn opens in the sliders' place from the Display button at the foot of the tools */
+.tight #opts { display:inline-flex; }
+.tight #foot { justify-content:space-between; }
+.tight #display { display:none; padding-top:8px; }
+.tight #display.open { display:block; }
+.tight #tools.sheet > :not(#display):not(#foot) { display:none; }
+.tight .pair { display:flex; gap:24px; }
+.tight #tools.sheet #foot { position:sticky; bottom:-12px; padding-bottom:12px; margin-bottom:-12px; background:var(--panel); }
 </style>
 </head>
 <body>
@@ -270,26 +268,28 @@ function look(m, a, edge) {
   m.renderOrder = see ? 1 : 0;
 }
 // where there is no room under the tree, the Display button at the foot of the tools opens what is
-// drawn in the sliders' place, and closes it; so do Back, Escape and a swipe down on it
+// drawn in the sliders' place and closes it; Escape closes it too. It adds no step to the history:
+// the page that holds the view goes back by its own steps
 const opts = document.getElementById('opts'), display = document.getElementById('display');
 const tools = document.getElementById('tools');
-let pushed = false;
 const isOpen = () => display.classList.contains('open');
-function sheet(open, byBack) {
+function sheet(open) {
   if (open === isOpen()) return;
   display.classList.toggle('open', open); tools.classList.toggle('sheet', open);
   opts.setAttribute('aria-expanded', String(open));
-  if (open) { try { history.pushState({display: true}, ''); pushed = true; } catch (e) { pushed = false; } return; }
-  if (pushed && !byBack) history.back();
-  pushed = false;
-  if (display.contains(document.activeElement)) opts.focus();
+  if (!open && display.contains(document.activeElement)) opts.focus();
 }
-addEventListener('popstate', () => sheet(false, true));
 opts.onclick = () => sheet(!isOpen());
 document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && isOpen()) sheet(false); });
-let swipe = null;
-display.addEventListener('pointerdown', ev => swipe = ev.clientY);
-display.addEventListener('pointerup', ev => { if (swipe !== null && ev.clientY - swipe > 48) sheet(false); swipe = null; });
+// room for what is drawn under the tree: never on a narrow screen; else when the tools, with it in
+// them, fit their place without scrolling
+const narrow = matchMedia('(max-width: 720px)');
+function room() {
+  const app = document.getElementById('app');
+  app.classList.remove('tight');
+  if (narrow.matches || tools.scrollHeight > tools.clientHeight + 1) app.classList.add('tight');
+}
+new ResizeObserver(room).observe(document.getElementById('app'));
 document.getElementById('reset').onclick = () => { stepIn.value = 0; document.getElementById('explode').value = 0; go([]); };
 
 const list = document.getElementById('parts'), title = document.getElementById('title');
@@ -387,7 +387,7 @@ function go(to) {
   document.getElementById('restrow').hidden = !here.length;
   meshes.forEach(m => m.userData.selected = false);
   tip.style.display = 'none';
-  listing(); home(); apply();
+  listing(); room(); home(); apply();
   nav.scrollTop = 0; more();
 }
 
@@ -463,11 +463,11 @@ function toScreen(v, w, h) {
 // the side away from the box on screen; it stays on the edge it was on until another is lower (or
 // more to the left) by 12 px, so turning the model a little never moves a number
 const kept = new Map();
-function edgeFor(lo, hi, a, w, h) {
+function edgeFor(lo, hi, a, w, h, name) {
   const [b, c] = [0, 1, 2].filter(i => i !== a), eye = camera.position;
   const toPiece = [eye.x, -eye.z, eye.y];          // three -> piece frame
   const facing = (i, s) => s ? toPiece[i] > hi[i] : toPiece[i] < lo[i];
-  const key = [a, ...lo, ...hi].join(), was = kept.get(key);
+  const key = name || [a, ...lo, ...hi].join(), was = kept.get(key);
   let best = null, held = null;
   for (const sb of [0, 1]) for (const sc of [0, 1]) {
     if (facing(b, sb) === facing(c, sc)) continue;  // on the outline: one face turned to the eye
@@ -506,7 +506,7 @@ function candidates(w, h) {
   }
   const lo = [0, 1, 2].map(i => Math.min(...ps.map(p => p.lo[i]))), hi = [0, 1, 2].map(i => Math.max(...ps.map(p => p.hi[i])));
   [0, 1, 2].forEach(a => {
-    const e = edgeFor(lo, hi, a, w, h);
+    const e = edgeFor(lo, hi, a, w, h, 'shown' + a);   // kept across the assembly steps
     if (!e) return;
     const [b, c] = [0, 1, 2].filter(i => i !== a), r1 = v => Math.round(v * 10) / 10;
     // the corner of a part at this position along the axis that is nearest the edge dimensioned

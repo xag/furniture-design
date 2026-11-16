@@ -1,4 +1,4 @@
 <!doctype html><body style="margin:0">
 <div id="sheet"><iframe id="f" src="A-s01-rest.html" style="width:390px;height:780px;border:0"></iframe></div>
-<script>history.pushState({sheet:1}, ''); window.shut = 0;
+<script>history.pushState({sheet:1}, ''); window.shut = 0; window.depth = history.length;
 addEventListener('popstate', () => { window.shut++; document.getElementById('sheet').hidden = true; });</script></body>

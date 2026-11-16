@@ -52,21 +52,21 @@ The two settings that are on or off stay checkboxes, as Connectors is today and 
 
 ### E2. Where the block stands
 
-With room for it (wider than 720 px and taller than 560 px): at the head of `#tools`, directly under the tree, before the assembly step slider. Below the sliders, Reset on its own row, aligned right as today.
+With room for it: at the head of `#tools`, directly under the tree, before the assembly step slider. Below the sliders, Reset on its own row, aligned right as today.
 
-Without room for it (720 px wide or less, or 560 px tall or less: a phone, a phone held sideways, a low laptop window), the block is behind the Display button (E3, E4). The layout of the rest of the page still follows the width alone, as today.
+There is room for it when the screen is wider than 720 px and the tools, with the block in them, fit their place in the column without scrolling (checked whenever the page is resized or a branch opened). Otherwise (a phone; a phone held sideways; a low laptop window; a piece whose parts list fills the column) the block is behind the Display button (E3, E4). The layout of the rest of the page still follows the width alone, as today.
 
 ### E3. The Display button
 
-Where the block is not shown under the tree: the bottom row of the strip under the model holds a text button, "Affichage" (en: Display) with a chevron, at the left, and Reset at the right as today. Nothing is drawn over the model. The chevron points up while the block is closed and down while it is open, and the button carries `aria-expanded`.
+Where the block is not shown under the tree: the bottom row of the strip under the model holds a text button, "Affichage" (en: Display) with a chevron, at the left, and Reset at the right as today. Nothing is drawn over the model. The chevron points up while the block is closed and down while it is open, and the button carries `aria-expanded` (the W3C disclosure pattern). It has Reset's size (32 px tall), the button beside it, over WCAG's 24 px floor.
 
 The owner, on the first version, which had a round layers button over the model's top right corner: "I find the button ugly and a friction. I thought you wouldn't keep it when you talked about a menu attached to the bottom". A text label also settles round 1's F6 (an icon alone is ambiguous).
 
 ### E4. The block opened
 
-The Display button puts the block in the sliders' place, in the strip, above the bottom row: the sliders are hidden while it is open, and the strip grows to the block's height, so the model's area shrinks a little and the model is drawn smaller, all of it still in view. It never lies over the model, so the dimensions along its bottom stay visible. On a phone, Connecteurs and Cotes share one row, so the block fits the strip on a 320 × 640 screen; the bottom row stays pinned to the strip's foot while the block is open, so the button that closes it is always in reach. Each setting takes effect as it is changed, and the model can still be turned, pinched and tapped.
+The Display button puts the block in the sliders' place, in the strip, above the bottom row: the sliders are hidden while it is open, and the strip grows to the block's height, so the model's area takes what is left: smaller where the block is taller than the sliders (in a branch), larger where it is shorter (at the piece, where the assembly slider and its sentence go); the model stays wholly in view, and the dimensions drawn follow the new scale. It never lies over the model, so the dimensions along its bottom stay visible. On a phone, Connecteurs and Cotes share one row; on the smallest screens (320 × 640 inside Soban's sheet, a phone held sideways) the strip still scrolls by a little, as it does today, and the bottom row stays pinned to the strip's foot while the block is open, so the button that closes it is always in reach. Each setting takes effect as it is changed, and the model can still be turned, pinched and tapped.
 
-It closes by the Display button again, the phone's Back (opening it adds a step to the browser's history, so Back closes it and leaves the 3D view open; checked in Chromium with a parent page that, like Soban's sheet, closes on Back: `mock/backtest.mjs`; a second Back closes the view), Escape, or a swipe down on it. Closing it brings the sliders back.
+It closes by the Display button again, or Escape. Closing it brings the sliders back. It adds no step to the browser's history, so the phone's Back closes the whole 3D view as it does today (`mock/backtest.mjs` checks one Back closes the view in a parent page that, like Soban's sheet, closes on Back).
 
 ### E5. Dimensions on the model
 
@@ -75,7 +75,7 @@ What is measured is what is shown (the branch, or the whole piece), never the re
 - the overall size of what is shown, and
 - the chain of distinct part edges along that axis: the distance between each pair of neighbouring edge positions.
 
-Each axis is dimensioned along one edge of the box of what is shown: of the four box edges parallel to that axis, the one on the box's outline that is nearest the bottom of the screen (for the two horizontal axes) or the leftmost (for the vertical axis), offset outward from the box on screen, the chain 18 px off and the overall size 40 px off. A dimension stays on the edge it was on until another edge is lower (or more to the left) by 12 px, so turning the model a little never moves a number. Each end has an extension line from the corner of the part it is measured from (of the parts with an edge at that position, the corner nearest the dimensioned edge) to just past the dimension line, so a number names the parts it is between even in a turned view. The lines and numbers are drawn over the model, never hidden by it; the numbers are always upright, 12 px in the ink colour on a panel-coloured ground, in mm without unit, as the list writes sizes (one decimal at most).
+Each axis is dimensioned along one edge of the box of what is shown: of the four box edges parallel to that axis, the one on the box's outline that is nearest the bottom of the screen (for the two horizontal axes) or the leftmost (for the vertical axis), offset outward from the box on screen, the chain 18 px off and the overall size 40 px off. A dimension stays on the edge it was on until another edge is lower (or more to the left) by 12 px, so turning the model a little never moves a number; the edge is kept across the assembly steps. Each end has an extension line from the corner of the part it is measured from (of the parts with an edge at that position, the corner nearest the dimensioned edge) to just past the dimension line, so a number names the parts it is between even in a turned view. The lines and numbers are drawn over the model, never hidden by it; the numbers are always upright, 12 px in the ink colour on a panel-coloured ground, in mm without unit, as the list writes sizes (one decimal at most).
 
 Readable means: a dimension is drawn only when its line on screen is longer than its number's width plus 16 px, its number is wholly on screen, and its number does not overlap a number already drawn. Numbers are placed overall first, then the chain from the longest down, in mm, so the order never changes as the view turns and a longer neighbour always takes the place before a shorter one.
 
@@ -86,7 +86,7 @@ While the parts are pulled apart (the slider above 0), no dimension is drawn: no
 While a branch is open:
 - Masqué: as today, only the branch is drawn.
 - Transparent: the parts outside the branch are drawn in grey `#8f8b85` at 15 % opacity with their outlines at 25 %, writing no depth, so the branch shows through them; a tap passes through them to the branch.
-- Plein: the parts outside the branch are drawn opaque in the same grey, without their outlines, so the branch is told apart by its outlines as well as its colour (WCAG 1.4.1: not by colour alone); a tap on them catches nothing (it neither selects them nor passes to a part they hide).
+- Plein: the parts outside the branch are drawn opaque in the same grey, without their outlines, so the branch is told apart by its outlines as well as its colour (WCAG 1.4.1: not by colour alone); a tap on them selects nothing and does not pass to a part they hide; a double tap on them brings the view close to the point touched, as a double tap anywhere on the model does.
 
 In both, the rest is drawn finished and in its place, and not at all while the parts are pulled apart (they would pass into it); the assembly steps and pulling apart act on the branch only, the connectors drawn are the branch's only, and the view stays fitted to the branch.
 
@@ -110,3 +110,15 @@ The research agent was given the element list, the paths of the code and ledgers
 - F19 a solid rest passes taps to hidden parts: a solid rest catches taps (E6). F20 grey too close to the wood: a darker grey and no outlines on the rest (E6). F21 a third word: "Transparent" in English too; the look stays grey rather than Compare's accent, since the accent says "this differs" there (E6). F22 parts pulled into a still rest: the rest is not drawn while pulled apart (E6).
 - For the owner: F4 (settings not remembered on a phone) and F18 (A gives positions, which read less well when turned and show nothing close up in the middle of a part; B gives sizes already in the list and the tip box, but on the model and close up).
 - F6 the icon: the icon has gone; the Display button is labelled in words (E3). F13 nothing close up in the middle of a part under A: inherent to A, put to the owner with F18.
+
+## Stage one, round 2 (`stage1-round2.md`, sources 18–25 in `research/`)
+
+The same agent researched the elements round 1's fixes and the owner's change added, and measured them in Chromium (its scripts are outside the repo). Each finding's evidence was opened before acting: `app.js` lines 1536–1545 (the sheet's `closing` flag and its one `history.back()`) and the WebKit bug page are as it says.
+
+- F28 the swipe down never closes on a touch screen (pointercancel): dropped.
+- F29 Soban's own Close spends its one `history.back()` on the step the block pushed, and the person's next Back does nothing; F30 WebKit bug 209753 reloads the parent page when an iframe pushes a step and goes back: the block adds no step. This undoes round 1's fix for F9 (Back closed the whole view): the two findings go to the owner side by side. The library cannot fix the app's Close (it names no home); the app could, by going back as many steps as were added.
+- F23 the 560 px line: replaced by the rule that the block is under the tree when the tools fit with it (E2).
+- F24 the model's area grows at the piece: wording corrected (E4). F25 the block scrolls a little inside Soban's sheet on the smallest screens: stated (E4); the bottom row is pinned. F26 the Display button is 32 px: Reset's size, stated (E3). F32 the edge forgotten at each step: kept across steps (E5). F33 a double tap on the solid rest: wording corrected (E6).
+- F27 (the chevron and the word "Display") goes to stage two. F34 holds (outlines keep the branch apart).
+- F31 extension lines from parts set back from the dimensioned edge fan out and can cross, and one from a hidden corner starts on the part in front: inherent to chains drawn in a turned 3D view; put to the owner with F18 as A's cost.
+- Tried and reverted: shrinking the tree while the block is open on a short wide screen left a gap in the column's grid.
