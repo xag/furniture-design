@@ -204,20 +204,10 @@ def plan_svg(tree: Quern, piece: str, view: str, *, scale: float = 0.5, lang: st
 
 def checks(tree: Quern, piece: str) -> list[tuple[str, str, str, str]]:
     """The rules' verdicts that are not passes, on the piece and everything under it, with
-    the reason when the rule could not answer, and what the verdict rests on that a person only said
-    (evidence.unestablished: the clause's words and its source)."""
-    from .evidence import unestablished
+    the reason when the rule could not answer."""
     prefix = piece.rstrip("/")
-    out = []
-    for r in run_rules(tree, prefix):
-        if r.ok or not (r.node == prefix or r.node.startswith(prefix + "/")):
-            continue
-        traced = [t for t in run_rules(tree, r.node, rules=[r.rule], trace=True) if t.node == r.node]
-        said = unestablished(tree, traced[0]) if traced else []
-        detail = "; ".join([d for d in [r.detail or ""] if d] + ([f"rests on what was only said: {'; '.join(said)}"]
-                                                                 if said else []))
-        out.append((r.rule, r.node, r.verdict, detail))
-    return out
+    return [(r.rule, r.node, r.verdict, r.detail or "") for r in run_rules(tree, prefix)
+            if not r.ok and (r.node == prefix or r.node.startswith(prefix + "/"))]
 
 
 DOCUMENTS = ("viewer", "design", "assembly", "cutting")
