@@ -2280,17 +2280,14 @@ def requirements() -> Node:
 
 AUTHORITIES = {
     "maker": "the maker of the product or the provider of the service it describes, saying how its "
-             "own product is made or used, in what it publishes (a manual, a declaration of performance, a "
-             "data sheet, a product page, a shop's own page)",
+             "own product is made or used (a manual, a declaration of performance, a data sheet, a "
+             "product page, a shop's own page or what its staff said)",
     "standard": "a standards body or a public authority's rule, specification or test method",
     "research": "a peer-reviewed paper, a research institute or a testing laboratory's report",
     "editorial": "an edited publication that is none of the above: a handbook, a training manual, "
                  "a trade body's guide, a woodworking magazine",
     "none": "anyone else: a person's video, page or post. What it says enters the knowledge only "
             "verified by a check this knowledge already holds, the verification stated on the clause",
-    "reported": "a person's own account of what they saw or were told (what a shop's staff said to them "
-                "included), each clause their words quoted from where they said them; never the maker's "
-                "authority, and every value it gives ungrounded",
 }
 
 AUTHORITY = {

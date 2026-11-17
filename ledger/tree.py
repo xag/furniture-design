@@ -1159,7 +1159,7 @@ def entries() -> list[Node]:
                  "is the account Gemini gives of it (what is said and what is shown, with timestamps), "
                  "kept byte for byte in the private repo, its sha256 on the source, and payload read_by "
                  "names Gemini and the date. A test finds each clause's words in that account",
-            links={"rests_on": ["a-reported-source-is-the-persons-words-never-the-makers",
+            links={"rests_on": ["a-source-says-who-stands-behind-it",
                                 "a-copyrighted-source-is-cited-by-locator-and-values"]},
             payload={"decided_on": "2026-11-15",
                      "the_owner": "Dans ce cas il faut aller chercher des tutoriels. Je sais que youtube ne "
@@ -1922,38 +1922,6 @@ def entries() -> list[Node]:
                 _alt("any-short-text", "Let any text under a number of words through",
                      "A short sentence still says in words what the picture should show; what a text is "
                      "is known where it is set, so the drawing says it."),
-            ],
-        ),
-        Node(
-            id="a-reported-source-is-the-persons-words-never-the-makers", kind="decision",
-            name="Every source says its authority: maker (what it publishes on its own product or service), "
-                 "standard, research, editorial (an edited publication), none (a person's video, page or post) "
-                 "or reported (a person's own account of what they saw or were told, what a shop's staff said "
-                 "to them included). A clause of a source with no authority is in the knowledge only verified: "
-                 "a check the knowledge already holds, run on a case, confirms it, and the clause says which "
-                 "check, the clauses with authority it reads, the case, the result and the date (payload "
-                 "verified). A clause of a reported source is the person's words, quoted from where they said "
-                 "them, and every value it gives is ungrounded. Rules a-source-says-its-authority, "
-                 "a-clause-with-no-authority-is-verified and a-reported-clause-quotes-the-person",
-            payload={"decided_on": "2026-11-17",
-                     "the_owner": "Le paquet commun a accepté sources/leroy-merlin-store-visit-2026-11-14 : "
-                                  "présentée comme le récit d'un client, avec l'autorité « maker », alors que la "
-                                  "clause no-glulam reprend les mots du modèle, pas ceux du client. → Une source "
-                                  "« rapportée par l'utilisateur » ne doit contenir que ses mots, cités depuis la "
-                                  "conversation, et n'a jamais l'autorité du fabricant. (report YpKoBk2o4SwgpMAklcus)",
-                     "why": "A customer's account of what a store said passed as the maker's word, and a clause "
-                            "of it was a model's conclusion rather than the customer's words: the cutting "
-                            "service then refused every glulam board, which the customer says it never did, "
-                            "and the certificate asked the person questions resting on it."},
-            links={"supersedes": ["a-source-says-who-stands-behind-it"],
-                   "rests_on": ["the-rules-read-the-knowledge"]},
-            children=[
-                _alt("reported-is-none", "File a person's account under none",
-                     "None enters only through a check the knowledge holds, and what a store will cut is "
-                     "checked by nothing here: the narrowest cut a customer was told would be lost."),
-                _alt("staff-words-are-the-makers", "Keep what a shop's staff said under maker",
-                     "Those words reach the knowledge only through someone who reports them; that is "
-                     "how a model's summary passed as the shop's rule."),
             ],
         ),
     ]

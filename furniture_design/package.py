@@ -32,8 +32,7 @@ VOCABULARY = [
         "the service it describes, on its own product), standard (a standards body or public "
         "authority), research (a peer-reviewed paper, a research institute or testing laboratory), "
         "editorial (an edited publication: a handbook, a training manual, a trade body's guide, a "
-        "magazine), none (anyone else: a person's video, page or post) or reported (a person's own "
-        "account of what they saw or were told, a shop's staff's words included: never the maker's), and read_by when nobody "
+        "magazine) or none (anyone else: a person's video, page or post), and read_by when nobody "
         "here read it (a video Gemini described, its account kept as the copy). Its children are "
         "the clauses quoted from it.")),
     KindDef(kind="clause", description=(
@@ -270,17 +269,9 @@ RULES = [
     Rule(name="a-source-says-its-authority", kind="source",
          expr="payload(self, 'authority', '') == 'maker' or payload(self, 'authority', '') == 'standard' "
               "or payload(self, 'authority', '') == 'research' "
-              "or payload(self, 'authority', '') == 'editorial' or payload(self, 'authority', '') == 'none' "
-              "or payload(self, 'authority', '') == 'reported'",
+              "or payload(self, 'authority', '') == 'editorial' or payload(self, 'authority', '') == 'none'",
          description="A source says who stands behind what it says: its maker, a standards body, "
-                     "research, an edited publication, no one, or a person reporting what they saw or "
-                     "were told."),
-    Rule(name="a-reported-clause-quotes-the-person", kind="clause",
-         expr="payload(parent(self), 'authority', '') != 'reported' "
-              "or len(payload(self, 'quote', '')) > 0",
-         description="What a person reported enters the knowledge in their own words, quoted from where "
-                     "they said them: a clause of a reported source carries the quote, never a summary "
-                     "written for them."),
+                     "research, an edited publication, or no one."),
     Rule(name="a-clause-with-no-authority-is-verified", kind="clause",
          expr="payload(parent(self), 'authority', '') != 'none' "
               "or len(payload(self, 'verified', '')) > 0",
@@ -678,10 +669,6 @@ _UNVERIFIED = Node(id="sources", kind="", children=[
     Node(id="a-video", kind="source", payload={"licence": "copyrighted", "authority": "none"}, children=[
         Node(id="trick", kind="clause", payload={"locator": "at 2:10"})])])
 
-_SUMMARISED = Node(id="sources", kind="", children=[
-    Node(id="a-store-visit", kind="source", payload={"licence": "unstated", "authority": "reported"}, children=[
-        Node(id="no-glulam", kind="clause", payload={"locator": "noted on the day of the visit"})])])
-
 _STALE = Node(id="guidance", kind="", children=[
     Node(id="a-saw-that-left", kind="guidance", name="The saw the shop lends",
          payload={"text": "Cut with tools/the-shops-saw."}, links={"about": ["tools/the-shops-saw"]})])
@@ -692,8 +679,6 @@ def _counter_examples() -> list[CounterExample]:
                        because="a guidance sending people to a tool the package no longer holds"),
         CounterExample(rule="a-source-says-its-authority", nodes=[_UNSAID],
                        because="a source that does not say who stands behind it cannot be weighed"),
-        CounterExample(rule="a-reported-clause-quotes-the-person", nodes=[_SUMMARISED],
-                       because="what a customer reported, as a note written for them instead of their words"),
         CounterExample(rule="a-clause-with-no-authority-is-verified", nodes=[_UNVERIFIED],
                        because="a trick from a person's video, taken in unchecked, would be followed "
                                "as if its maker had said it"),
@@ -807,7 +792,7 @@ def written_at(name: str) -> str:
     return ""
 
 
-VERSION = "0.22.16"
+VERSION = "0.22.17"
 
 
 def make_package() -> Package:
