@@ -1956,6 +1956,38 @@ def entries() -> list[Node]:
                      "how a model's summary passed as the shop's rule."),
             ],
         ),
+        Node(
+            id="what-a-person-only-said-is-checked-and-shown", kind="decision",
+            name="What a person only said reaches a rule checked and shown. Checked: a reported source states the "
+                 "sha256 of a copy of the person's message as the session's transcript holds it (rule "
+                 "a-reported-source-keeps-the-persons-message), kept privately under reported/<source id>.json, "
+                 "and a package's test runs furniture_design.reported.check on it: every quote is in the copy, "
+                 "and the copy is the message the transcript names, which the person typed. Shown: every "
+                 "verdict that is not a pass names the clauses of sources of authority reported or none behind "
+                 "the values it read, with their words and their source (evidence.unestablished, in "
+                 "drawings.checks' detail)",
+            payload={"decided_on": "2026-11-17",
+                     "the_owner": "Then the question is how to prevent incorrect rules",
+                     "why": "The glulam refusal came from a sentence a model wrote and a commit called the "
+                            "customer's words; nothing compared it with what the customer said, and the person "
+                            "met it only as a refusal with no source, then as questions resting on it. A quote "
+                            "found in the person's own message cannot be invented; a refusal that quotes what it "
+                            "rests on is caught by the one person who knows it is wrong.",
+                     "not_yet": "In a claude.ai chat the server never sees the person's message, so a reported "
+                                "source can be added only where a transcript holds their words (a Claude Code "
+                                "session). The standards' certificate lines (quern.certify) do not carry the "
+                                "evidence yet; the reds a build lists do."},
+            links={"rests_on": ["a-reported-source-is-the-persons-words-never-the-makers"]},
+            children=[
+                _alt("declare-every-payload-field", "Declare every payload field in its kind, and refuse "
+                     "an undeclared one",
+                     "It would have given cut_to_size a meaning to read, but it reaches quern and every "
+                     "package, and a declared field can still be misread; the quote check stops the "
+                     "invented sentence itself."),
+                _alt("trust-the-author", "Trust the quote the author of a package writes",
+                     "That is how the glulam clause passed: its commit said it quoted the customer."),
+            ],
+        ),
     ]
 
 

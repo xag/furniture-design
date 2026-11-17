@@ -281,6 +281,11 @@ RULES = [
          description="What a person reported enters the knowledge in their own words, quoted from where "
                      "they said them: a clause of a reported source carries the quote, never a summary "
                      "written for them."),
+    Rule(name="a-reported-source-keeps-the-persons-message", kind="source",
+         expr="payload(self, 'authority', '') != 'reported' or len(payload(self, 'sha256', '')) > 0",
+         description="A reported source states the sha256 of the copy kept of the person's message, as the "
+                     "session's transcript holds it; its quotes are checked against that copy "
+                     "(furniture_design.reported.check)."),
     Rule(name="a-clause-with-no-authority-is-verified", kind="clause",
          expr="payload(parent(self), 'authority', '') != 'none' "
               "or len(payload(self, 'verified', '')) > 0",
@@ -678,6 +683,11 @@ _UNVERIFIED = Node(id="sources", kind="", children=[
     Node(id="a-video", kind="source", payload={"licence": "copyrighted", "authority": "none"}, children=[
         Node(id="trick", kind="clause", payload={"locator": "at 2:10"})])])
 
+_UNKEPT = Node(id="sources", kind="", children=[
+    Node(id="a-store-visit", kind="source", payload={"licence": "unstated", "authority": "reported"}, children=[
+        Node(id="narrowest-cut", kind="clause", payload={"locator": "the customer's message",
+                                                          "quote": "pas de découpe de moins de 10 cm"})])])
+
 _SUMMARISED = Node(id="sources", kind="", children=[
     Node(id="a-store-visit", kind="source", payload={"licence": "unstated", "authority": "reported"}, children=[
         Node(id="no-glulam", kind="clause", payload={"locator": "noted on the day of the visit"})])])
@@ -692,6 +702,8 @@ def _counter_examples() -> list[CounterExample]:
                        because="a guidance sending people to a tool the package no longer holds"),
         CounterExample(rule="a-source-says-its-authority", nodes=[_UNSAID],
                        because="a source that does not say who stands behind it cannot be weighed"),
+        CounterExample(rule="a-reported-source-keeps-the-persons-message", nodes=[_UNKEPT],
+                       because="a customer's words quoted with no copy of the message they said them in"),
         CounterExample(rule="a-reported-clause-quotes-the-person", nodes=[_SUMMARISED],
                        because="what a customer reported, as a note written for them instead of their words"),
         CounterExample(rule="a-clause-with-no-authority-is-verified", nodes=[_UNVERIFIED],
@@ -807,7 +819,7 @@ def written_at(name: str) -> str:
     return ""
 
 
-VERSION = "0.22.12"
+VERSION = "0.22.13"
 
 
 def make_package() -> Package:
