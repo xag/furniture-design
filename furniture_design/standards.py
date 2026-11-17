@@ -260,6 +260,8 @@ def knowledge() -> list[Node]:
                    "fastens it and how many", "completeness", "a-pieces-parts-say-what-they-are-cut-from",
                    "a-pieces-parts-say-how-they-are-cut",
                    "a-pieces-joints-say-what-fastens-them", of="piece"),
+        _criterion("piece-saws-are-certified", "Every saw a part is cut with may have its figures read by the "
+                   "piece's checks", "reliability", "a-pieces-saws-are-certified-to-cut-parts", of="piece"),
         _criterion("pages-are-drawn-not-written", "No page of the instructions says in a sentence what it could draw",
                    "presentation", "a-pieces-pages-carry-no-sentence", of="piece",
                    per=("sources/ikea-why-only-pictures/pictures-not-words",)),
@@ -279,10 +281,10 @@ def knowledge() -> list[Node]:
                "piece-agrees-with-its-ledger", "piece-holds-together", "piece-mechanisms-work", of="piece"),
         _level("piece-buildable", "It can be cut and fastened from what it states", "piece-is-explained",
                "piece-agrees-with-its-ledger", "piece-holds-together", "piece-mechanisms-work", "piece-can-be-made",
-               of="piece"),
+               "piece-saws-are-certified", of="piece"),
         _level("piece-instructions", "Its assembly instructions are shown", "piece-is-explained",
                "piece-agrees-with-its-ledger", "piece-holds-together", "piece-mechanisms-work",
-               "piece-can-be-made", "piece-steps-build-it", "pages-are-drawn-not-written", "steps-show-how-parts-attach",
+               "piece-can-be-made", "piece-saws-are-certified", "piece-steps-build-it", "pages-are-drawn-not-written", "steps-show-how-parts-attach",
                "steps-show-their-parts", of="piece", allows=("assembly",)),
     ])]
 
@@ -385,6 +387,17 @@ SPEC = {
 NATIVES |= piece.NATIVES | drawn.NATIVES
 EXPLAINERS |= piece.EXPLAINERS | drawn.EXPLAINERS
 SPEC |= piece.SPEC | drawn.SPEC
+SPEC["furniture/parts_cut_by_uncertified_saws"] = [
+    Demonstration(contract="furniture/parts_cut_by_uncertified_saws",
+                  nodes=_world() + piece.piece_world(), args=["pieces/doors"], expect=0,
+                  because="every part is cut with the example saw, its cut and depth printed in two documents"),
+    Demonstration(contract="furniture/parts_cut_by_uncertified_saws",
+                  nodes=[n if n.id != "tools" else Node(id="tools", kind="", children=[
+                      example_tool(), example_tool(saw=True, drop=("kerf",)).model_copy(
+                          update={"id": "example-saw", "name": "Example saw"})]) for n in _world()]
+                  + piece.piece_world(), args=["pieces/doors"], expect=4,
+                  because="the four parts are cut with a saw that states no cut: its figures may not be read"),
+]
 
 
 def register() -> None:
@@ -493,6 +506,12 @@ RULES = [
          description="Link every part sawn_with to the saw, or the shop's cutting service, that cuts it out: ask "
                      "the person what they cut with, or which shop cuts for them. A part bought cut to its size says "
                      "who sells it so instead (payload bought_to_size)."),
+    Rule(name="a-pieces-saws-are-certified-to-cut-parts", kind="piece",
+         expr="solve('furniture/parts_cut_by_uncertified_saws', self) == 0",
+         description="Cut every part with a saw, or a shop's cutting service, whose certificate reaches \"Its "
+                     "figures are read by a piece's checks\": what a piece's checks read of it (its narrowest "
+                     "part, its cut, its depth) was found printed by its maker, not only said. One that does not "
+                     "is a tool of the person's own, stated from its maker's document or measured."),
     Rule(name="a-pieces-joints-say-what-fastens-them", kind="piece",
          expr="solve('furniture/joints_unfastened', self) == 0",
          description="Link every joint uses to what fastens it (a connector, screws, a glue: a node of the "
@@ -628,6 +647,12 @@ def _counter_examples() -> list[CounterExample]:
         CounterExample(rule="a-pieces-turning-parts-have-room",
                        nodes=_piece_case(piece=piece.example_piece(flap={"travel": [0, 90]})),
                        because="a flap that opens inwards, through the rail and the door behind it"),
+        CounterExample(rule="a-pieces-saws-are-certified-to-cut-parts",
+                       nodes=[n if n.id != "tools" else Node(id="tools", kind="", children=[
+                           example_tool(), example_tool(saw=True, drop=("max_cut_depth",)).model_copy(
+                               update={"id": "example-saw", "name": "Example saw"})]) for n in _world()]
+                       + piece.piece_world() + [drawn.example_pages()],
+                       because="the doors cut with a saw whose depth nobody printed"),
         CounterExample(rule="a-pieces-purpose-is-answered", nodes=_piece_case(ledger=piece.example_ledger(answers=False)),
                        because="doors said to slide in one rail, and no decision on how"),
         CounterExample(rule="a-pieces-decisions-name-what-realises-them",
@@ -650,7 +675,7 @@ def _counter_examples() -> list[CounterExample]:
     ]
 
 
-VERSION = "0.10.3"
+VERSION = "0.10.4"
 
 
 SOLVERS = [SolverDef(name=name, native=True, reads=[""], description=(fn.__doc__ or "").strip().split("\n\n")[0])

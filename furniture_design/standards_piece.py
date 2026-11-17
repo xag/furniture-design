@@ -303,6 +303,37 @@ def parts_unsawn(tree: Quern, piece: str) -> float:
     return float(len(_unsawn(tree, piece)))
 
 
+# The level a saw's figures must reach before a piece's checks read them (standards.knowledge()).
+CUTS_PARTS = "standards/tool-cuts-parts"
+
+
+def _uncertified(tree: Quern, piece: str) -> list[str]:
+    from quern.certify import certificate
+    held: dict[str, list[str]] = {}
+    out = []
+    for path, node in _parts(tree, piece):
+        for tool in node.links.get("sawn_with") or []:
+            if tool not in held:
+                if get_node(tree, tool) is None:
+                    held[tool] = ["it is not in the knowledge"]
+                elif get_node(tree, CUTS_PARTS) is None:
+                    held[tool] = [f"the level {CUTS_PARTS} is not in the tree"]
+                else:
+                    level = next(lv for lv in certificate(tree, tool)["levels"] if lv["level"] == CUTS_PARTS)
+                    held[tool] = [c.rpartition("/")[2] for c in level["blocked_by"]]
+            if held[tool]:
+                out.append(f"{path} is cut with {tool}, whose figures a piece's checks may not read yet: "
+                           f"{', '.join(held[tool])}")
+    return out
+
+
+def parts_cut_by_uncertified_saws(tree: Quern, piece: str) -> float:
+    """How many of the piece's parts are cut out with a saw or a shop's cutting service (sawn_with) whose
+    certificate does not reach the level at which a piece's checks read its figures (standards/
+    tool-cuts-parts: identified, its cut and depth stated, its figures consistent and each found printed)."""
+    return float(len(_uncertified(tree, piece)))
+
+
 def _unfastened(tree: Quern, piece: str) -> list[str]:
     out = []
     for path, joint in _nodes(_piece(tree, piece), piece, "joint"):
@@ -473,6 +504,7 @@ def joints_misclosed(tree: Quern, piece: str) -> float:
 NATIVES = {
     "furniture/parts_unsourced": parts_unsourced,
     "furniture/parts_unsawn": parts_unsawn,
+    "furniture/parts_cut_by_uncertified_saws": parts_cut_by_uncertified_saws,
     "furniture/joints_unfastened": joints_unfastened,
     "furniture/unheld_turns": unheld_turns,
     "furniture/turn_crossings": turn_crossings,
@@ -491,6 +523,7 @@ NATIVES = {
 EXPLAINERS = {
     "furniture/parts_unsourced": _unsourced,
     "furniture/parts_unsawn": _unsawn,
+    "furniture/parts_cut_by_uncertified_saws": _uncertified,
     "furniture/joints_unfastened": _unfastened,
     "furniture/unheld_turns": _uncarried,
     "furniture/turn_crossings": _swept,

@@ -1988,6 +1988,38 @@ def entries() -> list[Node]:
                      "That is how the glulam clause passed: its commit said it quoted the customer."),
             ],
         ),
+        Node(
+            id="a-piece-is-buildable-only-with-certified-saws", kind="decision",
+            name="The knowledge a piece's checks read is held to its certificate, starting with the saws: a piece "
+                 "reaches \"It can be cut and fastened from what it states\" only when every saw or shop's cutting "
+                 "service a part is cut with (sawn_with) reaches \"Its figures are read by a piece's checks\" "
+                 "(standards/tool-cuts-parts: identified, its cut and depth stated, its figures consistent and each "
+                 "found printed). Criterion piece-saws-are-certified, rule a-pieces-saws-are-certified-to-cut-parts "
+                 "(furniture/parts_cut_by_uncertified_saws, which says for each part which criteria its saw lacks)",
+            payload={"decided_on": "2026-11-17",
+                     "the_owner": "Then the question is how to prevent incorrect rules / Maybe we need to use "
+                                  "certification@ on our knowledge",
+                     "why": "The tools' certificate already said which figures a piece's checks may read, and "
+                            "nothing held the checks to it: of the 70 tools in the shared packages on 2026-11-17, "
+                            "61 did not reach that level, Leroy Merlin's cutting service none at all, and its "
+                            "refusal of glulam, which nobody said, refused a person's parts.",
+                     "not_yet": "Materials, connectors and sources have no certificate: their criteria (each "
+                                "value resting on a clause of a source with authority, each quote found in its "
+                                "copy) are owed, and the checks that read them are not yet held to one. A shared "
+                                "package still admits a tool below \"Taken into the shared packages\": none of the "
+                                "70 reaches it."},
+            links={"rests_on": ["a-tool-is-certified-by-a-standard-that-is-a-package",
+                                "what-a-person-only-said-is-checked-and-shown"]},
+            children=[
+                _alt("rules-skip-uncertified-figures", "Let each check skip a figure its tool is not certified "
+                     "for, as absent",
+                     "Every check would carry the certificate in its expression, and a piece would still look "
+                     "buildable with figures nobody read; one criterion on the level says it once."),
+                _alt("gate-the-shared-packages-first", "Refuse a shared package whose tools are below its level",
+                     "Every shared package would fail today; the piece's level is where a wrong figure reaches "
+                     "a person."),
+            ],
+        ),
     ]
 
 

@@ -55,6 +55,9 @@ SAY = {
                                 "qui le fixe et en quel nombre"},
     "piece-buildable": {"en": "It can be cut and fastened from what it states",
                         "fr": "Il peut être coupé et fixé d'après ce qu'il énonce"},
+    "piece-saws-are-certified": {"en": "Every saw a part is cut with may have its figures read by the piece's checks",
+                                 "fr": "Chaque scie qui coupe une pièce a des chiffres que les vérifications du meuble "
+                                       "peuvent lire"},
     "pages-are-drawn-not-written": {"en": "No page of the instructions says in a sentence what it could draw",
                                     "fr": "Aucune page de la notice ne dit en phrase ce qu'elle pourrait dessiner"},
     "steps-show-how-parts-attach": {"en": "Each step attaches one kind of part, drawn apart with a line to where it "
@@ -148,6 +151,10 @@ RED = {
     "a-pieces-parts-say-how-they-are-cut": {
         "en": "A part does not say what cuts it out.",
         "fr": "Une pièce ne dit pas avec quoi elle est coupée."},
+    "a-pieces-saws-are-certified-to-cut-parts": {
+        "en": "A part is cut with a saw or a shop whose figures were only said, not found printed.",
+        "fr": "Une pièce est coupée avec une scie ou un magasin dont les chiffres ont seulement été dits, pas "
+              "trouvés imprimés."},
     "a-pieces-joints-say-what-fastens-them": {
         "en": "A joint does not say what fastens it, or how many it takes.",
         "fr": "Un assemblage ne dit pas ce qui le fixe, ou combien il en faut."},
