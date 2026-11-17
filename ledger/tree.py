@@ -1924,6 +1924,37 @@ def entries() -> list[Node]:
                      "is known where it is set, so the drawing says it."),
             ],
         ),
+        Node(
+            id="a-notice-is-read-before-it-is-announced", kind="decision",
+            name="Whoever tells a person that a piece's assembly instructions are made has first read every "
+                 "page of them as a builder with only those pages would, and tells the person what cannot be "
+                 "followed; this is a guidance of the standards (instructions-are-read-before-they-are-"
+                 "announced), not a criterion. A certificate is never the only thing between the drawing and "
+                 "the person",
+            payload={"decided_on": "2026-11-18",
+                     "the_owner": "Look at the penderie's assembly instructions. They make no sense. There are "
+                                  "absurdities on every page. [...] Let's not fix the design and instructions. "
+                                  "Let's not even fix the knowledge that certified it (or lack of). Let's fix "
+                                  "the process that allowed this to happen",
+                     "why": "The sliding doors' notice reached every criterion of its level and was shown: parts "
+                            "floating with arrows to nothing, screws into the air, sheets painted as wood, doors "
+                            "hung before the rails beneath them. A standard refuses only what someone wrote a "
+                            "criterion for; its criteria were taken from two publications and tried on examples "
+                            "written with them and on one piece of wood panels, so the first reader of a notice "
+                            "of a new kind was the person it was made for. One read of the nine pages found "
+                            "something on each.",
+                     "not_yet": "A notice the person makes in the app with no assistant in the conversation is "
+                                "read by nobody before them."},
+            links={"rests_on": ["a-pieces-instructions-have-a-level-to-reach",
+                                "what-an-assistant-is-told-is-guidance-in-the-packages"]},
+            children=[
+                _alt("the-server-reads-the-pages", "The app's server has a model read the pages when they are made",
+                     "The app calls no model itself: the person's own assistant is the only reader it has."),
+                _alt("more-criteria", "Add criteria for what this notice got wrong",
+                     "They would refuse this notice and say nothing of the next kind of piece; what a read keeps "
+                     "finding can become a criterion afterwards."),
+            ],
+        ),
     ]
 
 
