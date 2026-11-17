@@ -211,18 +211,6 @@ def guidance() -> Node:
             allows them (the level whose payload allows names assembly). Until then, say so to the person when
             they ask for the instructions, and do what the certificate says is left.""",
             f"{STANDARDS}/piece-instructions"),
-        say("instructions-are-read-before-they-are-announced", "A piece's assembly instructions are read "
-            "before the person is told they are made", """
-            A certificate says what its criteria check and nothing more: reaching the level that allows the
-            assembly instructions does not say they can be followed. When a piece's instructions are made, or
-            made again, look at every page of them before telling the person, as someone who has only those
-            pages and the parts in front of them. On the page of what is needed: can each thing be told from
-            the others, and is everything a step uses there? At each step: which part is taken, where it goes,
-            which way it comes in, what it is fixed to and with what? Tell the person, page by page, every
-            place where the pages do not say it or where what they show cannot be done (a part that comes in
-            through another, a fastening into nothing, a part put in before what must hold it), and never say
-            the instructions are ready without having read them so.""",
-            f"{STANDARDS}/piece-instructions"),
     )
 
 
@@ -662,7 +650,7 @@ def _counter_examples() -> list[CounterExample]:
     ]
 
 
-VERSION = "0.10.6"
+VERSION = "0.10.5"
 
 
 SOLVERS = [SolverDef(name=name, native=True, reads=[""], description=(fn.__doc__ or "").strip().split("\n\n")[0])
