@@ -1795,6 +1795,91 @@ def entries() -> list[Node]:
                      "second copy to keep in step."),
             ],
         ),
+        Node(
+            id="two-parts-touch-where-their-material-meets", kind="decision",
+            name="Where two parts touch is read from what they are made of: a part is its box, or a profile whose "
+                 "section's sides run square to its box is the cells of the grid its section's corners draw that "
+                 "lie inside it (natives.cells). Two parts touch on the largest plane their cells meet on, and run "
+                 "into each other when any two cells do. A section with a slanted side stays its box",
+            links={"rests_on": ["a-profile-is-one-part-with-its-section"]},
+            payload={"decided_on": "2026-11-17",
+                     "the_owner": "Now fix the identified issues",
+                     "why": "A channel laid on an angle's flange sits inside the angle's box, so read by boxes the "
+                            "two ran into each other and a joint between them 'joins parts that do not touch'; a "
+                            "person's rail had to be joined twice with the same screws, and its hardware counted "
+                            "twice. The standards' own door rail glues its channel the same way.",
+                     "the_rule": "natives.contact; tests/test_contact.py.",
+                     "not_yet": "A section with a slanted or curved side is still read as its box."},
+            children=[
+                _alt("polygons-in-shapely", "Intersect the sections as polygons (shapely) when the two run along "
+                     "one axis", "Only parallel profiles; the cells take any two parts in any direction, boxes "
+                     "included, by the one test boxes already had."),
+            ],
+        ),
+        Node(
+            id="a-connectors-rules-judge-only-the-joints-it-fastens", kind="decision",
+            name="The rules on a joint's seat (a-joined-part-is-thick-enough-for-the-cut, a-joined-part-is-wide-"
+                 "enough, a-joint-is-cut-with-a-tool-its-connector-takes) judge each connector the joint uses "
+                 "(where(c, linked(self, 'uses'), kind(c) == 'connector')) and read its limits on it: a joint held "
+                 "by screws or a glue, which the knowledge holds as materials, is not judged by them",
+            links={"rests_on": ["the-rules-read-the-knowledge"]},
+            payload={"decided_on": "2026-11-17",
+                     "the_owner": "Now fix the identified issues",
+                     "why": "a-pieces-joints-say-what-fastens-them names screws and a glue among what a joint "
+                            "uses, and these rules read min_thickness_<cut>, min_width and needs, which only a "
+                            "connector states: a screwed rail came out absent or broken and the piece non-compliant. "
+                            "A guard written with `or` cannot pass such a joint over, both sides being evaluated "
+                            "(quern's the-grammar-is-an-object-not-a-private-parser), so quern 0.1.10 added where.",
+                     "the_rule": "package.RULES; tests/test_joints.py.",
+                     "not_yet": "Screws have no kind and no rules of their own (diameter, length, pilot hole, "
+                                "countersink, the thickness they hold in): each limit needs a clause a maker or a "
+                                "standard prints (the-rules-read-the-knowledge), and none is captured yet."},
+            children=[
+                _alt("screws-as-connectors", "Hold screws as connectors, so the rules apply to them",
+                     "A screw states no seat, no cut and no machine; it would carry invented limits to pass."),
+                _alt("guard-in-or", "Guard each rule with `kind(c) != 'connector' or ...`",
+                     "Both sides of `or` are evaluated: the guarded side still reads what screws lack."),
+            ],
+        ),
+        Node(
+            id="a-part-bought-cut-to-its-size-names-who-sells-it", kind="decision",
+            name="A part bought already cut to its size (a panel its maker cuts to order) states payload "
+                 "bought_to_size, who sells it so, and links no saw: a-pieces-parts-say-how-they-are-cut does not "
+                 "ask what cuts it out, and the cutting sheet leaves it out",
+            links={"rests_on": ["a-part-names-the-saw-that-cuts-it-out", "a-piece-has-a-cutting-sheet-for-the-shop"]},
+            payload={"decided_on": "2026-11-17",
+                     "the_owner": "Now fix the identified issues",
+                     "why": "Twin-wall polycarbonate door panels came cut to size from their maker: no board, no "
+                            "kerf, no place on the sheet, yet every part had to name a saw for the piece to reach "
+                            "the level its assembly instructions need. a-part-names-the-saw-that-cuts-it-out was "
+                            "made to know the cut left between parts drawn from one board, which such a part is not.",
+                     "the_rule": "standards_piece.parts_unsawn; cutting.cuts; tests/test_cutting.py."},
+            children=[
+                _alt("the-maker-as-a-cutting-service", "Link sawn_with to the maker as a shop's cutting service",
+                     "A cutting service cuts boards the person buys from the shop, and states a cut the sheet "
+                     "leaves between parts; this part is bought finished and on no sheet."),
+            ],
+        ),
+        Node(
+            id="a-rule-says-where-it-is-written", kind="decision",
+            name="Every rule and calculation of furniture@ and furniture-standards@ says where it is written "
+                 "(package.written_at: furniture_design/<file>.py:<line> in package.REPOSITORY), and a guidance "
+                 "(where-the-rules-are-written) tells whoever designs with the packages to read a rule there when "
+                 "it holds a piece back for a reason its description does not give",
+            links={"rests_on": ["what-an-assistant-is-told-is-guidance-in-the-packages"]},
+            payload={"decided_on": "2026-11-17",
+                     "the_owner": "Now fix the identified issues",
+                     "why": "An assistant blocked by three rules (contact between profiles, a saw asked of a part "
+                            "bought cut to size, a connector's rules applied to screws) found the cause only because "
+                            "the person told it where the code was; told by the packages, it reads the rule and "
+                            "reports the line without being asked.",
+                     "the_rule": "package.written_at; tests/test_written_at.py."},
+            children=[
+                _alt("the-connector-says-it", "Write the repository's address in the connector's instructions",
+                     "What an assistant is told of the packages is the packages' guidance, not a reader's own "
+                     "words (what-an-assistant-is-told-is-guidance-in-the-packages)."),
+            ],
+        ),
     ]
 
 

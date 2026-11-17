@@ -80,7 +80,9 @@ def guidance() -> Node:
             by a rule: ask the person to measure the width of a cut their saw makes, and state it as kerf
             ("measured", with its tolerance) on a tool of the piece's own. A part that names no saw is laid
             with a default cut, which the sheet says. The parts of a person's pieces are cut and made with the
-            tools that person has, a shop's cutting service, or the blade or measured cut said here."""),
+            tools that person has, a shop's cutting service, or the blade or measured cut said here. A part
+            bought already cut to its size (a panel its maker cuts to order) names no saw: it states payload
+            bought_to_size, who sells it so, and the cutting sheet leaves it out."""),
         say("profiles-sawn-by-hand", "Sawing a profile to length", """
             A profile is sawn to length by hand as tools/hacksaw-on-profile says; no maker prints the cut of a
             hacksaw, so ask the person to measure one and state it as kerf on a tool of the piece's own that
@@ -95,6 +97,13 @@ def guidance() -> Node:
             printed, no quote), and the tool or material on the kinds, each param derived_from the clause that
             prints it; an installed node of the same kind shows how. A value no document prints is not filled
             in."""),
+        say("where-the-rules-are-written", "Where a rule or a calculation is written", """
+            The kinds, rules and calculations of furniture@ and furniture-standards@ are the code of the public
+            repository https://github.com/xag/furniture-design (furniture_design/package.py, standards.py and
+            the calculations in natives.py and standards_*.py). When a rule holds a piece back for a reason its
+            description does not give, read the rule and the calculation it calls there before changing the
+            piece around it, and say what in them is wrong: a report that names the file and the line is one
+            the people who keep the rules can act on."""),
         say("a-tools-model", "The model a tool is drawn from", """
             A tool's model is payload model {"parts": [solid, ...]}, in mm, Z up, built from the maker's
             dimensions and photos, to hold against the maker's photos once drawn. Each solid is

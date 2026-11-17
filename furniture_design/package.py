@@ -132,7 +132,9 @@ VOCABULARY = [
         "part, never one part per face. "
         "A part links sawn_with the saws that cut it out of its board: each must cut as deep "
         "as one of its sheets is thick and state the width it takes out, which the cutting "
-        "sheet leaves between parts."),
+        "sheet leaves between parts. A part bought cut to its size (a panel its maker cuts to "
+        "order) states payload bought_to_size, who sells it so, and links no saw: the cutting "
+        "sheet leaves it out."),
         params={"mass": "kg, when it is not its volume times its material's density",
                 "span": "mm between supports", "depth": "mm, the beam's width b",
                 "thickness": "mm, the beam's depth h, and a joined panel's thickness",
@@ -281,19 +283,22 @@ RULES = [
               "every(c, linked(self, 'per'), kind(c) == 'clause')",
          description="A connector links `per` to the clauses its limits come from."),
     Rule(name="a-joined-part-is-thick-enough-for-the-cut", kind="joint",
-         expr="every(p, linked(self, 'joins'), "
-              "param(p, 'thickness') >= param(self, 'min_thickness_' + payload(self, 'cut')))",
-         description="Every part a joint joins is at least as thick as its connector allows "
-                     "for the kind of cut the joint is (the connector's min_thickness_<cut>, "
-                     "read through `uses`)."),
+         expr="every(c, where(c, linked(self, 'uses'), kind(c) == 'connector'), every(p, linked(self, 'joins'), "
+              "param(p, 'thickness') >= param(c, 'min_thickness_' + payload(self, 'cut'))))",
+         description="Every part a joint fastened by a connector joins is at least as thick as "
+                     "its connector allows for the kind of cut the joint is (the connector's "
+                     "min_thickness_<cut>). A joint fastened otherwise (screws, a glue) is not "
+                     "judged by it."),
     Rule(name="a-joined-part-is-wide-enough", kind="joint",
-         expr="every(p, linked(self, 'joins'), param(p, 'width') >= param(self, 'min_width'))",
-         description="Every part a joint joins is at least as wide as its connector allows."),
+         expr="every(c, where(c, linked(self, 'uses'), kind(c) == 'connector'), "
+              "every(p, linked(self, 'joins'), param(p, 'width') >= param(c, 'min_width')))",
+         description="Every part a joint fastened by a connector joins is at least as wide as its "
+                     "connector allows."),
     Rule(name="a-joint-is-cut-with-a-tool-its-connector-takes", kind="joint",
-         expr="len(linked(self, 'made_with')) > 0 and every(c, linked(self, 'uses'), "
+         expr="every(c, where(c, linked(self, 'uses'), kind(c) == 'connector'), "
               "some(t, linked(c, 'needs'), some(m, linked(self, 'made_with'), m == t)))",
-         description="A joint names the tools it is cut with, and one of them is a tool its "
-                     "connector's seat can be cut with."),
+         description="A joint fastened by a connector names the tools it is cut with, and one of "
+                     "them is a tool its connector's seat can be cut with."),
     Rule(name="a-joint-is-cut-at-its-connectors-setting", kind="joint",
          expr="every(c, linked(self, 'uses'), payload(c, 'setting', '') == '' "
               "or payload(self, 'setting', '') == payload(c, 'setting', ''))",
@@ -765,7 +770,29 @@ def _counter_examples() -> list[CounterExample]:
     ]
 
 
-VERSION = "0.22.10"
+REPOSITORY = "https://github.com/xag/furniture-design"
+
+
+def written_at(name: str) -> str:
+    """Where a rule or a calculation of furniture@ or furniture-standards@ is written, as
+    'furniture_design/<file>.py:<line>' in REPOSITORY; '' for a name neither defines. A reader
+    whose rule holds a piece back for a reason its description does not give reads it there."""
+    import inspect
+    from pathlib import Path
+
+    from . import standards
+    fn = natives.NATIVES.get(name) or standards.NATIVES.get(name)
+    if fn is not None:
+        return f"furniture_design/{Path(inspect.getsourcefile(fn)).name}:{inspect.getsourcelines(fn)[1]}"
+    said = f'Rule(name="{name}"'
+    for f in sorted(Path(__file__).parent.glob("*.py")):
+        for i, line in enumerate(f.read_text(encoding="utf-8").splitlines(), 1):
+            if said in line:
+                return f"furniture_design/{f.name}:{i}"
+    return ""
+
+
+VERSION = "0.22.11"
 
 
 def make_package() -> Package:

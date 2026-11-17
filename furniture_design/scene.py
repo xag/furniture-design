@@ -71,6 +71,7 @@ class Part:
     saws: list[tuple[str, float | None]] = field(default_factory=list)  # what cuts it out: (name, kerf)
     within: list[tuple[str, str]] = field(default_factory=list)   # the groups holding it, outermost first: (id, name)
     section: list[tuple[float, float]] = field(default_factory=list)  # a profile's outline across its length, from lo
+    bought: str = ""   # who sells it cut to its size (payload bought_to_size), when no saw cuts it out here
 
     @property
     def size(self) -> tuple[float, float, float]:
@@ -420,7 +421,7 @@ def scene(tree: Quern, piece: str) -> Scene:
                           tuple(b.lo), tuple(b.hi), material, label,
                           payload.get("span_along", ""),
                           int(payload.get("sheets", 1)), cuts, tools, saws, within,
-                          section(tree, b.path, node)))
+                          section(tree, b.path, node), str(payload.get("bought_to_size") or "")))
     by_path = {p.path: p for p in parts}
     joints = []
     prefix = piece.rstrip("/") + "/"

@@ -491,7 +491,8 @@ RULES = [
          description="Link every part uses to the material it is cut from: ask the person what they buy."),
     Rule(name="a-pieces-parts-say-how-they-are-cut", kind="piece", expr="solve('furniture/parts_unsawn', self) == 0",
          description="Link every part sawn_with to the saw, or the shop's cutting service, that cuts it out: ask "
-                     "the person what they cut with, or which shop cuts for them."),
+                     "the person what they cut with, or which shop cuts for them. A part bought cut to its size says "
+                     "who sells it so instead (payload bought_to_size)."),
     Rule(name="a-pieces-joints-say-what-fastens-them", kind="piece",
          expr="solve('furniture/joints_unfastened', self) == 0",
          description="Link every joint uses to what fastens it (a connector, screws, a glue: a node of the "
@@ -647,7 +648,7 @@ def _counter_examples() -> list[CounterExample]:
     ]
 
 
-VERSION = "0.10.1"
+VERSION = "0.10.2"
 
 
 SOLVERS = [SolverDef(name=name, native=True, reads=[""], description=(fn.__doc__ or "").strip().split("\n\n")[0])

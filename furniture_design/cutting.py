@@ -20,6 +20,9 @@ The parts are laid apart by the width the saw takes out: for each material and t
 kerf of the saws its parts link `sawn_with` (a saw's kerf, else the widest blade it takes). A part
 that names no saw, or a saw whose maker states neither, counts the caller's `kerf`, an allowance and
 not a measurement; the sheet says which it counted and from which saw.
+
+A part bought cut to its size (payload bought_to_size) is not on the sheet: no saw cuts it out of a
+panel the person buys.
 """
 
 from __future__ import annotations
@@ -84,9 +87,12 @@ class Cut:
 
 
 def cuts(sc: Scene) -> list[Cut]:
-    """Every rectangle to cut, one per board: a part glued up from several sheets is that many."""
+    """Every rectangle to cut, one per board: a part glued up from several sheets is that many. A part
+    bought cut to its size (Part.bought) is no rectangle to cut."""
     out = []
     for p in sc.parts:
+        if p.bought:
+            continue
         dims = sorted(p.size, reverse=True)
         a, b = dims[0], dims[1]
         if "across" in (p.grain or ""):

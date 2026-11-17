@@ -292,12 +292,14 @@ def parts_unsourced(tree: Quern, piece: str) -> float:
 
 
 def _unsawn(tree: Quern, piece: str) -> list[str]:
-    return [f"{path}: it does not say what cuts it out (sawn_with)"
-            for path, node in _parts(tree, piece) if not node.links.get("sawn_with")]
+    return [f"{path}: it does not say what cuts it out (sawn_with), or who sells it cut to its size (bought_to_size)"
+            for path, node in _parts(tree, piece)
+            if not node.links.get("sawn_with") and not (node.payload or {}).get("bought_to_size")]
 
 
 def parts_unsawn(tree: Quern, piece: str) -> float:
-    """How many of the piece's parts name no saw or service that cuts them out (the link sawn_with)."""
+    """How many of the piece's parts name no saw or service that cuts them out (the link sawn_with), and are
+    not bought cut to their size (payload bought_to_size: who sells them so)."""
     return float(len(_unsawn(tree, piece)))
 
 
@@ -516,11 +518,16 @@ _PIECE = "pieces/doors"
 _ANGLE = [[0, 19], [20, 19], [20, 20], [0, 20]], [[19, 0], [20, 0], [20, 20], [19, 20]]   # flange, leg
 
 
-def _part(id_: str, size: list, at: list, section: list | None = None, unsaid: tuple[str, ...] = ()) -> Node:
-    """A part cut from the example profile with the example saw, but for the links `unsaid` leaves out."""
+def _part(id_: str, size: list, at: list, section: list | None = None, unsaid: tuple[str, ...] = (),
+          bought: str = "") -> Node:
+    """A part cut from the example profile with the example saw, but for the links `unsaid` leaves out; or,
+    when `bought` names who sells it, bought cut to its size and sawn by no one."""
     payload = {"shape": {"op": "box", "size": size}, "transform": {"translate": at}}
     if section:
         payload["section"] = section
+    if bought:
+        payload["bought_to_size"] = bought
+        unsaid = (*unsaid, "sawn_with")
     links = {"uses": ["materials/example-profile"], "sawn_with": ["tools/example-saw"]}
     return Node(id=id_, kind="part", payload=payload, links={k: v for k, v in links.items() if k not in unsaid},
                 params={"mass": Quantity(value=1.0, unit="kg", provenance="design-target", grounded=False)})
@@ -529,10 +536,12 @@ def _part(id_: str, size: list, at: list, section: list | None = None, unsaid: t
 def example_piece(*, channel_at: float = 0.0, joints: bool = True, back_guides: tuple[str, ...] = ("channel", "angle"),
                   overlap: float = 50.0, travel: list | None = None, motions: bool = True,
                   steps: list | None = None, flap: dict | None = None, made: bool = True,
-                  fastened: bool = True, unsaid: tuple[str, ...] = ()) -> Node:
+                  fastened: bool = True, unsaid: tuple[str, ...] = (), bought: tuple[str, ...] = ()) -> Node:
     """Two doors, 600 wide, in an opening `2 * 600 - overlap` wide; the channel `channel_at` mm from the
     flange's front edge (0: at the edge, as designed; 7: glued in the angle). The channel says neither
-    what it is cut from nor with what when not `made`, and leaves out the links `unsaid` otherwise."""
+    what it is cut from nor with what when not `made`, and leaves out the links `unsaid` otherwise. The door
+    panels named in `bought` are bought cut to their size from their maker."""
+    sold = "the panel's maker, cut to order"
     angle = _part("angle", ["width", 20, 20], [0, 0, 1180],
                   [[0, 19], [19, 19], [19, 0], [20, 0], [20, 20], [0, 20]])
     channel = _part("channel", ["width", 12, 12], [0, channel_at, 1187],
@@ -540,9 +549,11 @@ def example_piece(*, channel_at: float = 0.0, joints: bool = True, back_guides: 
                     unsaid=unsaid if made else ("uses", "sawn_with"))
     held = {"links": {"uses": ["connectors/example-screw"]},
             "params": {"count": Quantity(value=4, unit="", provenance="design-target", grounded=False)}} if fastened else {}
-    front = Node(id="front-door", kind="assembly", children=[_part("front-panel", [600, 8, 1190], [0, channel_at + 2, 5])])
+    front = Node(id="front-door", kind="assembly", children=[_part("front-panel", [600, 8, 1190], [0, channel_at + 2, 5],
+                                                                 bought=sold if "front-panel" in bought else "")])
     back = Node(id="back-door", kind="assembly",
-                children=[_part("back-panel", [600, 6, 1190], ["width - 600", 12.5, 5])])
+                children=[_part("back-panel", [600, 6, 1190], ["width - 600", 12.5, 5],
+                                bought=sold if "back-panel" in bought else "")])
     children = [angle, channel, front, back]
     if joints:
         children += [Node(id="angle-to-lintel", kind="joint", payload={"to": "the lintel"},
@@ -609,6 +620,8 @@ SPEC = {
         _demo("furniture/parts_unsawn", 0, "each part names the saw that cuts it out"),
         _demo("furniture/parts_unsawn", 1, "a channel that says what it is cut from, and not what cuts it out",
               piece=example_piece(unsaid=("sawn_with",))),
+        _demo("furniture/parts_unsawn", 0, "the door panels bought cut to their size from their maker, which no "
+              "saw of the person's cuts out", piece=example_piece(bought=("front-panel", "back-panel"))),
     ],
     "furniture/joints_unfastened": [
         _demo("furniture/joints_unfastened", 0, "each joint names its screws and how many"),

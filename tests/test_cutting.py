@@ -119,3 +119,11 @@ def test_a_part_with_a_saw_that_states_no_cut_counts_the_default():
     tree.get(f"{BENCH}/top").links["sawn_with"] = ["tools/example-saw", "tools/drill"]
     top = [c for c in cuts(scene(tree, BENCH)) if c.length == 1000]
     assert top and all(c.kerf is None for c in top)
+
+
+def test_a_part_bought_cut_to_its_size_is_not_on_the_sheet():
+    """Twin-wall panels the maker cuts to order: no board is bought for them and no saw cuts them out."""
+    tree = _tree()
+    tree.get(f"{BENCH}/top").payload["bought_to_size"] = "the panel's maker, cut to order"
+    got = sorted((c.length, c.width, c.thickness) for c in cuts(scene(tree, BENCH)))
+    assert got == [(450, 300, 20), (450, 300, 20), (960, 350, 20)]

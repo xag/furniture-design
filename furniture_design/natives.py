@@ -23,7 +23,7 @@ A part that swings open (payload `hinged`) is refused: doors are not modelled ye
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from quern.cache import OPENS_ONLY
 from quern.expr import Absent, compile_expr
@@ -46,6 +46,7 @@ class Body:
     hi: list[float]      # max corner
     opens: float         # mm it moves towards the front when everything is opened
     extendible: str      # path of the outermost extendible element it moves with, or ""
+    section: list = field(default_factory=list)  # a profile's outline across its length (natives.section)
 
 
 def _param(tree, path: str, name: str) -> float | None:
@@ -66,11 +67,12 @@ class Layout:
     stated: bool
 
 
-def contact(a, b):
-    """The face where boxes a and b (each with lo and hi) touch: (lo, hi, normal), or None."""
+def _face(alo, ahi, blo, bhi):
+    """The face where boxes (alo, ahi) and (blo, bhi) touch: (lo, hi, normal); None when they are
+    apart, and "inside" when one runs into the other."""
     lo, hi, normal = [], [], None
     for i in range(3):
-        low, high = max(a.lo[i], b.lo[i]), min(a.hi[i], b.hi[i])
+        low, high = max(alo[i], blo[i]), min(ahi[i], bhi[i])
         if high < low - TOUCH_MM:
             return None
         if high - low <= TOUCH_MM:
@@ -78,7 +80,71 @@ def contact(a, b):
             low = high = (low + high) / 2
         lo.append(low)
         hi.append(high)
-    return (tuple(lo), tuple(hi), normal) if normal is not None else None
+    return (tuple(lo), tuple(hi), normal) if normal is not None else "inside"
+
+
+def _inside(pts, a: float, b: float) -> bool:
+    """Whether the point (a, b) lies inside the outline `pts`."""
+    hit = False
+    for (a0, b0), (a1, b1) in zip(pts, pts[1:] + pts[:1]):
+        if (b0 > b) != (b1 > b) and a < a0 + (b - b0) * (a1 - a0) / (b1 - b0):
+            hit = not hit
+    return hit
+
+
+def cells(x) -> list[tuple[list[float], list[float]]]:
+    """What a part is made of, as boxes (lo, hi) in the piece's frame: its box, or for a profile whose
+    section's sides all run square to its box (an angle, a channel, a tube), the cells of the grid its
+    section's corners draw that lie inside the section, run along its length. A section with a slanted
+    side stays its box."""
+    lo, hi = list(x.lo), list(x.hi)
+    pts = list(getattr(x, "section", None) or [])
+    if not pts or any(abs(a - c) > 1e-9 and abs(b - d) > 1e-9
+                      for (a, b), (c, d) in zip(pts, pts[1:] + pts[:1])):
+        return [(lo, hi)]
+    t = max(range(3), key=lambda i: hi[i] - lo[i])
+    u, v = [i for i in range(3) if i != t]
+    us, vs = sorted({a for a, _ in pts}), sorted({b for _, b in pts})
+    out = []
+    for a0, a1 in zip(us, us[1:]):
+        for b0, b1 in zip(vs, vs[1:]):
+            if _inside(pts, (a0 + a1) / 2, (b0 + b1) / 2):
+                clo, chi = lo[:], hi[:]
+                clo[u], chi[u], clo[v], chi[v] = lo[u] + a0, lo[u] + a1, lo[v] + b0, lo[v] + b1
+                out.append((clo, chi))
+    return out
+
+
+def contact(a, b):
+    """The face where parts a and b (each with lo and hi, and a profile's section) touch:
+    (lo, hi, normal), or None when they are apart or one runs into the other. Each part is what
+    `cells` makes it, so a channel laid on an angle's flange, inside the angle's box, touches the
+    angle where their walls meet. Where they meet on several faces, the largest: the faces in one
+    plane are taken together."""
+    faces = []
+    for alo, ahi in cells(a):
+        for blo, bhi in cells(b):
+            f = _face(alo, ahi, blo, bhi)
+            if f == "inside":
+                return None
+            if f is not None:
+                faces.append(f)
+    if not faces:
+        return None
+
+    def area(f):
+        flo, fhi, n = f
+        return (lambda i, j: (fhi[i] - flo[i]) * (fhi[j] - flo[j]))(*[i for i in range(3) if i != n])
+
+    flat = [f for f in faces if area(f) > 0] or faces
+    planes: dict[tuple, tuple] = {}
+    for flo, fhi, n in flat:
+        key = (n, round(flo[n], 3))
+        if key in planes:
+            plo, phi, _ = planes[key]
+            flo, fhi = tuple(map(min, plo, flo)), tuple(map(max, phi, fhi))
+        planes[key] = (tuple(flo), tuple(fhi), n)
+    return max(planes.values(), key=area)
 
 
 def joint_layout(tree: Quern, jpath: str, node: Node, boxes: dict) -> Layout | None:
@@ -207,7 +273,8 @@ def bodies(tree: Quern, piece: str) -> list[Body]:
             own = density * size[0] * size[1] * size[2] * 1e-9 * _share(tree, path, node, size)
         more = float((node.payload or {}).get("extends") or 0)
         cext = ext or (path if more else "")
-        out.append(Body(path, own, lo, [a + s for a, s in zip(lo, size)], opens + more, cext))
+        out.append(Body(path, own, lo, [a + s for a, s in zip(lo, size)], opens + more, cext,
+                        section(tree, path, node)))
         for child in node.children:
             visit(child, f"{path}/{child.id}", lo, opens + more, cext)
 
