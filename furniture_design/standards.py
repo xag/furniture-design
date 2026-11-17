@@ -260,7 +260,7 @@ def knowledge() -> list[Node]:
                    "fastens it and how many", "completeness", "a-pieces-parts-say-what-they-are-cut-from",
                    "a-pieces-parts-say-how-they-are-cut",
                    "a-pieces-joints-say-what-fastens-them", of="piece"),
-        _criterion("pages-are-drawn-not-written", "No page of the instructions carries a sentence",
+        _criterion("pages-are-drawn-not-written", "No page of the instructions says in a sentence what it could draw",
                    "presentation", "a-pieces-pages-carry-no-sentence", of="piece",
                    per=("sources/ikea-why-only-pictures/pictures-not-words",)),
         _criterion("steps-show-how-parts-attach", "Each step attaches one kind of part, drawn apart with a line "
@@ -499,7 +499,9 @@ RULES = [
                      "knowledge, or of the person's own package) and state how many it takes (param count)."),
     Rule(name="a-pieces-pages-carry-no-sentence", kind="piece", expr="solve('furniture/pages_worded', self) == 0",
          description="Draw what each text on the instructions' pages says, and take the text off: a count, a "
-                     "size, a part's letter and the piece's name stay (IKEA: pictures, because the instructions "
+                     "size, a part's letter, the piece's name, the headings, and the names of the tools and the "
+                     "hardware stay, and so does the sentence of a step that brings in, cuts and closes nothing "
+                     "(finishing, a check), which no picture says yet (IKEA: pictures, because the instructions "
                      "are read in every language)."),
     Rule(name="a-pieces-steps-attach-one-kind-of-part", kind="piece",
          expr="solve('furniture/steps_mixing_kinds', self) == 0",
@@ -648,7 +650,7 @@ def _counter_examples() -> list[CounterExample]:
     ]
 
 
-VERSION = "0.10.2"
+VERSION = "0.10.3"
 
 
 SOLVERS = [SolverDef(name=name, native=True, reads=[""], description=(fn.__doc__ or "").strip().split("\n\n")[0])

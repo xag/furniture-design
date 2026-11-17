@@ -455,7 +455,7 @@ def scene(tree: Quern, piece: str) -> Scene:
     for i, s in enumerate(payload.get("steps", []), 1):
         if isinstance(s, str):
             s = {"text": s}
-        steps.append(Step(i, s["text"], list(s.get("add", [])), list(s.get("joints", [])),
+        steps.append(Step(i, s.get("text", ""), list(s.get("add", [])), list(s.get("joints", [])),
                           bool(s.get("prepare", False)), list(s.get("tools", [])),
                           {k: DIRECTIONS[v] for k, v in (s.get("direction") or {}).items()},
                           list(s.get("split", [])), list(s.get("cuts", []))))

@@ -20,6 +20,9 @@ from .pages import INSTRUCTIONS
 
 _NOT_DRAWN = "the instructions were not drawn in this build: build the piece with its documents"
 _WORD = re.compile(r"[^\W\d_]{2,}", re.UNICODE)
+# What the drawing notes as no sentence (sheets.Pen.text's roles): the piece's name, a heading, the name
+# of a thing or a size, and the sentence of a step no picture can say.
+_NOT_SENTENCES = ("name", "heading", "label", "note")
 
 
 def _drawn(tree: Quern, piece: str) -> Node | None:
@@ -47,12 +50,13 @@ def _lines(fn):
 def _worded(node: Node, words: float = 2) -> list[str]:
     return [f"page {p.payload.get('number')}: \"{w['text']}\"" for p in _pages(node)
             for w in p.payload.get("words") or []
-            if w.get("role") != "name" and len(_WORD.findall(w.get("text", ""))) >= words]
+            if w.get("role") not in _NOT_SENTENCES and len(_WORD.findall(w.get("text", ""))) >= words]
 
 
 def pages_worded(tree: Quern, piece: str, words: float = 2) -> float:
     """How many texts on the pages of the piece's instructions read as sentences: at least `words`
-    words of letters (a count, a size, a part's letter and the piece's own name are not)."""
+    words of letters (a count, a size, a part's letter, the piece's own name, a heading, the name of a
+    tool or of the hardware, and the sentence of a step that brings in, cuts and closes nothing, are not)."""
     return float(len(_worded(tree, piece, words)))
 
 
@@ -137,7 +141,7 @@ EXPLAINERS = {
 _PIECE = "pieces/doors"
 
 
-def example_pages(*, sentence: str | None = None, rail_kinds: tuple = ("R",), doors_guided: tuple = ("back-panel", "front-panel"),
+def example_pages(*, sentence: str | None = None, role: str = "", rail_kinds: tuple = ("R",), doors_guided: tuple = ("back-panel", "front-panel"),
                   door_shows: float = 0.9, context: float = 0.8, fastened: tuple = ("angle-to-lintel", "channel-to-angle"),
                   drawn: bool = True) -> Node:
     """The instructions of the two doors as their drawing would note them: a cover with the piece's
@@ -152,7 +156,7 @@ def example_pages(*, sentence: str | None = None, rail_kinds: tuple = ("R",), do
                                                                        {"text": "600 × 8 × 1190"}]},
              children=[Node(id="frame-2", kind="frame", payload={"kind": "board", "mark": "A"})]),
         Node(id="page-3", kind="page",
-             payload={"number": 3, "words": [{"text": "1"}, {"text": "2"}] + ([{"text": sentence}] if sentence else [])},
+             payload={"number": 3, "words": [{"text": "1"}, {"text": "2"}] + ([{"text": sentence, **({"role": role} if role else {})}] if sentence else [])},
              children=[
                  step(step=1, shows=[], brings=["angle", "channel"], kinds=list(rail_kinds), guided=["channel"],
                       closes=["angle-to-lintel", "channel-to-angle"], fastened=list(fastened),
@@ -177,6 +181,11 @@ SPEC = {
         _demo("furniture/pages_worded", 1, "a sentence under a step's picture",
               sentence="Glue the channel to the angle."),
         _demo("furniture/pages_worded", 1, "instructions that were not drawn have no page to judge", drawn=False),
+        _demo("furniture/pages_worded", 0, "a heading the drawing sets", sentence="Avant de commencer", role="heading"),
+        _demo("furniture/pages_worded", 0, "the name of a tool no package draws", sentence="Serre-joint à pompe",
+              role="label"),
+        _demo("furniture/pages_worded", 0, "the sentence of a step that brings in, cuts and closes nothing",
+              sentence="Passer deux couches de peinture.", role="note"),
     ],
     "furniture/steps_mixing_kinds": [
         _demo("furniture/steps_mixing_kinds", 0, "the rail, then the two doors, which carry one letter"),

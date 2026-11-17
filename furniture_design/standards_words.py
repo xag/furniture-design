@@ -55,8 +55,8 @@ SAY = {
                                 "qui le fixe et en quel nombre"},
     "piece-buildable": {"en": "It can be cut and fastened from what it states",
                         "fr": "Il peut être coupé et fixé d'après ce qu'il énonce"},
-    "pages-are-drawn-not-written": {"en": "No page of the instructions carries a sentence",
-                                    "fr": "Aucune page de la notice ne porte de phrase"},
+    "pages-are-drawn-not-written": {"en": "No page of the instructions says in a sentence what it could draw",
+                                    "fr": "Aucune page de la notice ne dit en phrase ce qu'elle pourrait dessiner"},
     "steps-show-how-parts-attach": {"en": "Each step attaches one kind of part, drawn apart with a line to where it "
                                           "goes, and shows what fastens each joint it closes",
                                     "fr": "Chaque étape pose un seul type de pièce, dessiné à l'écart avec un trait "

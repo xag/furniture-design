@@ -161,7 +161,9 @@ class Pen:
 
     def text(self, x, y, s, size=3.0, color=INK, anchor="start", bold=False, angle=0, role=""):
         """Set a text. When words are kept, note it with its page; `role` says what it is where that
-        is not a thing to read as a sentence: "name", the piece's own name."""
+        is not a thing to read as a sentence: "name", the piece's own name; "heading", a heading the
+        drawing sets; "label", the name of a thing (a tool, the hardware) or a size; "note", the
+        sentence of a step that brings in, cuts and closes nothing, so that no picture can say it."""
         c = self.c
         if self.words is not None and str(s).strip():
             self.words.append({"page": c.getPageNumber() - 1, "text": str(s), **({"role": role} if role else {})})
@@ -769,7 +771,7 @@ def _tool_badge(pen: Pen, x, y, name: str) -> float:
     pen.c.setStrokeColor(INK)
     pen.c.setLineWidth(0.3 * mm)
     pen.c.roundRect(x * mm, y * mm, w * mm, 8 * mm, 2 * mm, stroke=1, fill=0)
-    pen.text(x + 2, y + 2.6, name, 3.2, INK)
+    pen.text(x + 2, y + 2.6, name, 3.2, INK, role="label")
     return w
 
 
@@ -946,11 +948,11 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list
     draw_parts(pen, placed, sc.parts, fill_for=lambda k, sh: _wood(sh), line=0.4)
     size = [h - l for l, h in zip(sc.lo, sc.hi)]
     pen.text(W / 2, 50, f"{L['overall']} : {_fmt(size[0])} × {_fmt(size[1])} × {_fmt(size[2])} mm",
-             4, INK, "middle")
+             4, INK, "middle", role="label")
     c.showPage()
     # what is needed
-    pen.text(15, H - 20, L["inbox"], 7, INK, bold=True)
-    pen.text(15, H - 32, L["boards"], 4.5, INK, bold=True)
+    pen.text(15, H - 20, L["inbox"], 7, INK, bold=True, role="heading")
+    pen.text(15, H - 32, L["boards"], 4.5, INK, bold=True, role="heading")
     distinct = []
     for p in sc.parts:
         if p.mark not in [d.mark for d in distinct]:
@@ -979,12 +981,12 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list
         pen.text(x + cw / 2, y - 2, f"{_fmt(dims[0])} × {_fmt(dims[1])} × {_fmt(dims[2] / p.sheets)}",
                  2.8, THIN, "middle")
     yy = H - 40 - ((len(distinct) + 2) // 3) * ch - 16
-    pen.text(15, yy, L["hardware"], 4.5, INK, bold=True)
+    pen.text(15, yy, L["hardware"], 4.5, INK, bold=True, role="heading")
     _icon_connector(pen, 18, yy - 14, sc.connectors(), 1.2)
     names = sorted({j.connector for j in sc.joints})
-    pen.text(65, yy - 11, ", ".join(names), 3.4, INK)
+    pen.text(65, yy - 11, ", ".join(names), 3.4, INK, role="label")
     yy -= 28
-    pen.text(15, yy, L["tools"], 4.5, INK, bold=True)
+    pen.text(15, yy, L["tools"], 4.5, INK, bold=True, role="heading")
     x = 15
     tools = []
     for s in sc.steps:
@@ -1022,7 +1024,7 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list
         if slot % 2 == 0 and slot:
             c.showPage()
         if slot % 2 == 0:
-            pen.text(15, H - 12, L["prepare"] if step.prepare else L["assemble"], 3.4, THIN)
+            pen.text(15, H - 12, L["prepare"] if step.prepare else L["assemble"], 3.4, THIN, role="heading")
         else:
             pen.line(15, 148, W - 15, 148, 0.2, THIN, [1.5, 1.5])
         pen.rect(x, y + h - 16, 16, 16, fill=INK, stroke=None)
@@ -1042,8 +1044,9 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list
             _placed, shown = _assembly_picture(pen, sc, placed_ids, step.add, joints, step.direction, pic, explode)
             pen.note("step", pic, step=step.number, **shown)
             placed_ids += step.add
+        drawn = step.add or step.joints or step.cuts or step.prepare
         for k, s in enumerate(_wrap(step.text, 95)[:3]):
-            pen.text(x + 2, y + 8 - 4.6 * k, s, 3.6, INK)
+            pen.text(x + 2, y + 8 - 4.6 * k, s, 3.6, INK, role="" if drawn else "note")
         slot += 1
         for p, qty in cut:
             if slot % 2 == 0:

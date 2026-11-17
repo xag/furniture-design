@@ -1159,7 +1159,7 @@ def entries() -> list[Node]:
                  "is the account Gemini gives of it (what is said and what is shown, with timestamps), "
                  "kept byte for byte in the private repo, its sha256 on the source, and payload read_by "
                  "names Gemini and the date. A test finds each clause's words in that account",
-            links={"rests_on": ["a-source-says-who-stands-behind-it",
+            links={"rests_on": ["a-reported-source-is-the-persons-words-never-the-makers",
                                 "a-copyrighted-source-is-cited-by-locator-and-values"]},
             payload={"decided_on": "2026-11-15",
                      "the_owner": "Dans ce cas il faut aller chercher des tutoriels. Je sais que youtube ne "
@@ -1878,6 +1878,82 @@ def entries() -> list[Node]:
                 _alt("the-connector-says-it", "Write the repository's address in the connector's instructions",
                      "What an assistant is told of the packages is the packages' guidance, not a reader's own "
                      "words (what-an-assistant-is-told-is-guidance-in-the-packages)."),
+            ],
+        ),
+        Node(
+            id="a-page-names-things-and-says-what-it-cannot-draw", kind="decision",
+            name="The level that allows a piece's assembly instructions also requires three criteria judged on "
+                 "the pages as they were drawn, each resting on clauses of the knowledge: no page says in a "
+                 "sentence what it could draw (IKEA's own account of why its instructions are pictures), the "
+                 "piece's name, the headings the drawing sets, the names of tools and hardware, sizes and counts "
+                 "excepted, and the sentence of a step that brings in, cuts and closes nothing (finishing, a "
+                 "check), which no picture says yet; each step attaches one kind of part, drawn apart with a "
+                 "line to where it goes, and shows what fastens each joint it closes; each step's picture shows "
+                 "the parts it brings in and enough of those already there (Agrawala et al. 2003, whose "
+                 "planner's shares, 50 % of a new part and 10 % of the earlier ones, are params of a clause the "
+                 "rules read). The drawing notes what each page shows and what each text is (sheets.Pen.note, "
+                 "Pen.text and its role: name, heading, label, note; pages.model), written beside the screens as "
+                 "pages.json; a tree that judges mounts it. A step's text may be left out. Instructions not "
+                 "drawn in the tree judged are not at the level, and say so",
+            payload={"decided_on": "2026-11-17",
+                     "the_owner": "Relax \"No page of the instructions carries a sentence\" [...] The rule does "
+                                  "make sense for drawn assembly, but it's too strict for a notice someone builds "
+                                  "from at home [...] Suggestions: allow short labels such as tool and material "
+                                  "names, plus the app's own headings. Allow a written note for a step that has "
+                                  "no drawable form yet (finishing, glue, checks), or let it print elsewhere, for "
+                                  "example in the plans. Make `text` optional in the builder. (report "
+                                  "0YCjjggePEYXC2soG1Fb; on being shown it: \"So?\")",
+                     "why": "On the shoe bench every step's text had to go to meet the rule: the finishing, the "
+                            "check that the diagonals are equal and the tools no package draws (glue, clamps, "
+                            "hex key, tape measure, sander, paint) left the notice, and the headings the drawing "
+                            "sets kept it red whatever the design said. A notice that drops its finishing to be "
+                            "certified is a worse notice.",
+                     "not_yet": "Gluing two panels face to face is a step that brings in a part: its sentence "
+                                "still counts, and what draws a glue is owed. Instructions drawn before this "
+                                "noted no roles, and are judged as before until drawn again."},
+            links={"supersedes": ["a-pieces-instructions-are-judged-on-the-pages-drawn"],
+                   "rests_on": ["a-pieces-instructions-have-a-level-to-reach",
+                                "every-page-of-the-instructions-is-drawn-to-ikeas-rules",
+                                "what-an-assistant-is-told-is-guidance-in-the-packages"]},
+            children=[
+                _alt("print-it-in-the-plans", "Print a step that cannot be drawn in the plans instead",
+                     "The person builds from the notice; finishing and checks printed elsewhere are steps they "
+                     "do not see when they reach them."),
+                _alt("any-short-text", "Let any text under a number of words through",
+                     "A short sentence still says in words what the picture should show; what a text is "
+                     "is known where it is set, so the drawing says it."),
+            ],
+        ),
+        Node(
+            id="a-reported-source-is-the-persons-words-never-the-makers", kind="decision",
+            name="Every source says its authority: maker (what it publishes on its own product or service), "
+                 "standard, research, editorial (an edited publication), none (a person's video, page or post) "
+                 "or reported (a person's own account of what they saw or were told, what a shop's staff said "
+                 "to them included). A clause of a source with no authority is in the knowledge only verified: "
+                 "a check the knowledge already holds, run on a case, confirms it, and the clause says which "
+                 "check, the clauses with authority it reads, the case, the result and the date (payload "
+                 "verified). A clause of a reported source is the person's words, quoted from where they said "
+                 "them, and every value it gives is ungrounded. Rules a-source-says-its-authority, "
+                 "a-clause-with-no-authority-is-verified and a-reported-clause-quotes-the-person",
+            payload={"decided_on": "2026-11-17",
+                     "the_owner": "Le paquet commun a accepté sources/leroy-merlin-store-visit-2026-11-14 : "
+                                  "présentée comme le récit d'un client, avec l'autorité « maker », alors que la "
+                                  "clause no-glulam reprend les mots du modèle, pas ceux du client. → Une source "
+                                  "« rapportée par l'utilisateur » ne doit contenir que ses mots, cités depuis la "
+                                  "conversation, et n'a jamais l'autorité du fabricant. (report YpKoBk2o4SwgpMAklcus)",
+                     "why": "A customer's account of what a store said passed as the maker's word, and a clause "
+                            "of it was a model's conclusion rather than the customer's words: the cutting "
+                            "service then refused every glulam board, which the customer says it never did, "
+                            "and the certificate asked the person questions resting on it."},
+            links={"supersedes": ["a-source-says-who-stands-behind-it"],
+                   "rests_on": ["the-rules-read-the-knowledge"]},
+            children=[
+                _alt("reported-is-none", "File a person's account under none",
+                     "None enters only through a check the knowledge holds, and what a store will cut is "
+                     "checked by nothing here: the narrowest cut a customer was told would be lost."),
+                _alt("staff-words-are-the-makers", "Keep what a shop's staff said under maker",
+                     "Those words reach the knowledge only through someone who reports them; that is "
+                     "how a model's summary passed as the shop's rule."),
             ],
         ),
     ]
