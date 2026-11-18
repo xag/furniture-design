@@ -65,7 +65,8 @@ def shares(boxes: dict, view: lw.View, earlier: list[str], px: int = 320) -> tup
 
 def model(piece_id: str, regions: list[dict], words: list[dict]) -> Node:
     """The instructions as drawn, for a tree to mount under `instructions`: a node named as the piece,
-    its pages in order (kind page, payload words: every text set on it, each {text, role?}), and under
+    its pages in order (kind page, payload words: every text set on it, each {text, role?, off?: set
+    beyond the paper}), and under
     each page its pictures (kind frame, payload: what sheets.assembly_instructions noted of it, less
     where it is on the paper)."""
     pages: dict[int, Node] = {}
@@ -76,7 +77,7 @@ def model(piece_id: str, regions: list[dict], words: list[dict]) -> Node:
         return pages[n]
 
     for w in words:
-        page(w["page"]).payload["words"].append({k: w[k] for k in ("text", "role") if k in w})
+        page(w["page"]).payload["words"].append({k: w[k] for k in ("text", "role", "off") if k in w})
     for i, r in enumerate(regions):
         facts = {k: v for k, v in r.items() if k not in ("page", "box", "blank")}
         page(r["page"]).children.append(Node(id=f"frame-{i + 1}", kind="frame", payload=facts))

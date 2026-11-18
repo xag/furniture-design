@@ -36,8 +36,10 @@ from .scene import Part, Scene, cut_plan
 INK = HexColor("#1d1d1b")
 THIN = HexColor("#5b5b58")
 DIM = HexColor("#1f4e5a")
-WOOD = HexColor("#f1e2c6")
-NEW = HexColor("#bfa27a")
+# A part is drawn in a plain tone and a part a step brings in in a deeper one: no colour says what a part
+# is made of, which only its material does.
+PLAIN = HexColor("#ecebe8")
+NEW = HexColor("#b4c2ce")
 MARK = HexColor("#c0392b")
 OK = HexColor("#2e7d32")
 OPEN = HexColor("#b26a00")
@@ -58,7 +60,7 @@ LABELS = {
         "slots": "rainures", "grain_along": "fil", "thick": "ép.", "glued_from": "collé de",
         "sheets_of": "feuilles de", "positions_note": "Positions des rainures indicatives, "
         "réparties régulièrement : à confirmer au traçage.",
-        "inbox": "Avant de commencer", "boards": "Panneaux", "hardware": "Quincaillerie",
+        "inbox": "Avant de commencer", "boards": "Pièces", "hardware": "Quincaillerie",
         "tools": "Outils", "prepare": "Préparation", "assemble": "Montage",
         "overall": "Encombrement", "step": "Étape",
         "cutting": "Découpe", "sources": "Sources", "mark_out": "Tracer", "from": "depuis", "to": "à",
@@ -88,7 +90,7 @@ LABELS = {
         "slots": "grooves", "grain_along": "grain", "thick": "thk.", "glued_from": "glued from",
         "sheets_of": "sheets of", "positions_note": "Groove positions indicative, evenly "
         "spread: to be confirmed when marking out.",
-        "inbox": "Before you start", "boards": "Boards", "hardware": "Hardware",
+        "inbox": "Before you start", "boards": "Parts", "hardware": "Hardware",
         "tools": "Tools", "prepare": "Preparation", "assemble": "Assembly",
         "overall": "Overall size", "step": "Step",
         "cutting": "Cutting", "sources": "Sources", "mark_out": "Mark out", "from": "from", "to": "to",
@@ -134,7 +136,19 @@ class Pen:
         self.regions.append({"kind": kind, "page": self.c.getPageNumber() - 1, "box": flip(*box),
                              **({"blank": flip(*blank)} if blank else {}), **info})
 
+    def _seen(self, *pts) -> bool:
+        """Whether every point (mm) is on the paper. When regions are kept and one is not, note it once
+        for the page (a region of kind spill): something is drawn beyond the edge."""
+        w, h = (v / mm for v in self.c._pagesize)
+        if all(-0.5 <= x <= w + 0.5 and -0.5 <= y <= h + 0.5 for x, y in pts):
+            return True
+        page = self.c.getPageNumber() - 1
+        if self.regions is not None and not any(r["kind"] == "spill" and r["page"] == page for r in self.regions):
+            self.regions.append({"kind": "spill", "page": page, "box": [0, 0, 0, 0]})
+        return False
+
     def line(self, x1, y1, x2, y2, w=0.25, color=INK, dash=None):
+        self._seen((x1, y1), (x2, y2))
         c = self.c
         c.setStrokeColor(color)
         c.setLineWidth(w * mm)
@@ -143,6 +157,7 @@ class Pen:
         c.setDash([])
 
     def poly(self, pts, fill=None, stroke=INK, w=0.35):
+        self._seen(*pts)
         c = self.c
         p = c.beginPath()
         p.moveTo(pts[0][0] * mm, pts[0][1] * mm)
@@ -164,10 +179,13 @@ class Pen:
         """Set a text. When words are kept, note it with its page; `role` says what it is where that
         is not a thing to read as a sentence: "name", the piece's own name; "heading", a heading the
         drawing sets; "label", the name of a thing (a tool, the hardware) or a size; "note", the
-        sentence of a step that brings in, cuts and closes nothing, so that no picture can say it."""
+        sentence of a step that brings in, cuts and closes nothing, so that no picture can say it. A text
+        set beyond the paper is noted so (off)."""
         c = self.c
+        on = self._seen((x, y))
         if self.words is not None and str(s).strip():
-            self.words.append({"page": c.getPageNumber() - 1, "text": str(s), **({"role": role} if role else {})})
+            self.words.append({"page": c.getPageNumber() - 1, "text": str(s), **({"role": role} if role else {}),
+                               **({} if on else {"off": True})})
         c.saveState()
         c.setFillColor(color)
         c.setFont("Helvetica-Bold" if bold else "Helvetica", size * mm / 0.3528 * 0.3528)
@@ -187,6 +205,7 @@ class Pen:
                   fill=color, stroke=None)
 
     def circle(self, x, y, r, fill=white, stroke=INK, w=0.3):
+        self._seen((x - r, y - r), (x + r, y + r))
         c = self.c
         c.setFillColor(fill)
         c.setStrokeColor(stroke)
@@ -284,7 +303,7 @@ def draw_parts(pen: Pen, placed: Placed, parts: list[Part], *, fill_for=None, of
     return boxes
 
 
-def _wood(shade: float, base=WOOD) -> Color:
+def _tone(shade: float, base=PLAIN) -> Color:
     k = 1 - 0.22 * shade
     return Color(base.red * k, base.green * k, base.blue * k)
 
@@ -469,7 +488,7 @@ def _sheet_general(c: Canvas, sc: Scene, L: dict, sheets: int):
     axo = lw.axonometric()
     ax_box = (240, 50, 165, 88)
     placed = _fit(boxes, axo, *ax_box, pad=18)
-    draw_parts(pen, placed, sc.parts, fill_for=lambda k, sh: _wood(sh), line=0.3)
+    draw_parts(pen, placed, sc.parts, fill_for=lambda k, sh: _tone(sh), line=0.3)
     pen.text(ax_box[0] + 4, ax_box[1] + ax_box[3] - 2, L["axo"], 3.2, INK, bold=True)
     _balloons(pen, placed, sc)
     _frame(pen, W, H, sc, 1, sheets, L["general"], s, L)
@@ -529,7 +548,7 @@ def _part_drawing(pen: Pen, sc: Scene, p: Part, x, y, w, h, L: dict):
     def P(q):  # piece frame -> paper, on this face
         return ox + (q[u] - p.lo[u]) * s, oy + (q[v] - p.lo[v]) * s
 
-    pen.rect(ox, oy, lu * s, lv * s, fill=_wood(0.1), stroke=INK, lw_=0.35)
+    pen.rect(ox, oy, lu * s, lv * s, fill=_tone(0.1), stroke=INK, lw_=0.35)
     for lo, hi in p.cuts:
         a, b = P(lo), P(hi)
         x0, y0, x1, y1 = min(a[0], b[0]), min(a[1], b[1]), max(a[0], b[0]), max(a[1], b[1])
@@ -759,16 +778,23 @@ def design_document(sc: Scene, path: Path, checks: list[dict], lang: str = "fr",
 
 # --- the assembly instructions ----------------------------------------------------------
 
-def _icon_connector(pen: Pen, x, y, n: int | None = None, size=1.0):
-    """A connector as drawn in the instructions: a small bar with its two halves."""
-    pen.rect(x, y, 16 * size, 6 * size, fill=MARK, stroke=INK, lw_=0.25)
-    pen.line(x + 8 * size, y, x + 8 * size, y + 6 * size, 0.3, white)
+def _fastening(pen: Pen, x, y, n: int | None = None, size=None, scale=1.0):
+    """What fastens a joint, as the steps' pictures mark it where it goes (draw_slots): a bar of the
+    connector's own proportions when its node states its size (length, thickness), else the dot; and how
+    many. It claims no kind of connector the model does not state."""
+    if size and size[0] > 0:
+        w = 16 * scale
+        h = max(1.2 * scale, min(6 * scale, w * size[1] / size[0]))
+        pen.rect(x, y + (6 * scale - h) / 2, w, h, fill=MARK, stroke=None)
+    else:
+        pen.circle(x + 8 * scale, y + 3 * scale, 1.8 * scale, fill=MARK, stroke=MARK, w=0)
     if n is not None:
-        pen.text(x + 19 * size, y + 1.2 * size, f"{n} ×", 5 * size, INK, bold=True)
+        pen.text(x + 19 * scale, y + 1.2 * scale, f"{n} ×", 5 * scale, INK, bold=True)
 
 
 def _tool_badge(pen: Pen, x, y, name: str) -> float:
     w = 4 + len(name) * 1.9
+    pen._seen((x, y), (x + w, y + 8))
     pen.c.setStrokeColor(INK)
     pen.c.setLineWidth(0.3 * mm)
     pen.c.roundRect(x * mm, y * mm, w * mm, 8 * mm, 2 * mm, stroke=1, fill=0)
@@ -783,7 +809,8 @@ def _assembly_picture(pen: Pen, sc: Scene, placed_ids: list[str], new_ids: list[
     what the piece is fixed to: sc.existing), the new parts darker,
     pulled back along the way they come in, arrows to where they go, and the connectors
     of the joints the step closes. Returns where it was placed and what it shows: the parts
-    already there (shows), those brought in (brings) and the letters they carry (kinds), those of
+    already there (shows), those brought in (brings) and the letters they carry (kinds), the letters drawn
+    beside them (lettered), the assemblies brought in whole (wholes), those of
     them drawn with a line to where they go (guided), the joints the step closes (closes) and those
     whose connectors are drawn (fastened), how much of each part brought in is left to see (visible)
     and of the parts already there taken together (context). `aside`: the step puts an assembly together
@@ -804,7 +831,7 @@ def _assembly_picture(pen: Pen, sc: Scene, placed_ids: list[str], new_ids: list[
     shown = old + new
     boxes = _boxes(shown, offsets)
     placed = _fit(boxes, view, *box, pad=10)
-    fill = lambda k, sh: _wood(sh, NEW) if k in new_ids else Color(1 - 0.1 * sh, 1 - 0.1 * sh, 1 - 0.1 * sh)  # noqa: E731
+    fill = lambda k, sh: _tone(sh, NEW) if k in new_ids else Color(1 - 0.1 * sh, 1 - 0.1 * sh, 1 - 0.1 * sh)  # noqa: E731
     draw_parts(pen, placed, shown, fill_for=fill, offsets=offsets, line=0.35)
     for j in joints:
         moving = next((i for i in j.parts if i in new_ids), None)
@@ -832,10 +859,21 @@ def _assembly_picture(pen: Pen, sc: Scene, placed_ids: list[str], new_ids: list[
         pen.arrowhead(b[0] + (a[0] - b[0]) * 0.25, b[1] + (a[1] - b[1]) * 0.25,
                       b[0] - a[0], b[1] - a[1], 3.2)
         guided.append(p.id)
+    lettered = []
+    for p in new:      # each kind of part brought in carries its letter, as on the page of what is needed
+        if p.id in wholes or not p.mark or p.mark in lettered:
+            continue
+        u, v = placed(tuple(c + k for c, k in zip(p.centre, offsets[p.id])))
+        u += 5 + 7.5 * sum(1 for q in new if q.mark in lettered and abs(placed(tuple(
+            c + k for c, k in zip(q.centre, offsets[q.id])))[0] - u) < 7.5)   # beside a letter already there
+        pen.circle(u, v + 5, 3.2, fill=white, w=0.35)
+        pen.text(u, v + 3.8, p.mark, 3.6, INK, "middle", bold=True)
+        lettered.append(p.mark)
     from .pages import shares
     left, context = shares(boxes, view, [p.id for p in old])
     return placed, {"shows": [p.id for p in old], "brings": [p.id for p in new],
                     "kinds": sorted({wholes.get(p.id) or p.mark for p in new}), "guided": guided,
+                    "lettered": lettered, "wholes": sorted({wholes[p.id] for p in new if p.id in wholes}),
                     "closes": [j.id for j in joints], "fastened": [j.id for j in joints if j.positions],
                     "visible": {p.id: max(left.get(q.id, 0.0) for q in new if wholes.get(q.id, q.id) == wholes.get(p.id, p.id))
                                 for p in new}, "context": context}
@@ -872,7 +910,7 @@ def _prepare_picture(pen: Pen, sc: Scene, step, box):
         x += p.size[0] + gap
     boxes = _boxes(shown, offsets)
     placed = _fit(boxes, view, *box, pad=12)
-    draw_parts(pen, placed, shown, fill_for=lambda k, sh: _wood(sh), offsets=offsets, line=0.35)
+    draw_parts(pen, placed, shown, fill_for=lambda k, sh: _tone(sh), offsets=offsets, line=0.35)
     for p in parts:
         if p.cuts and p.id in step.cuts:
             draw_cuts(pen, placed, p, offsets.get(p.id, (0, 0, 0)))
@@ -955,7 +993,7 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list
     pen.text(W / 2, H - 50, f"{L['version']} {sc.info.get('version', '')}", 4, THIN, "middle")
     pen.note("cover", (20, 70, W - 40, 150))
     placed = _fit(boxes, view, 20, 70, W - 40, 150, pad=10)
-    draw_parts(pen, placed, sc.parts, fill_for=lambda k, sh: _wood(sh), line=0.4)
+    draw_parts(pen, placed, sc.parts, fill_for=lambda k, sh: _tone(sh), line=0.4)
     size = [h - l for l, h in zip(sc.lo, sc.hi)]
     pen.text(W / 2, 50, f"{L['overall']} : {_fmt(size[0])} × {_fmt(size[1])} × {_fmt(size[2])} mm",
              4, INK, "middle", role="label")
@@ -969,9 +1007,14 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list
             distinct.append(p)
     qty = {m: sum(pp.sheets for pp in sc.parts if pp.mark == m) for m in {p.mark for p in sc.parts}}
     cw, ch = (W - 30) / 3, 52
+    FOOT = 14            # mm: nothing of what is needed is set lower on a page
+    top, first = H - 40, 0   # where the grid starts on this page, and the row it starts with
     for i, p in enumerate(distinct):
         r, k = divmod(i, 3)
-        x, y = 15 + k * cw, H - 40 - (r + 1) * ch
+        if top - (r - first + 1) * ch - 2 < FOOT:    # this row would run off the page: it starts the next
+            c.showPage()
+            top, first = H - 20, r
+        x, y = 15 + k * cw, top - (r - first + 1) * ch
         if p.sheets > 1:  # a glued-up part comes as its sheets: draw one, lying flat
             board = Part(p.path, p.id, p.name, p.mark, (0, 0, 0),
                          tuple(sorted(p.size, reverse=True)[:2]) + (sorted(p.size)[0] / p.sheets,),
@@ -982,7 +1025,7 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list
         pen.note("board", (x, y + 10, cw - 6, ch - 14), blank=(x + 1.2, y + ch - 13, 10, 10), mark=p.mark)
         shown = _boxes([board], {board.id: shift})
         bplaced = _fit(shown, view, x, y + 10, cw - 6, ch - 14, pad=4)
-        draw_parts(pen, bplaced, [board], fill_for=lambda k, sh: _wood(sh), offsets={board.id: shift},
+        draw_parts(pen, bplaced, [board], fill_for=lambda k, sh: _tone(sh), offsets={board.id: shift},
                    line=0.35)
         pen.circle(x + 6, y + ch - 8, 4.2, fill=white, w=0.4)
         pen.text(x + 6, y + ch - 9.6, p.mark, 4.6, INK, "middle", bold=True)
@@ -990,14 +1033,21 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list
         dims = sorted(p.size, reverse=True)
         pen.text(x + cw / 2, y - 2, f"{_fmt(dims[0])} × {_fmt(dims[1])} × {_fmt(dims[2] / p.sheets)}",
                  2.8, THIN, "middle")
-    yy = H - 40 - ((len(distinct) + 2) // 3) * ch - 16
-    pen.text(15, yy, L["hardware"], 4.5, INK, bold=True, role="heading")
-    _icon_connector(pen, 18, yy - 14, sc.connectors(), 1.2)
-    names = sorted({j.connector for j in sc.joints})
-    pen.text(65, yy - 11, ", ".join(names), 3.4, INK, role="label")
-    yy -= 28
-    pen.text(15, yy, L["tools"], 4.5, INK, bold=True, role="heading")
-    x = 15
+    yy = top - ((len(distinct) + 2) // 3 - first) * ch - 16
+    fastenings: dict[str, list] = {}     # each kind of connector: how many, and its size when it states one
+    for j in sc.joints:
+        kind = fastenings.setdefault(j.connector, [0, j.size])
+        kind[0] += j.count
+    if fastenings and yy - 14 * len(fastenings) - 4 < FOOT:
+        c.showPage()
+        yy = H - 20
+    if fastenings:
+        pen.text(15, yy, L["hardware"], 4.5, INK, bold=True, role="heading")
+    for name in sorted(fastenings):
+        yy -= 14
+        _fastening(pen, 18, yy, fastenings[name][0], fastenings[name][1], 1.2)
+        pen.text(65, yy + 3, name, 3.4, INK, role="label")
+    yy -= 14
     tools = []
     for s in sc.steps:
         for t in s.tools:
@@ -1007,12 +1057,21 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list
         for t in j.tools:
             if t not in tools:
                 tools.append(t)
+    if tools and yy - 13 < FOOT:
+        c.showPage()
+        yy = H - 20
+    if tools:
+        pen.text(15, yy, L["tools"], 4.5, INK, bold=True, role="heading")
+    x = 15
     row = yy - 13
     for t in tools:
-        w = _tool_badge(pen, x, row, t)
-        x += w + 4
-        if x > W - 40:
+        w = 4 + len(t) * 1.9
+        if x > 15 and x + w > W - 15:
             x, row = 15, row - 11
+        if row < FOOT:
+            c.showPage()
+            x, row = 15, H - 30
+        x += _tool_badge(pen, x, row, t) + 4
     c.showPage()
     # the steps, two to a page
     explode = drawn_apart(sc.lo, sc.hi)
@@ -1043,7 +1102,7 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list
         joints = [j for j in sc.joints if j.id in step.joints]
         n = sum(j.count for j in joints)
         if n and not step.prepare:
-            _icon_connector(pen, x + w - 46, y + h - 12, n, 1.0)
+            _fastening(pen, x + w - 46, y + h - 12, n, next((j.size for j in joints if j.size), None), 1.0)
         tx = x + 22
         for t in step.tools:
             tx += _tool_badge(pen, tx, y + h - 13, t) + 3

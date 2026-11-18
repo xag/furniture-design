@@ -293,3 +293,34 @@ def test_a_door_is_built_aside_and_judged_as_it_enters_whole():
     through = piece_cert(piece=sp.example_piece(bar="channel", aside=True, doors_from="up"))
     assert "piece-instructions" not in reached(through)
     assert "pieces/doors/front-door (whole), brought in from above, crosses pieces/doors/channel" in whys(through)
+
+
+def test_the_instructions_drawn_keep_to_the_paper_and_letter_their_parts(tmp_path):
+    """The bench's instructions as drawn letter every kind of part a step brings in and draw nothing beyond
+    a page; a pen that draws below the foot of its page notes it, and so does a text set there."""
+    import json
+
+    from reportlab.pdfgen.canvas import Canvas
+
+    from furniture_design.drawings import documents
+    from furniture_design.package import EXAMPLES as WORLD, PACKAGE as DESIGN
+    from furniture_design.sheets import Pen
+    from furniture_design.standards_pages import _off_the_paper, _unlettered
+    from quern.tree import Node
+
+    t = Quern(vocabulary=DESIGN.vocabulary, rules=DESIGN.rules, solvers=DESIGN.solvers)
+    t.root.children = WORLD
+    out = documents(t, "pieces/bench", tmp_path)
+    t.root.children = t.root.children + [Node.model_validate(json.loads(out["pages"].read_text(encoding="utf-8")))]
+    assert _off_the_paper(t, "pieces/bench") == []
+    assert _unlettered(t, "pieces/bench") == []
+
+    pen = Pen(Canvas(str(tmp_path / "spill.pdf")))
+    pen.regions, pen.words = [], []
+    pen.rect(10, 10, 20, 20)
+    assert pen.regions == []
+    pen.rect(10, -30, 20, 20)
+    pen.rect(40, -30, 20, 20)
+    pen.text(10, -5, "M")
+    assert [r["kind"] for r in pen.regions] == ["spill"]
+    assert pen.words == [{"page": 0, "text": "M", "off": True}]

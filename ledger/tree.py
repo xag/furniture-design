@@ -2025,6 +2025,42 @@ def entries() -> list[Node]:
                      "to catch one piece's case."),
             ],
         ),
+        Node(
+            id="the-instructions-state-only-what-the-model-says-and-all-of-it", kind="decision",
+            name="The assembly instructions state nothing the model does not say, and leave out nothing of it. "
+                 "No colour says what a part is made of: parts are drawn in a plain tone, those a step brings "
+                 "in in a deeper one. The page of what is needed heads its parts as parts, not boards, and "
+                 "lists each kind of connector with its own count, marked as the steps' pictures mark a "
+                 "fastening where it goes (a bar of the connector's proportions when its node states its "
+                 "size, else the dot): no icon of one kind of connector. That page goes on over as many pages "
+                 "as its parts, hardware and tools take. Each kind of part a step brings in carries, in the "
+                 "step's picture, the letter that page gives it. Two rules judge the pages drawn: every kind "
+                 "of part a step brings in is lettered (a-pieces-steps-letter-their-parts, in "
+                 "steps-show-their-parts), and nothing is drawn or set beyond the edge of a page "
+                 "(a-pieces-pages-keep-to-the-paper, criterion pages-hold-what-they-draw, required by the "
+                 "instructions' level): the pen notes what it draws off the paper (a region of kind spill, a "
+                 "word marked off)",
+            payload={"decided_on": "2026-11-18",
+                     "why": "Instructions for doors of aluminium, PVC and polycarbonate were drawn in wood "
+                            "tones under the heading of boards, their screws shown as a two-part connector, "
+                            "the thirteenth kind of part and the lists of hardware and tools drawn below the "
+                            "foot of the page, and no step said which listed part it showed. Each was the "
+                            "drawing stating something of its own, or dropping something the model held; what "
+                            "the drawing invented is taken out of it, and what it can drop is judged.",
+                     "not_yet": "A piece modelled as two things apart with a gap chosen for the drawing still "
+                                "prints the gap in its overall size: the model says nothing that tells the two "
+                                "apart. Whether a page is clear to whoever builds is judged by no rule."},
+            links={"rests_on": ["a-notice-is-certified-by-what-agrees",
+                                "a-page-names-things-and-says-what-it-cannot-draw"]},
+            children=[
+                _alt("a-colour-per-material", "Give each material a colour and paint its parts with it",
+                     "A field every material of every package would have to state, to say again in colour what "
+                     "the list already says in words."),
+                _alt("a-rule-per-claim", "Record what each page claims (material, connector, size) and compare it with the model",
+                     "Once the drawing takes what it states from the model, such a rule holds by construction "
+                     "and judges nothing."),
+            ],
+        ),
     ]
 
 

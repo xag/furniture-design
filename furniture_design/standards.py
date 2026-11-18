@@ -34,7 +34,8 @@ from . import standards_words as words
 STANDARDS = "standards"
 # The criteria judged on a piece's assembly instructions as they were drawn (pages.model): until they are
 # drawn these cannot hold, so whoever offers to draw them asks every other criterion of the level first.
-ON_THE_PAGES = ("pages-are-drawn-not-written", "steps-show-how-parts-attach", "steps-show-their-parts")
+ON_THE_PAGES = ("pages-are-drawn-not-written", "steps-show-how-parts-attach", "steps-show-their-parts",
+                "pages-hold-what-they-draw")
 
 
 # --- the contracts ------------------------------------------------------------------------
@@ -277,10 +278,13 @@ def knowledge() -> list[Node]:
                    "a-pieces-fastenings-are-shown", of="piece",
                    per=("sources/agrawala-2003/grouping", "sources/agrawala-2003/step-by-step",
                         "sources/agrawala-2003/action-diagrams")),
-        _criterion("steps-show-their-parts", "Each step's picture shows the parts it brings in, and enough of "
-                   "those already there to place them", "presentation", "a-pieces-new-parts-are-visible",
-                   "a-pieces-steps-keep-their-context", of="piece",
+        _criterion("steps-show-their-parts", "Each step's picture shows the parts it brings in, each kind "
+                   "with its letter, and enough of those already there to place them", "presentation",
+                   "a-pieces-new-parts-are-visible", "a-pieces-steps-keep-their-context",
+                   "a-pieces-steps-letter-their-parts", of="piece",
                    per=("sources/agrawala-2003/visibility", "sources/agrawala-2003/visibility-scores")),
+        _criterion("pages-hold-what-they-draw", "Everything the instructions draw is on a page", "completeness",
+                   "a-pieces-pages-keep-to-the-paper", of="piece"),
         _level("piece-settled", "Its design says what the person asked for", "piece-is-explained",
                "piece-agrees-with-its-ledger", of="piece"),
         _level("piece-works", "It holds together and what moves in it works", "piece-is-explained",
@@ -292,7 +296,7 @@ def knowledge() -> list[Node]:
         _level("piece-instructions", "Its assembly instructions are shown", "piece-is-explained",
                "piece-agrees-with-its-ledger", "piece-holds-together", "piece-parts-fit", "piece-mechanisms-work",
                "piece-can-be-made", "piece-steps-build-it", "pages-are-drawn-not-written", "steps-show-how-parts-attach",
-               "steps-show-their-parts", of="piece", allows=("assembly",)),
+               "steps-show-their-parts", "pages-hold-what-they-draw", of="piece", allows=("assembly",)),
     ])]
 
 
@@ -552,6 +556,14 @@ RULES = [
          expr="solve('furniture/steps_without_context', self, param('sources/agrawala-2003/visibility-scores', 'previous_parts')) == 0",
          description="The parts a step brings in cover those already there: bring fewer in at once, so what "
                      "they attach to still shows (Agrawala 2003, visibility)."),
+    Rule(name="a-pieces-steps-letter-their-parts", kind="piece", expr="solve('furniture/steps_unlettered', self) == 0",
+         description="A step's picture draws a part with no letter beside it, so nothing says which of the "
+                     "parts listed it is: draw the instructions again with this version, which letters each "
+                     "kind of part a step brings in."),
+    Rule(name="a-pieces-pages-keep-to-the-paper", kind="piece", expr="solve('furniture/drawn_off_the_paper', self) == 0",
+         description="Something of the instructions is drawn or set beyond the edge of its page, and never "
+                     "reaches whoever builds: draw the instructions again with this version, which carries the "
+                     "parts, the hardware and the tools over as many pages as they take."),
     Rule(name="a-saw-states-its-depth", kind="tool",
          expr="len(payload(self, 'saw_kind', '')) == 0 or states(self, 'max_cut_depth')",
          description="State the thickest board the saw cuts (max_cut_depth), from its maker's document."),
@@ -638,6 +650,10 @@ def _counter_examples() -> list[CounterExample]:
                        because="a door drawn in its rail, with nothing showing that it goes in or how"),
         CounterExample(rule="a-pieces-fastenings-are-shown", nodes=_piece_case(pages={"fastened": ()}),
                        because="a rail shown arriving, and nothing of the screws and glue that hold it"),
+        CounterExample(rule="a-pieces-steps-letter-their-parts", nodes=_piece_case(pages={"lettered": False}),
+                       because="doors drawn coming in with nothing saying which of the listed parts they are"),
+        CounterExample(rule="a-pieces-pages-keep-to-the-paper", nodes=_piece_case(pages={"spilled": True}),
+                       because="a list of parts longer than its page, its last rows drawn below the paper"),
         CounterExample(rule="a-pieces-new-parts-are-visible", nodes=_piece_case(pages={"door_shows": 0.2}),
                        because="a back door four fifths hidden behind the front one"),
         CounterExample(rule="a-pieces-steps-keep-their-context", nodes=_piece_case(pages={"context": 0.02}),
@@ -691,7 +707,7 @@ def _counter_examples() -> list[CounterExample]:
     ]
 
 
-VERSION = "0.13.0"
+VERSION = "0.14.0"
 
 
 SOLVERS = [SolverDef(name=name, native=True, reads=[""], description=(fn.__doc__ or "").strip().split("\n\n")[0])
@@ -722,7 +738,8 @@ def make_package() -> Package:
             "the side its step says without crossing what is there, and the pages as drawn carry no "
             "sentence, attach one kind of part a step with a line to where it goes and what fastens it, and show "
             "the parts brought in and enough of those already there: Agrawala et al. 2003 and IKEA, as clauses of "
-            "the knowledge). The rules grade and refuse nothing."),
+            "the knowledge; each kind of part a step brings in carries its letter, and nothing is drawn or set "
+            "beyond the edge of a page). The rules grade and refuse nothing."),
         publisher="xag/furniture-design",
         requires=[CERTIFICATION],
         vocabulary=OWN_VOCABULARY,
