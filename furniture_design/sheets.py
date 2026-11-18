@@ -31,7 +31,7 @@ rl_config.useA85 = 0
 
 from . import linework as lw
 from .natives import away, drawn_apart
-from .scene import Part, Scene, cut_plan
+from .scene import TOUCH, Part, Scene, cut_plan
 
 INK = HexColor("#1d1d1b")
 THIN = HexColor("#5b5b58")
@@ -436,7 +436,22 @@ def _chain(values):
 
 def _view_dims(pen: Pen, placed: Placed, sc: Scene, h_axis: int, v_axis: int,
                h_sign: int = 1, chain_h=True, chain_v=True, side_v="left"):
-    parts = sc.parts
+    """A view's dimension chains and overall sizes. When the piece is made of things that stand apart
+    along the view's horizontal (Scene.apart), each is dimensioned on its own, the first on side_v and
+    the others on the right, so that no gap the model chose for the drawing is printed as a size."""
+    spans: list[list[float]] = []
+    for _, lo, hi in sorted(sc.apart(), key=lambda t: t[1][h_axis]):
+        if spans and lo[h_axis] <= spans[-1][1] + TOUCH:
+            spans[-1][1] = max(spans[-1][1], hi[h_axis])
+        else:
+            spans.append([lo[h_axis], hi[h_axis]])
+    for k, (a, b) in enumerate(spans):
+        parts = [p for p in sc.parts if a - TOUCH <= p.lo[h_axis] and p.hi[h_axis] <= b + TOUCH]
+        _dims_of(pen, placed, sc, parts, h_axis, v_axis, chain_h, chain_v, side_v if k == 0 else "right")
+
+
+def _dims_of(pen: Pen, placed: Placed, sc: Scene, parts: list, h_axis: int, v_axis: int,
+             chain_h: bool, chain_v: bool, side_v: str):
     hs = _chain(v for p in parts for v in (p.lo[h_axis], p.hi[h_axis]))
     vs = _chain(v for p in parts for v in (p.lo[v_axis], p.hi[v_axis]))
     lo, hi = sc.lo, sc.hi

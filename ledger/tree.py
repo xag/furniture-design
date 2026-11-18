@@ -2138,12 +2138,13 @@ def entries() -> list[Node]:
                             "door standing over four of them, printed an overall width that held the 295 mm "
                             "the model set between two wardrobes for the drawing, and their 3D view showed the "
                             "rails floating where the lintel is.",
-                     "not_yet": "The plans' dimension chains still run across a gap between things that stand "
-                                "apart. A connector is a line, not a body: one driven into a part too thin to "
-                                "take it is not found."},
+                     "not_yet": "A connector is a line, not a body: one driven into a part too thin to take it "
+                                "is not found."},
             links={"rests_on": ["a-notice-is-certified-by-what-agrees",
                                 "what-a-piece-is-fixed-to-is-a-part-already-there",
                                 "the-instructions-state-only-what-the-model-says-and-all-of-it"]},
+            meta={"amended": "432edae44e7d the plans' sentence left not_yet: the-plans-dimension-each-thing-that-stands-apart "
+                             "settles it"},
             children=[
                 _alt("a-screw-is-a-part", "Model every screw as a part of the piece",
                      "Thirty bodies listed, weighed and brought in for what the joint already places; the "
@@ -2152,6 +2153,22 @@ def entries() -> list[Node]:
                 _alt("a-gap-param", "Let a piece state the gap that is for the drawing only, and take it off",
                      "The model would carry a number that says nothing about the furniture; what stands apart "
                      "is found from where the parts are."),
+            ],
+        ),
+        Node(
+            id="the-plans-dimension-each-thing-that-stands-apart", kind="decision",
+            name="The plans' views dimension each thing that stands apart along the view's width (Scene.apart) "
+                 "on its own, its chain and overall size under it and its heights beside it, the first on the "
+                 "view's side and the others on the right, so no gap chosen for the drawing, and no width "
+                 "across one, is printed as a size",
+            payload={"decided_on": "2026-11-18",
+                     "why": "Sliding doors' plans printed 2402 mm across two wardrobes and a 297 mm segment "
+                            "for the gap the model set between them for the drawing: the fault the "
+                            "instructions' overall size had, in a second document."},
+            links={"rests_on": ["what-a-step-drives-and-what-a-document-sizes-are-the-models"]},
+            children=[
+                _alt("one-chain-without-the-gap", "Keep one chain across the piece and leave out the segment "
+                     "that is the gap", "The overall width across the gap would still be printed as a size."),
             ],
         ),
     ]
