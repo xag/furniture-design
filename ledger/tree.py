@@ -2001,6 +2001,30 @@ def entries() -> list[Node]:
                      "Where it stands and how thick it is would be the checker's guess."),
             ],
         ),
+        Node(
+            id="a-step-builds-an-assembly-aside-or-brings-one-in-whole", kind="decision",
+            name="An assembly step may put an assembly together away from the piece (payload builds: the "
+                 "assembly's id; its add are parts of it), and a step may bring an assembly in whole (its add "
+                 "and its direction name the assembly's id). The parts of a step that builds aside are judged, "
+                 "and drawn, against that assembly's parts only; an assembly brought in whole comes in as one, "
+                 "against everything in place, is drawn with one line to where it goes and counts as one kind "
+                 "of part for its step. Nothing requires what a motion moves to come in whole: a part may be "
+                 "added to a door already hung, and that arrival is judged like any other",
+            payload={"decided_on": "2026-11-18",
+                     "why": "With every arrival judged, steps that bring a framed door's parts one by one "
+                            "between rails already fixed cannot hold, and the only honest steps (the door made "
+                            "on a bench, then entered into its rails) could not be said: a step brought parts "
+                            "in at their place in the piece and nowhere else. Whether a door enters its rails "
+                            "is then judged by the same rule as any part.",
+                     "not_yet": "The 3D view shows a part built aside at its place in the piece from the step "
+                                "that builds it."},
+            links={"rests_on": ["a-notice-is-certified-by-what-agrees"]},
+            children=[
+                _alt("what-moves-must-come-in-whole", "Require whatever a motion moves to be brought in whole by a step",
+                     "A bar clipped under a door that already hangs is a sound step; the rule would refuse it "
+                     "to catch one piece's case."),
+            ],
+        ),
     ]
 
 

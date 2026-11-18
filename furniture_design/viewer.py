@@ -191,7 +191,7 @@ nav.addEventListener('scroll', more);
 const steps = DATA.steps.filter(s => !s.prepare);
 const stepIn = document.getElementById('steps');
 const placedAt = {};
-steps.forEach((s, i) => s.add.forEach(id => placedAt[id] = i + 1));
+steps.forEach((s, i) => s.add.forEach(id => { if (!(id in placedAt)) placedAt[id] = i + 1; }));
 // the steps followed are those that bring a part of what is shown; with fewer than two there is
 // nothing to follow, and the slider is not drawn
 let mine = [];

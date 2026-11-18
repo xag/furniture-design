@@ -319,6 +319,8 @@ class Step:
     direction: dict[str, tuple[int, int, int]]
     split: list[str] = field(default_factory=list)
     cuts: list[str] = field(default_factory=list)
+    builds: str = ""   # the assembly it puts together aside, away from the piece (payload builds), by id
+    wholes: dict[str, str] = field(default_factory=dict)   # part id -> the assembly it comes in with, whole
 
 
 @dataclass
@@ -458,10 +460,20 @@ def scene(tree: Quern, piece: str) -> Scene:
     for i, s in enumerate(payload.get("steps", []), 1):
         if isinstance(s, str):
             s = {"text": s}
-        steps.append(Step(i, s.get("text", ""), list(s.get("add", [])), list(s.get("joints", [])),
-                          bool(s.get("prepare", False)), list(s.get("tools", [])),
-                          {k: DIRECTIONS[v] for k, v in (s.get("direction") or {}).items()},
-                          list(s.get("split", [])), list(s.get("cuts", []))))
+        add, wholes = [], {}
+        coming = {k: DIRECTIONS[v] for k, v in (s.get("direction") or {}).items()}
+        for a in s.get("add", []):      # an assembly named whole comes in as its parts, all the same way
+            inside = [p.id for p in parts if a in [g for g, _ in p.within]]
+            if inside and a not in [p.id for p in parts]:
+                add += inside
+                wholes |= {i: a for i in inside}
+                if a in coming:
+                    coming |= {i: coming[a] for i in inside}
+            else:
+                add.append(a)
+        steps.append(Step(i, s.get("text", ""), add, list(s.get("joints", [])),
+                          bool(s.get("prepare", False)), list(s.get("tools", [])), coming,
+                          list(s.get("split", [])), list(s.get("cuts", [])), str(s.get("builds") or ""), wholes))
     info = {k: payload[k] for k in ("version", "authors", "date", "project", "use", "description")
             if k in payload}
     info["instructions"] = payload.get("instructions", "full")

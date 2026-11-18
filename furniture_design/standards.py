@@ -503,15 +503,18 @@ RULES = [
     Rule(name="a-pieces-sliding-parts-have-room", kind="piece", expr="solve('furniture/slide_crossings', self) == 0",
          description="A sliding part crosses another part along its travel: move one of them, so it runs clear."),
     Rule(name="a-pieces-steps-bring-in-every-part", kind="piece", expr="solve('furniture/steps_unplaced', self) == 0",
-         description="Bring every part in by an assembly step (payload steps, a step's add)."),
+         description="Bring every part in by an assembly step (payload steps, a step's add: the part's id, or "
+                     "the id of an assembly that comes in whole)."),
     Rule(name="a-pieces-steps-close-every-joint", kind="piece", expr="solve('furniture/joints_misclosed', self) == 0",
          description="Close every joint in an assembly step (a step's joints), no sooner than the step that "
                      "brings in the last part it joins."),
     Rule(name="a-pieces-parts-reach-their-place", kind="piece", expr="solve('furniture/arrivals_blocked', self) == 0",
          description="A part a step brings in crosses a part already there on its way: say the side it really "
                      "comes in from (the step's direction: up, down, left, right, front, back, the side it comes "
-                     "from), or bring it in before the part in its way. A part that cannot come in from any side "
-                     "once the others are there does not fit: change the design."),
+                     "from), or bring it in before the part in its way. What is put together away from the "
+                     "piece (a door, a drawer) is a step that says so (payload builds: the assembly's id), and the "
+                     "step that brings it in names the assembly whole (add and direction: its id). A part that "
+                     "cannot come in from any side once the others are there does not fit: change the design."),
     Rule(name="a-pieces-parts-say-what-they-are-cut-from", kind="piece",
          expr="solve('furniture/parts_unsourced', self) == 0",
          description="Link every part uses to the material it is cut from: ask the person what they buy."),
@@ -688,7 +691,7 @@ def _counter_examples() -> list[CounterExample]:
     ]
 
 
-VERSION = "0.12.0"
+VERSION = "0.13.0"
 
 
 SOLVERS = [SolverDef(name=name, native=True, reads=[""], description=(fn.__doc__ or "").strip().split("\n\n")[0])

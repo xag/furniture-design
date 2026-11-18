@@ -777,7 +777,8 @@ def _tool_badge(pen: Pen, x, y, name: str) -> float:
 
 
 def _assembly_picture(pen: Pen, sc: Scene, placed_ids: list[str], new_ids: list[str],
-                      joints: list, directions: dict, box, explode: float):
+                      joints: list, directions: dict, box, explode: float, aside: bool = False,
+                      wholes: dict | None = None):
     """The state after this step: what was already there in white (the parts earlier steps brought in, and
     what the piece is fixed to: sc.existing), the new parts darker,
     pulled back along the way they come in, arrows to where they go, and the connectors
@@ -785,11 +786,15 @@ def _assembly_picture(pen: Pen, sc: Scene, placed_ids: list[str], new_ids: list[
     already there (shows), those brought in (brings) and the letters they carry (kinds), those of
     them drawn with a line to where they go (guided), the joints the step closes (closes) and those
     whose connectors are drawn (fastened), how much of each part brought in is left to see (visible)
-    and of the parts already there taken together (context)."""
+    and of the parts already there taken together (context). `aside`: the step puts an assembly together
+    away from the piece, so what the piece is fixed to is not in the picture. `wholes` (part id -> the
+    assembly it comes in with): those parts come in as one thing, of one kind, the assembly's, with one
+    line to where it goes, and each shows as much as the one of them that shows most."""
+    wholes = wholes or {}
     view = lw.axonometric()
     moving_ids = [i for i in new_ids if i in directions] or list(new_ids)
-    old = sc.existing + [p for p in sc.parts
-                         if p.id in placed_ids or (p.id in new_ids and p.id not in moving_ids)]
+    old = ([] if aside else sc.existing) + [p for p in sc.parts
+                                            if p.id in placed_ids or (p.id in new_ids and p.id not in moving_ids)]
     new = [p for p in sc.parts if p.id in moving_ids]
     new_ids = moving_ids
     offsets = {}
@@ -807,12 +812,21 @@ def _assembly_picture(pen: Pen, sc: Scene, placed_ids: list[str], new_ids: list[
         off = (0, 0, 0) if fixed in placed_ids or fixed is None else offsets.get(fixed, (0, 0, 0))
         draw_slots(pen, placed, j.positions, j.along_axis, j.normal_axis, off, size=j.size)
     guided = []
+    lined = set()
     for p in new:
         o = offsets[p.id]
-        a = placed(tuple(c + k for c, k in zip(p.centre, o)))
-        b = placed(p.centre)
+        centre = p.centre
+        if p.id in wholes:     # one line for the whole, from its middle
+            mates = [q for q in new if wholes.get(q.id) == wholes[p.id]]
+            centre = tuple((min(q.lo[i] for q in mates) + max(q.hi[i] for q in mates)) / 2 for i in range(3))
+        a = placed(tuple(c + k for c, k in zip(centre, o)))
+        b = placed(centre)
         if abs(a[0] - b[0]) + abs(a[1] - b[1]) < 3:
             continue
+        if p.id in wholes and wholes[p.id] in lined:
+            guided.append(p.id)
+            continue
+        lined.add(wholes.get(p.id))
         pen.line(a[0], a[1], b[0] + (a[0] - b[0]) * 0.25, b[1] + (a[1] - b[1]) * 0.25, 0.4, INK,
                  [2, 1.2])
         pen.arrowhead(b[0] + (a[0] - b[0]) * 0.25, b[1] + (a[1] - b[1]) * 0.25,
@@ -821,9 +835,10 @@ def _assembly_picture(pen: Pen, sc: Scene, placed_ids: list[str], new_ids: list[
     from .pages import shares
     left, context = shares(boxes, view, [p.id for p in old])
     return placed, {"shows": [p.id for p in old], "brings": [p.id for p in new],
-                    "kinds": sorted({p.mark for p in new}), "guided": guided,
+                    "kinds": sorted({wholes.get(p.id) or p.mark for p in new}), "guided": guided,
                     "closes": [j.id for j in joints], "fastened": [j.id for j in joints if j.positions],
-                    "visible": {p.id: left.get(p.id, 0.0) for p in new}, "context": context}
+                    "visible": {p.id: max(left.get(q.id, 0.0) for q in new if wholes.get(q.id, q.id) == wholes.get(p.id, p.id))
+                                for p in new}, "context": context}
 
 
 def _away(sc: Scene, p: Part):
@@ -1002,6 +1017,7 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list
     # the steps, two to a page
     explode = drawn_apart(sc.lo, sc.hi)
     placed_ids: list[str] = []
+    built: dict[str, list[str]] = {}   # assembly id -> its parts put together aside so far
     slots = [(15, 158, W - 30, 118), (15, 22, W - 30, 118)]
     slot = 0   # the next free half page, counted from the first page of steps
     for done, step in enumerate(sc.steps):
@@ -1036,9 +1052,15 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list
             pen.note("step", pic, step=step.number, prepare=True)
             _prepare_picture(pen, sc, step, pic)
         else:
-            _placed, shown = _assembly_picture(pen, sc, placed_ids, step.add, joints, step.direction, pic, explode)
+            if step.builds:    # an assembly put together aside: only its own parts are in the picture
+                _placed, shown = _assembly_picture(pen, sc, built.setdefault(step.builds, []), step.add, joints,
+                                                   step.direction, pic, explode, aside=True)
+                built[step.builds] += step.add
+            else:
+                _placed, shown = _assembly_picture(pen, sc, placed_ids, step.add, joints, step.direction, pic, explode,
+                                                   wholes=step.wholes)
+                placed_ids += step.add
             pen.note("step", pic, step=step.number, **shown)
-            placed_ids += step.add
         drawn = step.add or step.joints or step.cuts or step.prepare
         for k, s in enumerate(_wrap(step.text, 95)[:3]):
             pen.text(x + 2, y + 8 - 4.6 * k, s, 3.6, INK, role="" if drawn else "note")

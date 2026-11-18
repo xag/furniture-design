@@ -283,3 +283,13 @@ def test_what_a_piece_is_fixed_to_is_a_part_already_there():
         {"add": ["angle", "channel"], "joints": ["angle-to-lintel", "channel-to-angle"]}, sp.STEPS[1]]))
     assert "angle, brought in from above (its step says no direction" in whys(through)
     assert "crosses pieces/doors/lintel" in whys(through)
+
+
+def test_a_door_is_built_aside_and_judged_as_it_enters_whole():
+    """A step that says it builds an assembly aside is judged against that assembly's parts only, and the
+    step that brings the assembly in whole is judged as one arrival: lifted from below the door reaches
+    its rail, lowered from above it goes through the lintel, the angle and the channel."""
+    assert "piece-instructions" in reached(piece_cert(piece=sp.example_piece(bar="channel", aside=True)))
+    through = piece_cert(piece=sp.example_piece(bar="channel", aside=True, doors_from="up"))
+    assert "piece-instructions" not in reached(through)
+    assert "pieces/doors/front-door (whole), brought in from above, crosses pieces/doors/channel" in whys(through)

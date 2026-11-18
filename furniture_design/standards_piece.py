@@ -30,7 +30,9 @@ joint says nothing in words of what it is fixed to.
 A part is also judged as the material it is (_solid: its box, or its section's cells, less its cuts):
 no two parts fill the same space, and a part an assembly step brings in reaches its place from the side
 the step says, over the distance its picture draws it apart by, without crossing what earlier steps put
-there.
+there. A step may put an assembly together aside, away from the piece (payload builds: the assembly's
+id): its parts are then judged against that assembly's parts only; and a step may bring an assembly in
+whole (its add names the assembly's id, its direction too): all its parts come in together, as one.
 """
 
 from __future__ import annotations
@@ -364,6 +366,16 @@ def parts_overlapping(tree: Quern, piece: str) -> float:
     return float(len(_overlapping(tree, piece)))
 
 
+def _held_in(tree: Quern, piece: str) -> dict[str, list]:
+    """Each assembly of the piece, by id: the bodies under it."""
+    root = piece.rstrip("/")
+    out: dict[str, list] = {}
+    for b in natives.bodies(tree, piece):
+        for holder in b.path[len(root) + 1:].split("/")[:-1]:
+            out.setdefault(holder, []).append(b)
+    return out
+
+
 def _blocked(tree: Quern, piece: str) -> list[str]:
     everything = natives.bodies(tree, piece, existing=True)
     bodies = [b for b in everything if not b.existing]
@@ -374,20 +386,29 @@ def _blocked(tree: Quern, piece: str) -> list[str]:
     far = natives.drawn_apart(lo, hi)
     sides = {v: k for k, v in natives.DIRECTIONS.items()}
     placed: list = [b for b in everything if b.existing]
+    wholes = _held_in(tree, piece)
+    aside: dict[str, list] = {}     # assembly id -> its parts put together away from the piece so far
     out = []
     for n, step in enumerate(_steps(tree, piece), 1):
         if step.get("prepare"):
             continue
-        new = [by_id[str(a)] for a in step.get("add") or [] if str(a) in by_id]
-        for b in new:
-            said = (step.get("direction") or {}).get(b.path.rpartition("/")[2])
-            d = natives.DIRECTIONS.get(said) or natives.away(lo, hi, [(a + c) / 2 for a, c in zip(b.lo, b.hi)])
+        builds = str(step.get("builds") or "")
+        there = aside.setdefault(builds, []) if builds else placed
+        # what comes in: (its name, its bodies, the side its step says), a part or an assembly whole
+        coming = [(str(a), [by_id[str(a)]] if str(a) in by_id else wholes.get(str(a), [])) for a in step.get("add") or []]
+        for name, movers in coming:
+            if not movers:
+                continue
+            said = (step.get("direction") or {}).get(name)
+            mid = [(min(b.lo[i] for b in movers) + max(b.hi[i] for b in movers)) / 2 for i in range(3)]
+            d = natives.DIRECTIONS.get(said) or natives.away(lo, hi, mid)
             axis = next(i for i in range(3) if d[i])
-            for o in placed:
-                if not _apart(b, o):
+            what = movers[0].path if name in by_id else f"{piece.rstrip('/')}/{name} (whole)"
+            for o in there:
+                if o in movers or not all(_apart(b, o) for b in movers):
                     continue
                 near = None
-                for mlo, mhi in solids[b.path]:
+                for mlo, mhi in (c for b in movers for c in solids[b.path]):
                     for olo, ohi in solids[o.path]:
                         if any(min(mhi[k], ohi[k]) - max(mlo[k], olo[k]) <= _FIT for k in range(3) if k != axis):
                             continue
@@ -397,10 +418,10 @@ def _blocked(tree: Quern, piece: str) -> list[str]:
                             continue
                         near = max(t0, 0.0) if near is None else min(near, max(t0, 0.0))
                 if near is not None:
-                    out.append(f"step {n}: {b.path}, brought in from {_FROM[sides[d]]}"
+                    out.append(f"step {n}: {what}, brought in from {_FROM[sides[d]]}"
                                f"{'' if said else ' (its step says no direction: the way its picture draws it)'}, "
                                f"crosses {o.path} {near:g} mm before its place")
-        placed += new
+        there += [b for _, movers in coming for b in movers if b not in there]
     return out
 
 
@@ -410,7 +431,10 @@ def arrivals_blocked(tree: Quern, piece: str) -> float:
     natives.away), over the distance its picture draws it apart by (natives.drawn_apart), and crosses the
     material of a part an earlier step brought in, or of what is already there (payload existing). Parts
     one step brings in together are not judged
-    against each other, nor two parts that fill the same space at rest (parts_overlapping counts those)."""
+    against each other, nor two parts that fill the same space at rest (parts_overlapping counts those).
+    A step that puts an assembly together aside (payload builds) is judged against that assembly's parts
+    only; an assembly a step brings in whole (its add names it) comes in as one, against everything in
+    place."""
     return float(len(_blocked(tree, piece)))
 
 
@@ -595,13 +619,15 @@ def _steps(tree: Quern, piece: str) -> list[dict]:
 
 def _unplaced(tree: Quern, piece: str) -> list[str]:
     added = {str(a) for s in _steps(tree, piece) if not s.get("prepare") for a in s.get("add") or []}
+    root = piece.rstrip("/")
     return [f"{b.path}: no assembly step brings it in" for b in natives.bodies(tree, piece)
-            if b.path.rpartition("/")[2] not in added]
+            if not added & set(b.path[len(root) + 1:].split("/"))]
 
 
 def steps_unplaced(tree: Quern, piece: str) -> float:
-    """How many parts of the piece no assembly step brings in (a step's add names parts by their id;
-    a preparation step, which makes a part ready, brings none in)."""
+    """How many parts of the piece no assembly step brings in (a step's add names parts by their id, or
+    an assembly, which brings in every part it holds; a preparation step, which makes a part ready, brings
+    none in)."""
     return float(len(_unplaced(tree, piece)))
 
 
@@ -610,8 +636,10 @@ def _misclosed(tree: Quern, piece: str) -> list[str]:
     closed: dict[str, int] = {}
     placed: set[str] = {b.path.rpartition("/")[2] for b in natives.bodies(tree, piece, existing=True) if b.existing}
     out = []
+    wholes = _held_in(tree, piece)
     for n, s in enumerate([s for s in _steps(tree, piece) if not s.get("prepare")], 1):
         placed |= {str(a) for a in s.get("add") or []}
+        placed |= {b.path.rpartition("/")[2] for a in s.get("add") or [] for b in wholes.get(str(a), [])}
         for jid in s.get("joints") or []:
             if jid not in joints:
                 out.append(f"step {n} closes {jid}, which is not a joint of the piece")
@@ -705,7 +733,8 @@ def example_piece(*, channel_at: float = 0.0, joints: bool = True, back_guides: 
                   overlap: float = 50.0, travel: list | None = None, motions: bool = True,
                   steps: list | None = None, flap: dict | None = None, made: bool = True,
                   fastened: bool = True, unsaid: tuple[str, ...] = (), bought: tuple[str, ...] = (),
-                  doors_from: str = "down", bar: str = "", bar_joined: bool = True, lintel: bool = True) -> Node:
+                  doors_from: str = "down", bar: str = "", bar_joined: bool = True, lintel: bool = True,
+                  aside: bool = False) -> Node:
     """Two doors, 600 wide, in an opening `2 * 600 - overlap` wide; the channel `channel_at` mm from the
     flange's front edge (0: at the edge, as designed; 7: glued in the angle). The channel says neither
     what it is cut from nor with what when not `made`, and leaves out the links `unsaid` otherwise. The door
@@ -714,7 +743,8 @@ def example_piece(*, channel_at: float = 0.0, joints: bool = True, back_guides: 
     carries a bar along its foot, which a third step brings in from below: "channel", a channel the panel's
     edge sits in, or "solid", the same bar modelled as a full box, in the panel's place; glued to the panel
     unless not `bar_joined`. The lintel the angle is screwed under is a part already there, unless not
-    `lintel`: then the joint only says it in words."""
+    `lintel`: then the joint only says it in words. With `aside`, the front door is put together away
+    from the rail (the panel, then its bar) and brought in whole."""
     sold = "the panel's maker, cut to order"
     angle = _part("angle", ["width", 20, 20], [0, 0, 1180],
                   [[0, 19], [19, 19], [19, 0], [20, 0], [20, 20], [0, 20]])
@@ -735,8 +765,11 @@ def example_piece(*, channel_at: float = 0.0, joints: bool = True, back_guides: 
             front.children.append(Node(id="bar-to-panel", kind="joint",
                                        links={"joins": [f"{_PIECE}/front-door/front-bar", f"{_PIECE}/front-door/front-panel"]}
                                        | held.get("links", {}), params=held.get("params", {})))
-        steps = steps + [{"add": ["front-bar"], "direction": {"front-bar": "down"},
-                          "joints": ["bar-to-panel"] if bar_joined else []}]
+        clip = {"add": ["front-bar"], "direction": {"front-bar": "down"}, "joints": ["bar-to-panel"] if bar_joined else []}
+        steps = steps + [clip] if not aside else [
+            steps[0], {"builds": "front-door", "add": ["front-panel"]}, clip | {"builds": "front-door"},
+            {"add": ["back-panel"], "direction": {"back-panel": doors_from}},
+            {"add": ["front-door"], "direction": {"front-door": doors_from}}]
     back = Node(id="back-door", kind="assembly",
                 children=[_part("back-panel", [600, 6, 1190], ["width - 600", 12.5, 5],
                                 bought=sold if "back-panel" in bought else "")])
@@ -843,6 +876,8 @@ SPEC = {
         _demo("furniture/steps_unplaced", 0, "the rail, then the two doors: every part is brought in"),
         _demo("furniture/steps_unplaced", 2, "steps that stop at the rail leave both doors on the floor",
               piece=example_piece(steps=STEPS[:1])),
+        _demo("furniture/steps_unplaced", 0, "a door put together aside and brought in whole: its parts are in",
+              piece=example_piece(bar="channel", aside=True)),
     ],
     "furniture/joints_misclosed": [
         _demo("furniture/joints_misclosed", 0, "the rail's two joints are closed in the step that brings it in"),
@@ -897,6 +932,11 @@ SPEC = {
               "above, through the lintel it is screwed under",
               piece=example_piece(steps=[{"add": ["angle", "channel"], "joints": ["angle-to-lintel", "channel-to-angle"],
                                           "direction": {"channel": "down"}}, _steps_from("down")[1]])),
+        _demo("furniture/arrivals_blocked", 0, "a door put together aside, its bar clipped under its panel, then "
+              "lifted whole into the rail from below", piece=example_piece(bar="channel", aside=True)),
+        _demo("furniture/arrivals_blocked", 5, "that door, whole, said to come down from above: through the lintel, "
+              "the angle and the channel, as the back door does through the lintel and the angle",
+              piece=example_piece(bar="channel", aside=True, doors_from="up")),
     ],
     "furniture/purpose_uncovered": [
         _demo("furniture/purpose_uncovered", 0, "each sentence of the purpose is quoted by a decision"),
