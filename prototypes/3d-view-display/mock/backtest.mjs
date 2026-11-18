@@ -10,13 +10,13 @@ const require = createRequire('C:/Users/trans/.claude/skills/mockups-before-code
 const { chromium } = require('playwright');
 const dir = path.resolve('states');
 fs.writeFileSync(path.join(dir, '_parent.html'), `<!doctype html><body style="margin:0">
-<div id="sheet"><iframe id="f" src="A-s01-rest.html" style="width:390px;height:780px;border:0"></iframe></div>
+<div id="sheet"><iframe id="f" src="C-s01-rest.html" style="width:390px;height:780px;border:0"></iframe></div>
 <script>history.pushState({sheet:1}, ''); window.shut = 0; window.depth = history.length;
 addEventListener('popstate', () => { window.shut++; document.getElementById('sheet').hidden = true; });</script></body>`);
 const b = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const page = await (await b.newContext({ viewport: { width: 390, height: 780 } })).newPage();
 await page.goto(pathToFileURL(path.join(dir, '_parent.html')).href);
-await page.frame({ url: /A-s01-rest/ }).waitForSelector('html[data-ready="1"]');
+await page.frame({ url: /C-s01-rest/ }).waitForSelector('html[data-ready="1"]');
 const f = page.frameLocator('#f');
 await f.locator('#opts').click();
 const opened = await f.locator('#display').evaluate(e => e.classList.contains('open'));

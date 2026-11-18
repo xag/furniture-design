@@ -22,7 +22,7 @@ for (const g of groups) {
   for (const c of CELLS.filter((_, i) => !only || only.includes(i))) {
     const shots = [];
     for (const f of files) {
-      const ctx = await browser.newContext({ viewport: { width: c.w, height: c.h }, colorScheme: c.s, deviceScaleFactor: 1 });
+      const ctx = await browser.newContext({ viewport: { width: c.w, height: c.h }, colorScheme: c.s, deviceScaleFactor: 1, ...(c.w < 720 ? { hasTouch: true, isMobile: true } : {}) });
       const page = await ctx.newPage();
       page.on('pageerror', (e) => report.push(`${path.basename(f)} ${c.w} ${c.s}: page error ${e.message}`));
       await page.goto(pathToFileURL(path.resolve(f)).href);

@@ -362,7 +362,7 @@ apply();
   const s = {};
   if (s.go) go(s.go);
   if (s.rest) document.querySelector('input[name=rest][value=' + s.rest + ']').checked = true;
-  if (s.dims) document.getElementById('showd').checked = true;
+  if (s.dims) document.querySelector('input[name=dims][value=' + s.dims + ']').checked = true;
   if (s.explode) document.getElementById('explode').value = s.explode;
   if (s.step) stepIn.value = s.step;
   if (s.zoom) {   // as a double tap on the bottom corner nearest the eye does, then closer still
