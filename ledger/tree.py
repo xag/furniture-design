@@ -1972,6 +1972,35 @@ def entries() -> list[Node]:
                      "Where they stand is then the checker's guess, and what crosses them depends on it."),
             ],
         ),
+        Node(
+            id="what-a-piece-is-fixed-to-is-a-part-already-there", kind="decision",
+            name="What a piece is fixed to or must clear (a wall, a lintel, the top of the chest it stands on) "
+                 "is a part of its model that is already there: kind part with payload existing saying what it "
+                 "is, placed and sized as measured. It is no part of what is made: natives.bodies leaves it out "
+                 "unless asked (existing=True), so it is not weighed, cut, listed or brought in by a step, and "
+                 "nothing has to hold it. The joints that fix the piece to it join it like any part, a joint "
+                 "joins two parts of the model and says nothing in words of what it is fixed to "
+                 "(a-pieces-joints-join-what-is-modelled, in piece-holds-together); it stands in the way of the "
+                 "parts the steps bring in and of what slides or turns, and a part may not fill its space. The "
+                 "instructions draw it in every step as what is already there, with the fastenings that go "
+                 "into it, and list it nowhere",
+            payload={"decided_on": "2026-11-18",
+                     "why": "A rail said in words to be screwed under a lintel was drawn floating, its screws "
+                            "left out because the joint had one end, and a part could be said to arrive through "
+                            "the lintel or the chest with nothing to contradict it: what is only named cannot "
+                            "collide with anything.",
+                     "not_yet": "The 3D view and the plans do not show what is already there. A fastening is "
+                                "not yet a body: a screw driven where a part already stands in its way is not "
+                                "found."},
+            links={"rests_on": ["a-notice-is-certified-by-what-agrees"]},
+            children=[
+                _alt("a-kind-of-its-own", "A new kind for what surrounds the piece",
+                     "It is placed, sized, joined and drawn as a part is, and every reader of parts would have "
+                     "to learn a second kind to say so; one payload key says the one thing that differs."),
+                _alt("read-it-from-the-words", "Make a body from the joint's words and the measures' notes",
+                     "Where it stands and how thick it is would be the checker's guess."),
+            ],
+        ),
     ]
 
 

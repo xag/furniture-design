@@ -778,7 +778,8 @@ def _tool_badge(pen: Pen, x, y, name: str) -> float:
 
 def _assembly_picture(pen: Pen, sc: Scene, placed_ids: list[str], new_ids: list[str],
                       joints: list, directions: dict, box, explode: float):
-    """The state after this step: what was already there in white, the new parts darker,
+    """The state after this step: what was already there in white (the parts earlier steps brought in, and
+    what the piece is fixed to: sc.existing), the new parts darker,
     pulled back along the way they come in, arrows to where they go, and the connectors
     of the joints the step closes. Returns where it was placed and what it shows: the parts
     already there (shows), those brought in (brings) and the letters they carry (kinds), those of
@@ -787,8 +788,8 @@ def _assembly_picture(pen: Pen, sc: Scene, placed_ids: list[str], new_ids: list[
     and of the parts already there taken together (context)."""
     view = lw.axonometric()
     moving_ids = [i for i in new_ids if i in directions] or list(new_ids)
-    old = [p for p in sc.parts
-           if p.id in placed_ids or (p.id in new_ids and p.id not in moving_ids)]
+    old = sc.existing + [p for p in sc.parts
+                         if p.id in placed_ids or (p.id in new_ids and p.id not in moving_ids)]
     new = [p for p in sc.parts if p.id in moving_ids]
     new_ids = moving_ids
     offsets = {}

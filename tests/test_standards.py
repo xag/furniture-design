@@ -263,3 +263,23 @@ def test_a_piece_whose_steps_and_parts_contradict_each_other_is_refused_its_inst
     assert "piece-works" not in reached(unjoined)
     assert "it moves with pieces/doors/front-door, and no joint joins it to another part of it" in whys(unjoined)
     assert "piece-works" in reached(piece_cert(piece=sp.example_piece(bar="channel")))
+
+
+def test_what_a_piece_is_fixed_to_is_a_part_already_there():
+    """A lintel is a part that is already there: the rail is joined to it, nothing has to hold or bring in
+    the lintel, and it is no part of what is made; a joint that only says it in words is refused, and a
+    rail whose step says no direction is drawn coming through the lintel, and refused."""
+    from furniture_design import natives
+
+    t = Quern(vocabulary=standards.VOCABULARY, rules=standards.RULES, solvers=standards.SOLVERS)
+    t.root.children = _world() + sp.piece_world()
+    assert "lintel" not in [b.path.rpartition("/")[2] for b in natives.bodies(t, PIECE)]
+    assert "lintel" in [b.path.rpartition("/")[2] for b in natives.bodies(t, PIECE, existing=True)]
+    assert "piece-instructions" in reached(piece_cert())
+    words = piece_cert(piece=sp.example_piece(lintel=False))
+    assert "piece-works" not in reached(words)
+    assert "it says in words what it is fixed to" in whys(words)
+    through = piece_cert(piece=sp.example_piece(steps=[
+        {"add": ["angle", "channel"], "joints": ["angle-to-lintel", "channel-to-angle"]}, sp.STEPS[1]]))
+    assert "angle, brought in from above (its step says no direction" in whys(through)
+    assert "crosses pieces/doors/lintel" in whys(through)

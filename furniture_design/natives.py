@@ -72,6 +72,7 @@ class Body:
     opens: float         # mm it moves towards the front when everything is opened
     extendible: str      # path of the outermost extendible element it moves with, or ""
     section: list = field(default_factory=list)  # a profile's outline across its length (natives.section)
+    existing: str = ""   # what it is, when it is already there (payload existing): not made, weighed or brought in
 
 
 def _param(tree, path: str, name: str) -> float | None:
@@ -274,8 +275,12 @@ def _translate(tree, path: str, node) -> list[float]:
     return [number(tree, path, x, "position") for x in (t.get("translate") or [0, 0, 0])]
 
 
-def bodies(tree: Quern, piece: str) -> list[Body]:
-    """Every part under `piece`, placed in the piece's frame, with its mass."""
+def bodies(tree: Quern, piece: str, existing: bool = False) -> list[Body]:
+    """Every part under `piece`, placed in the piece's frame, with its mass. A part that is already
+    there (payload existing: a wall, a lintel, the top of the chest the piece stands on) is no part
+    of what is made, weighed, cut or brought in: it is left out, with what it holds, unless
+    `existing`, which gives it too (mass 0 when it states none), for what judges where the parts
+    are and what they are fixed to."""
     root = get_node(tree, piece)
     if root is None:
         raise ValueError(f"no node at '{piece}'")
@@ -288,9 +293,14 @@ def bodies(tree: Quern, piece: str) -> list[Body]:
             return
         if (node.payload or {}).get("hinged"):
             raise ValueError(f"part '{path}' is hinged; doors are not modelled yet")
+        there = str((node.payload or {}).get("existing") or "")
+        if there and not existing:
+            return
         lo = [o + t for o, t in zip(origin, _translate(tree, path, node))]
         size = _size(tree, path, node)
         own = _param(tree, path, "mass")
+        if own is None and there:
+            own = 0.0
         if own is None:
             density = _param(tree, path, "density")
             if density is None:
@@ -299,7 +309,7 @@ def bodies(tree: Quern, piece: str) -> list[Body]:
         more = float((node.payload or {}).get("extends") or 0)
         cext = ext or (path if more else "")
         out.append(Body(path, own, lo, [a + s for a, s in zip(lo, size)], opens + more, cext,
-                        section(tree, path, node)))
+                        section(tree, path, node), there))
         for child in node.children:
             visit(child, f"{path}/{child.id}", lo, opens + more, cext)
 
@@ -527,7 +537,7 @@ def closings(tree: Quern, piece: str) -> list[tuple[int, str, str, bool]]:
     if root is None:
         raise ValueError(f"no node at '{piece}'")
     base = "/".join(_segs(piece))
-    boxes = {b.path: b for b in bodies(tree, piece)}
+    boxes = {b.path: b for b in bodies(tree, piece, existing=True)}
     out: list[tuple[int, str, str, bool]] = []
     for n, step in enumerate((root.payload or {}).get("steps") or [], 1):
         if step.get("prepare"):

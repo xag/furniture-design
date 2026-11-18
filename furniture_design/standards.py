@@ -200,8 +200,12 @@ def guidance() -> Node:
             assemblies, joints or motions of the piece that realise it ("pieces/<piece>/..."); a quantity the
             ledger states in words is a figure of that decision (payload figures: [{"says": the words, "value",
             "unit", "tolerance"?, "is": an expression over the piece's params}]) the model must give. Every
-            part is held: by a joint that joins it (links joins; payload to names what it is fixed to outside
-            the piece, a wall, a lintel), or by a motion that moves it. What moves is a node of kind motion
+            part is held: by a joint that joins it (links joins) to another part, or by a motion that moves
+            it. What the piece is fixed to or must clear (a wall, a lintel, the top of the chest it stands on)
+            is a part that is already there: kind part with payload existing saying what it is, placed and
+            sized as measured, joined by the joints that fix the piece to it; a joint never says in words what
+            it is fixed to. A motion holds what it moves as a whole: the parts it moves together are each
+            joined to another of them. What moves is a node of kind motion
             beneath the piece (its kind says what it states); a sliding part is held when its guides stop it on
             both sides, and must cross nothing along its travel. When the certificate asks how the piece works
             and the person has not said (which part runs in which, what is fixed to what), ask them: do not
@@ -247,8 +251,9 @@ def knowledge() -> list[Node]:
         _criterion("piece-agrees-with-its-ledger", "The model gives the numbers the piece's ledger states",
                    "consistency", "a-pieces-stated-numbers-are-checked", "a-pieces-figures-are-those-of-its-model",
                    of="piece"),
-        _criterion("piece-holds-together", "Every part is fixed by a joint or moved by a motion", "completeness",
-                   "a-pieces-parts-are-fixed-or-guided", of="piece"),
+        _criterion("piece-holds-together", "Every part is fixed by a joint or moved by a motion, and every "
+                   "joint joins parts of the model", "completeness",
+                   "a-pieces-parts-are-fixed-or-guided", "a-pieces-joints-join-what-is-modelled", of="piece"),
         _criterion("piece-mechanisms-work", "What slides is held on both sides, what turns is carried, and each "
                    "has room along its travel", "consistency", "a-pieces-motions-are-stated",
                    "a-pieces-sliding-parts-are-held", "a-pieces-sliding-parts-have-room",
@@ -469,10 +474,16 @@ RULES = [
          description="The model does not give a number the ledger states: change the model, or ask the person "
                      "and change the decision."),
     Rule(name="a-pieces-parts-are-fixed-or-guided", kind="piece", expr="solve('furniture/loose_parts', self) == 0",
-         description="Say what holds every part: a joint that joins it (to another part, or payload to: what it "
-                     "is fixed to outside the piece), or a motion that moves it. A motion holds what it moves as a "
+         description="Say what holds every part: a joint that joins it to another part, or a motion that moves "
+                     "it. A motion holds what it moves as a "
                      "whole: when it moves several parts together (an assembly), join each of them to another of "
                      "them."),
+    Rule(name="a-pieces-joints-join-what-is-modelled", kind="piece", expr="solve('furniture/joints_in_words', self) == 0",
+         description="A joint joins two parts of the model. What the piece is fixed to (a wall, a lintel, the top "
+                     "of the chest it stands on) is a part that is already there: add it (kind part, payload "
+                     "existing: what it is; its shape and place as measured), link the joint joins to it, and "
+                     "take the words out of the joint's payload to. Ask the person where it is and how thick "
+                     "when they have not said."),
     Rule(name="a-pieces-parts-fill-their-own-space", kind="piece", expr="solve('furniture/parts_overlapping', self) == 0",
          description="Two parts fill the same space: move one, or model each as what it is. A profile states its "
                      "section (payload section), so what sits in its hollow is not in its material; a notch is a "
@@ -658,6 +669,9 @@ def _counter_examples() -> list[CounterExample]:
                        nodes=_piece_case(piece=piece.example_piece(bar="channel", bar_joined=False)),
                        because="a sliding door made of a panel and a bar along its foot, which nothing joins to "
                                "each other"),
+        CounterExample(rule="a-pieces-joints-join-what-is-modelled", nodes=_piece_case(piece=piece.example_piece(lintel=False)),
+                       because="a rail said in words to be screwed under a lintel that the model does not hold, "
+                               "so that nothing can be in its way"),
         CounterExample(rule="a-pieces-parts-fill-their-own-space", nodes=_piece_case(piece=piece.example_piece(bar="solid")),
                        because="a bar along a door's foot modelled as a full box, in the place of the panel's edge "
                                "it holds"),
@@ -674,7 +688,7 @@ def _counter_examples() -> list[CounterExample]:
     ]
 
 
-VERSION = "0.11.0"
+VERSION = "0.12.0"
 
 
 SOLVERS = [SolverDef(name=name, native=True, reads=[""], description=(fn.__doc__ or "").strip().split("\n\n")[0])
@@ -697,7 +711,8 @@ def make_package() -> Package:
             "of its ledger that names what realises it, the numbers the ledger states given by the model, every part "
             "fixed by a joint or moved by a motion (kind motion: a slide's or a turn's axis and travel, a turn's pivot, "
             "what moves and what guides or carries it; a motion holds what it moves as a whole, and the parts it "
-            "moves together are joined to each other), no two parts filling the same space, what slides held on both "
+            "moves together are joined to each other), every joint joining parts of the model, what the piece is "
+            "fixed to being a part already there (payload existing), no two parts filling the same space, what slides held on both "
             "sides, what turns carried where it turns, each with room along its travel; levels: its design says what the "
             "person asked for, it holds together and what moves in it works, its assembly instructions are shown (the "
             "steps bring in every part and close every joint once its parts are in, every part reaches its place from "

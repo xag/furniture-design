@@ -101,7 +101,10 @@ VOCABULARY = [
                             "joined along their top and side edges, that carry it to the "
                             "floor"}),
     KindDef(kind="part", description=(
-        "A component to make. payload shape {op: box, size: [x, y, z]} in mm, transform "
+        "A component to make, or, with payload existing (what it is: a wall, a lintel, the top of the chest "
+        "the piece stands on), what is already there and the piece is fixed to or must clear: placed like any "
+        "part, joined by the joints that fix the piece to it, never made, weighed, cut or brought in by a step. "
+        "payload shape {op: box, size: [x, y, z]} in mm, transform "
         "{translate} placing its minimum corner relative to the enclosing part or piece "
         "(geometry@'s convention), each entry a number or an expression over params (the "
         "part's own, then those of the parts and piece holding it, nearest first), so a "
@@ -792,7 +795,7 @@ def written_at(name: str) -> str:
     return ""
 
 
-VERSION = "0.23.0"
+VERSION = "0.24.0"
 
 
 def make_package() -> Package:

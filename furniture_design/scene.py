@@ -72,6 +72,7 @@ class Part:
     within: list[tuple[str, str]] = field(default_factory=list)   # the groups holding it, outermost first: (id, name)
     section: list[tuple[float, float]] = field(default_factory=list)  # a profile's outline across its length, from lo
     bought: str = ""   # who sells it cut to its size (payload bought_to_size), when no saw cuts it out here
+    existing: str = ""  # what it is, when it is already there (payload existing): drawn in the steps, never listed
 
     @property
     def size(self) -> tuple[float, float, float]:
@@ -328,9 +329,10 @@ class Scene:
     joints: list[Joint]
     steps: list[Step]
     info: dict
+    existing: list[Part] = field(default_factory=list)   # what is already there: a lintel, a wall
 
     def part(self, id_: str) -> Part:
-        return next(p for p in self.parts if p.id == id_)
+        return next(p for p in [*self.parts, *self.existing] if p.id == id_)
 
     @property
     def lo(self):
@@ -395,7 +397,7 @@ def scene(tree: Quern, piece: str) -> Scene:
     names = (get_node(tree, piece).payload or {}).get("material_names", {})
     parts = []
     root_path = "/".join(_segs(piece))
-    for b in bodies(tree, piece):
+    for b in bodies(tree, piece, existing=True):
         node = get_node(tree, b.path)
         uses = (node.links or {}).get("uses", [])
         mat = get_node(tree, uses[0]) if uses else None
@@ -421,8 +423,9 @@ def scene(tree: Quern, piece: str) -> Scene:
                           tuple(b.lo), tuple(b.hi), material, label,
                           payload.get("span_along", ""),
                           int(payload.get("sheets", 1)), cuts, tools, saws, within,
-                          section(tree, b.path, node), str(payload.get("bought_to_size") or "")))
+                          section(tree, b.path, node), str(payload.get("bought_to_size") or ""), b.existing))
     by_path = {p.path: p for p in parts}
+    there, parts = [p for p in parts if p.existing], [p for p in parts if not p.existing]
     joints = []
     prefix = piece.rstrip("/") + "/"
     for path, node in tree.walk(piece, kind="joint"):
@@ -465,4 +468,4 @@ def scene(tree: Quern, piece: str) -> Scene:
     if info["instructions"] not in INSTRUCTIONS:
         raise ValueError(f"the piece {piece} has payload instructions {info['instructions']!r}: it must be "
                          f"one of {', '.join(INSTRUCTIONS)}")
-    return Scene(root.name or root.id, piece, parts, joints, steps, info)
+    return Scene(root.name or root.id, piece, parts, joints, steps, info, there)

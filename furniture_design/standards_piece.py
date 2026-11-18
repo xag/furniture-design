@@ -23,6 +23,10 @@ it must cross no other part (it has room). A turning part is judged in the plane
 turns about: that line must lie on what moves and on what carries it, within the moving part's own
 thickness (it is carried), and, turned through its travel, it must cross no other part.
 
+What the piece is fixed to, or must clear, is a part too: one that is already there (payload existing: a
+lintel, a wall), which nothing holds and no step brings in, and which a joint joins like any other. A
+joint says nothing in words of what it is fixed to.
+
 A part is also judged as the material it is (_solid: its box, or its section's cells, less its cuts):
 no two parts fill the same space, and a part an assembly step brings in reaches its place from the side
 the step says, over the distance its picture draws it apart by, without crossing what earlier steps put
@@ -108,7 +112,7 @@ class _Slide:
             except (ValueError, TypeError):
                 self.faults.append(f"{path}: its pivot is not two numbers, where the line it turns about is in "
                                    "the plane across its axis")
-        everything = natives.bodies(tree, piece)
+        everything = natives.bodies(tree, piece, existing=True)
         self.movers = [b for b in everything if _under(b.path, node.links.get("moves", []))]
         self.guides = [b for b in everything if _under(b.path, node.links.get("guided_by", []))]
         self.others = [b for b in everything if b not in self.movers]
@@ -336,12 +340,12 @@ def _apart(a, b) -> bool:
 
 
 def _overlapping(tree: Quern, piece: str) -> list[str]:
-    bodies = natives.bodies(tree, piece)
+    bodies = natives.bodies(tree, piece, existing=True)
     solids = {b.path: _solid(tree, b) for b in bodies}
     out = []
     for i, a in enumerate(bodies):
         for b in bodies[i + 1:]:
-            if not _apart(a, b):
+            if not _apart(a, b) or (a.existing and b.existing):
                 continue
             shared = [[min(ah[k], bh[k]) - max(al[k], bl[k]) for k in range(3)]
                       for al, ah in solids[a.path] for bl, bh in solids[b.path]]
@@ -355,19 +359,21 @@ def _overlapping(tree: Quern, piece: str) -> list[str]:
 def parts_overlapping(tree: Quern, piece: str) -> float:
     """How many pairs of the piece's parts fill the same space: their material (a profile's is its
     section, a cut is taken out) overlaps by more than a fit. A part under a part is not judged
-    against it."""
+    against it; what is already there (payload existing) is judged against the parts, not against
+    itself."""
     return float(len(_overlapping(tree, piece)))
 
 
 def _blocked(tree: Quern, piece: str) -> list[str]:
-    bodies = natives.bodies(tree, piece)
+    everything = natives.bodies(tree, piece, existing=True)
+    bodies = [b for b in everything if not b.existing]
     by_id = {b.path.rpartition("/")[2]: b for b in bodies}
-    solids = {b.path: _solid(tree, b) for b in bodies}
+    solids = {b.path: _solid(tree, b) for b in everything}
     lo = [min(b.lo[i] for b in bodies) for i in range(3)]
     hi = [max(b.hi[i] for b in bodies) for i in range(3)]
     far = natives.drawn_apart(lo, hi)
     sides = {v: k for k, v in natives.DIRECTIONS.items()}
-    placed: list = []
+    placed: list = [b for b in everything if b.existing]
     out = []
     for n, step in enumerate(_steps(tree, piece), 1):
         if step.get("prepare"):
@@ -402,7 +408,8 @@ def arrivals_blocked(tree: Quern, piece: str) -> float:
     """How many parts stand in the way of a part an assembly step brings in: the part comes straight in
     from the side its step says (direction; when it says none, the side its picture draws it from,
     natives.away), over the distance its picture draws it apart by (natives.drawn_apart), and crosses the
-    material of a part an earlier step brought in. Parts one step brings in together are not judged
+    material of a part an earlier step brought in, or of what is already there (payload existing). Parts
+    one step brings in together are not judged
     against each other, nor two parts that fill the same space at rest (parts_overlapping counts those)."""
     return float(len(_blocked(tree, piece)))
 
@@ -444,6 +451,27 @@ def _unfastened(tree: Quern, piece: str) -> list[str]:
         elif count is None or count.value < 1:
             out.append(f"{path}: it does not say how many of its connector it takes (param count)")
     return out
+
+
+def _in_words(tree: Quern, piece: str) -> list[str]:
+    out = []
+    for path, joint in _nodes(_piece(tree, piece), piece, "joint"):
+        said = (joint.payload or {}).get("to")
+        if said:
+            out.append(f"{path}: it says in words what it is fixed to (“{said}”), which nothing in the model is")
+        ends = [t for t in joint.links.get("joins", [])
+                if _under(t.rstrip("/"), [piece.rstrip("/")]) and get_node(tree, t) is not None]
+        if len(ends) < 2:
+            out.append(f"{path}: it joins {len(ends)} part of the model, and a joint joins two")
+    return out
+
+
+def joints_in_words(tree: Quern, piece: str) -> float:
+    """How many faults the piece's joints have in what they join: a joint that says in words what it is
+    fixed to (payload to), where the model holds no such thing, and a joint that joins fewer than two
+    parts or assemblies of the piece. What a piece is fixed to is a part that is already there (payload
+    existing)."""
+    return float(len(_in_words(tree, piece)))
 
 
 def joints_unfastened(tree: Quern, piece: str) -> float:
@@ -580,7 +608,7 @@ def steps_unplaced(tree: Quern, piece: str) -> float:
 def _misclosed(tree: Quern, piece: str) -> list[str]:
     joints = {p.rpartition("/")[2]: j for p, j in _nodes(_piece(tree, piece), piece, "joint")}
     closed: dict[str, int] = {}
-    placed: set[str] = set()
+    placed: set[str] = {b.path.rpartition("/")[2] for b in natives.bodies(tree, piece, existing=True) if b.existing}
     out = []
     for n, s in enumerate([s for s in _steps(tree, piece) if not s.get("prepare")], 1):
         placed |= {str(a) for a in s.get("add") or []}
@@ -606,6 +634,7 @@ NATIVES = {
     "furniture/parts_unsourced": parts_unsourced,
     "furniture/parts_unsawn": parts_unsawn,
     "furniture/joints_unfastened": joints_unfastened,
+    "furniture/joints_in_words": joints_in_words,
     "furniture/unheld_turns": unheld_turns,
     "furniture/turn_crossings": turn_crossings,
     "furniture/steps_unplaced": steps_unplaced,
@@ -626,6 +655,7 @@ EXPLAINERS = {
     "furniture/parts_unsourced": _unsourced,
     "furniture/parts_unsawn": _unsawn,
     "furniture/joints_unfastened": _unfastened,
+    "furniture/joints_in_words": _in_words,
     "furniture/unheld_turns": _uncarried,
     "furniture/turn_crossings": _swept,
     "furniture/steps_unplaced": _unplaced,
@@ -655,10 +685,12 @@ _ANGLE = [[0, 19], [20, 19], [20, 20], [0, 20]], [[19, 0], [20, 0], [20, 20], [1
 
 
 def _part(id_: str, size: list, at: list, section: list | None = None, unsaid: tuple[str, ...] = (),
-          bought: str = "") -> Node:
+          bought: str = "", existing: str = "") -> Node:
     """A part cut from the example profile with the example saw, but for the links `unsaid` leaves out; or,
     when `bought` names who sells it, bought cut to its size and sawn by no one."""
     payload = {"shape": {"op": "box", "size": size}, "transform": {"translate": at}}
+    if existing:    # already there: it is what it is, cut from nothing and by no one
+        return Node(id=id_, kind="part", payload=payload | {"existing": existing})
     if section:
         payload["section"] = section
     if bought:
@@ -673,7 +705,7 @@ def example_piece(*, channel_at: float = 0.0, joints: bool = True, back_guides: 
                   overlap: float = 50.0, travel: list | None = None, motions: bool = True,
                   steps: list | None = None, flap: dict | None = None, made: bool = True,
                   fastened: bool = True, unsaid: tuple[str, ...] = (), bought: tuple[str, ...] = (),
-                  doors_from: str = "down", bar: str = "", bar_joined: bool = True) -> Node:
+                  doors_from: str = "down", bar: str = "", bar_joined: bool = True, lintel: bool = True) -> Node:
     """Two doors, 600 wide, in an opening `2 * 600 - overlap` wide; the channel `channel_at` mm from the
     flange's front edge (0: at the edge, as designed; 7: glued in the angle). The channel says neither
     what it is cut from nor with what when not `made`, and leaves out the links `unsaid` otherwise. The door
@@ -681,7 +713,8 @@ def example_piece(*, channel_at: float = 0.0, joints: bool = True, back_guides: 
     from `doors_from` (below, as designed; "up": from above, through the rail). With `bar`, the front door
     carries a bar along its foot, which a third step brings in from below: "channel", a channel the panel's
     edge sits in, or "solid", the same bar modelled as a full box, in the panel's place; glued to the panel
-    unless not `bar_joined`."""
+    unless not `bar_joined`. The lintel the angle is screwed under is a part already there, unless not
+    `lintel`: then the joint only says it in words."""
     sold = "the panel's maker, cut to order"
     angle = _part("angle", ["width", 20, 20], [0, 0, 1180],
                   [[0, 19], [19, 19], [19, 0], [20, 0], [20, 20], [0, 20]])
@@ -708,9 +741,12 @@ def example_piece(*, channel_at: float = 0.0, joints: bool = True, back_guides: 
                 children=[_part("back-panel", [600, 6, 1190], ["width - 600", 12.5, 5],
                                 bought=sold if "back-panel" in bought else "")])
     children = [angle, channel, front, back]
+    if lintel:
+        children.append(_part("lintel", ["width", 20, 19], [0, 0, 1200], existing="the lintel over the opening"))
     if joints:
-        children += [Node(id="angle-to-lintel", kind="joint", payload={"to": "the lintel"},
-                          links={"joins": [f"{_PIECE}/angle"]} | held.get("links", {}), params=held.get("params", {})),
+        children += [Node(id="angle-to-lintel", kind="joint", payload={} if lintel else {"to": "the lintel"},
+                          links={"joins": [f"{_PIECE}/angle"] + ([f"{_PIECE}/lintel"] if lintel else [])}
+                          | held.get("links", {}), params=held.get("params", {})),
                      Node(id="channel-to-angle", kind="joint",
                           links={"joins": [f"{_PIECE}/channel", f"{_PIECE}/angle"]} | held.get("links", {}),
                           params=held.get("params", {}))]
@@ -734,7 +770,8 @@ def example_piece(*, channel_at: float = 0.0, joints: bool = True, back_guides: 
 
 
 def _steps_from(doors_from: str) -> list[dict]:
-    return [{"add": ["angle", "channel"], "joints": ["angle-to-lintel", "channel-to-angle"]},
+    return [{"add": ["angle", "channel"], "joints": ["angle-to-lintel", "channel-to-angle"],
+             "direction": {"angle": "down", "channel": "down"}},
             {"add": ["back-panel", "front-panel"], "direction": {"back-panel": doors_from, "front-panel": doors_from}}]
 
 
@@ -784,6 +821,11 @@ SPEC = {
         _demo("furniture/joints_unfastened", 0, "each joint names its screws and how many"),
         _demo("furniture/joints_unfastened", 2, "an angle fixed to a lintel, a channel to the angle, and nothing "
               "said of what holds either", piece=example_piece(fastened=False)),
+    ],
+    "furniture/joints_in_words": [
+        _demo("furniture/joints_in_words", 0, "the angle is joined to the lintel, a part that is already there"),
+        _demo("furniture/joints_in_words", 2, "an angle said in words to be fixed to a lintel the model does not "
+              "hold: the words, and a joint of one part", piece=example_piece(lintel=False)),
     ],
     "furniture/unheld_turns": [
         _demo("furniture/unheld_turns", 0, "a flap hinged on the angle's top front edge, which it touches",
@@ -848,8 +890,13 @@ SPEC = {
     ],
     "furniture/arrivals_blocked": [
         _demo("furniture/arrivals_blocked", 0, "each door is lifted into the rail from below, where nothing is"),
-        _demo("furniture/arrivals_blocked", 3, "the doors said to come down from above: the front one through "
-              "the angle and the channel, the back one through the angle", piece=example_piece(doors_from="up")),
+        _demo("furniture/arrivals_blocked", 5, "the doors said to come down from above: the front one through "
+              "the lintel, the angle and the channel, the back one through the lintel and the angle",
+              piece=example_piece(doors_from="up")),
+        _demo("furniture/arrivals_blocked", 1, "a rail whose step says no direction is drawn coming down from "
+              "above, through the lintel it is screwed under",
+              piece=example_piece(steps=[{"add": ["angle", "channel"], "joints": ["angle-to-lintel", "channel-to-angle"],
+                                          "direction": {"channel": "down"}}, _steps_from("down")[1]])),
     ],
     "furniture/purpose_uncovered": [
         _demo("furniture/purpose_uncovered", 0, "each sentence of the purpose is quoted by a decision"),

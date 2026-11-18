@@ -39,8 +39,10 @@ SAY = {
                            "fr": "Chaque phrase de ce qu'on attend du meuble a sa décision, qui nomme ce qui la réalise"},
     "piece-agrees-with-its-ledger": {"en": "The model gives the numbers the piece's ledger states",
                                      "fr": "Le modèle donne les chiffres que le registre du meuble énonce"},
-    "piece-holds-together": {"en": "Every part is fixed by a joint or moved by a motion",
-                             "fr": "Chaque pièce est fixée par un assemblage ou portée par un mouvement"},
+    "piece-holds-together": {"en": "Every part is fixed by a joint or moved by a motion, and every joint joins "
+                                   "parts of the model",
+                             "fr": "Chaque pièce est fixée par un assemblage ou portée par un mouvement, et chaque "
+                                   "assemblage relie des pièces du modèle"},
     "piece-mechanisms-work": {"en": "What slides is held on both sides, what turns is carried, and each has room "
                                     "along its travel",
                               "fr": "Ce qui coulisse est tenu des deux côtés, ce qui pivote est porté, et chacun a "
@@ -125,6 +127,9 @@ RED = {
               "it to.",
         "fr": "Une pièce n'est ni fixée par un assemblage ni portée par un mouvement, ou bouge avec d'autres "
               "auxquelles rien ne la fixe."},
+    "a-pieces-joints-join-what-is-modelled": {
+        "en": "A joint is fixed to something the model does not hold.",
+        "fr": "Un assemblage se fixe à quelque chose que le modèle ne contient pas."},
     "a-pieces-parts-fill-their-own-space": {
         "en": "Two parts fill the same space.",
         "fr": "Deux pièces occupent le même espace."},
