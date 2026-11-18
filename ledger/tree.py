@@ -1924,6 +1924,54 @@ def entries() -> list[Node]:
                      "is known where it is set, so the drawing says it."),
             ],
         ),
+        Node(
+            id="a-notice-is-certified-by-what-agrees", kind="decision",
+            name="A piece's assembly instructions are certified by whether its model, its steps and its pages "
+                 "agree with each other, not by counting what the pages hold. The model against itself: no two "
+                 "parts fill the same space, each part being the material it is (its section's cells, less its "
+                 "cuts: criterion piece-parts-fit, from the level piece-works up); a part a step brings in "
+                 "reaches its place from the side the step says, over the distance its picture draws it apart "
+                 "by, without crossing what earlier steps put there (a-pieces-parts-reach-their-place, in "
+                 "piece-steps-build-it; a step that says no direction is judged on the side its picture draws, "
+                 "natives.away, and both read natives.drawn_apart); a motion holds what it moves as a whole, and "
+                 "the parts it moves together are each joined to another of them "
+                 "(a-pieces-parts-are-fixed-or-guided). Each rule has a case the standard must refuse, on the "
+                 "two-doors example: doors lowered through a rail already up, a bar modelled as a full box over "
+                 "the panel edge it holds, a door whose panel and bar nothing joins",
+            payload={"decided_on": "2026-11-18",
+                     "the_owner": "let's not fix the design and instructions. Let's not even fix the knowledge "
+                                  "that certified it (or lack of). Let's fix the process that allowed this to "
+                                  "happen [...] I have the intuition we could test a design under rules, parts of "
+                                  "which are unknown, not just by reviewing every component and looking for "
+                                  "defects that may have no rules yet to detect (the expensive way) but rather by "
+                                  "adding extraneous components until it falls apart, which would point to faulty "
+                                  "foundations [...] closure, inference, consistency",
+                     "why": "A set of sliding doors reached the instructions' level with every criterion held, "
+                            "and its pages showed parts coming in through parts already fixed, frame bars drawn "
+                            "over the panels they hold and doors of loose parts. The criteria counted what a "
+                            "page showed; nothing compared one statement of the design with another. Judging "
+                            "each step's direction as a motion failed five of that piece's thirteen steps with "
+                            "nothing added to its model, and its sixteen frame bars filled their panels' place.",
+                     "not_yet": "What a joint is fixed to outside the piece is still words (payload to), so "
+                                "nothing collides with it; what a motion moves is brought in part by part, never "
+                                "as a whole, so whether a door enters its rails is not judged; and the pages are "
+                                "not yet held to state only what the model says and all of what it holds. A fit "
+                                "with no fastener (a channel pushed onto a panel's edge) has no joint the rules "
+                                "accept without a count."},
+            links={"rests_on": ["a-pieces-instructions-have-a-level-to-reach",
+                                "a-pieces-design-is-certified-against-its-ledger-and-its-mechanisms",
+                                "two-parts-touch-where-their-material-meets"]},
+            children=[
+                _alt("read-the-pages", "Have whoever announces the instructions read every page first",
+                     "Tried and reverted at the owner's request the same day: reading finds what a reader "
+                     "happens to see, costs a reader for every piece, and says nothing of which foundation let "
+                     "the fault through. It is left for what no comparison reaches: whether a page is clear."),
+                _alt("judge-every-step-state", "Run the existing checks again on the piece as it stands after each step",
+                     "Tried on that piece: it found only an angle brought in one step before its screws."),
+                _alt("guess-the-surroundings", "Add walls and a ceiling from the piece's width and height measures",
+                     "Where they stand is then the checker's guess, and what crosses them depends on it."),
+            ],
+        ),
     ]
 
 

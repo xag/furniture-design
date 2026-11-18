@@ -247,3 +247,19 @@ def test_with_no_pages_drawn_only_the_criteria_judged_on_the_pages_fail():
     failing = {k["criterion"].rpartition("/")[2] for k in c["criteria"] if not k["held"]}
     assert failing == set(standards.ON_THE_PAGES)
     assert {f"{standards.STANDARDS}/{x}" for x in standards.ON_THE_PAGES} <= set(level["requires"])
+
+
+def test_a_piece_whose_steps_and_parts_contradict_each_other_is_refused_its_instructions():
+    """The model is held to agree with itself: doors lowered through a rail already up, a bar modelled as a
+    full box over the panel edge it holds, and a door whose panel and bar nothing joins each keep the piece
+    from the level its instructions are shown at, and the certificate names the parts."""
+    through = piece_cert(piece=sp.example_piece(doors_from="up"))
+    assert "piece-instructions" not in reached(through)
+    assert "front-panel, brought in from above, crosses pieces/doors/channel" in whys(through)
+    solid = piece_cert(piece=sp.example_piece(bar="solid"))
+    assert "piece-works" not in reached(solid)
+    assert "front-panel and pieces/doors/front-door/front-bar fill the same space" in whys(solid)
+    unjoined = piece_cert(piece=sp.example_piece(bar="channel", bar_joined=False))
+    assert "piece-works" not in reached(unjoined)
+    assert "it moves with pieces/doors/front-door, and no joint joins it to another part of it" in whys(unjoined)
+    assert "piece-works" in reached(piece_cert(piece=sp.example_piece(bar="channel")))

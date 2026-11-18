@@ -38,6 +38,31 @@ DIRECTIONS = {"up": (0, 0, 1), "down": (0, 0, -1), "left": (-1, 0, 0), "right": 
               "front": (0, -1, 0), "back": (0, 1, 0)}
 
 
+# How far back from its place the assembly instructions draw a part a step brings in, as a share of the
+# piece's largest dimension: the picture claims the part comes straight in over that distance, and the
+# standards judge the same distance (standards_piece: a part reaches its place).
+DRAWN_APART = 0.28
+
+
+def drawn_apart(lo, hi) -> float:
+    """mm: how far back along the way it comes in a step's picture draws a part, for a piece that
+    spans lo to hi."""
+    return max(h - l for l, h in zip(lo, hi)) * DRAWN_APART
+
+
+def away(lo, hi, centre) -> tuple[int, int, int]:
+    """The side a part comes in from when its step does not say (a direction of DIRECTIONS' values): out
+    along the axis its centre is farthest from the middle of the piece (lo to hi), by the piece's own
+    size."""
+    mid = [(a + b) / 2 for a, b in zip(lo, hi)]
+    span = [b - a for a, b in zip(lo, hi)]
+    rel = [(centre[i] - mid[i]) / (span[i] or 1) for i in range(3)]
+    i = max(range(3), key=lambda k: abs(rel[k]))
+    d = [0, 0, 0]
+    d[i] = 1 if rel[i] >= 0 else -1
+    return tuple(d)
+
+
 @dataclass
 class Body:
     path: str

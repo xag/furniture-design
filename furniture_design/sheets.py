@@ -30,6 +30,7 @@ from reportlab import rl_config
 rl_config.useA85 = 0
 
 from . import linework as lw
+from .natives import away, drawn_apart
 from .scene import Part, Scene, cut_plan
 
 INK = HexColor("#1d1d1b")
@@ -825,15 +826,8 @@ def _assembly_picture(pen: Pen, sc: Scene, placed_ids: list[str], new_ids: list[
 
 
 def _away(sc: Scene, p: Part):
-    """The way a part comes in when the step does not say: out along the axis it is
-    farthest from the middle of the piece, by its own size."""
-    mid = [(a + b) / 2 for a, b in zip(sc.lo, sc.hi)]
-    span = [b - a for a, b in zip(sc.lo, sc.hi)]
-    rel = [(p.centre[i] - mid[i]) / (span[i] or 1) for i in range(3)]
-    i = max(range(3), key=lambda k: abs(rel[k]))
-    d = [0, 0, 0]
-    d[i] = 1 if rel[i] >= 0 else -1
-    return tuple(d)
+    """The way a part comes in when the step does not say (natives.away, which the standards judge too)."""
+    return away(sc.lo, sc.hi, p.centre)
 
 
 def _prepare_picture(pen: Pen, sc: Scene, step, box):
@@ -1005,7 +999,7 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list
             x, row = 15, row - 11
     c.showPage()
     # the steps, two to a page
-    explode = max(size) * 0.28
+    explode = drawn_apart(sc.lo, sc.hi)
     placed_ids: list[str] = []
     slots = [(15, 158, W - 30, 118), (15, 22, W - 30, 118)]
     slot = 0   # the next free half page, counted from the first page of steps

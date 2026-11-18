@@ -253,9 +253,12 @@ def knowledge() -> list[Node]:
                    "has room along its travel", "consistency", "a-pieces-motions-are-stated",
                    "a-pieces-sliding-parts-are-held", "a-pieces-sliding-parts-have-room",
                    "a-pieces-turning-parts-are-carried", "a-pieces-turning-parts-have-room", of="piece"),
+        _criterion("piece-parts-fit", "No two parts fill the same space", "consistency",
+                   "a-pieces-parts-fill-their-own-space", of="piece"),
         _criterion("piece-steps-build-it", "The assembly steps bring in every part and close every joint, each "
-                   "once its parts are in", "completeness", "a-pieces-steps-bring-in-every-part",
-                   "a-pieces-steps-close-every-joint", of="piece"),
+                   "once its parts are in, and every part reaches its place", "completeness",
+                   "a-pieces-steps-bring-in-every-part", "a-pieces-steps-close-every-joint",
+                   "a-pieces-parts-reach-their-place", of="piece"),
         _criterion("piece-can-be-made", "Every part says what it is cut from and with, and every joint what "
                    "fastens it and how many", "completeness", "a-pieces-parts-say-what-they-are-cut-from",
                    "a-pieces-parts-say-how-they-are-cut",
@@ -276,12 +279,13 @@ def knowledge() -> list[Node]:
         _level("piece-settled", "Its design says what the person asked for", "piece-is-explained",
                "piece-agrees-with-its-ledger", of="piece"),
         _level("piece-works", "It holds together and what moves in it works", "piece-is-explained",
-               "piece-agrees-with-its-ledger", "piece-holds-together", "piece-mechanisms-work", of="piece"),
-        _level("piece-buildable", "It can be cut and fastened from what it states", "piece-is-explained",
-               "piece-agrees-with-its-ledger", "piece-holds-together", "piece-mechanisms-work", "piece-can-be-made",
+               "piece-agrees-with-its-ledger", "piece-holds-together", "piece-parts-fit", "piece-mechanisms-work",
                of="piece"),
+        _level("piece-buildable", "It can be cut and fastened from what it states", "piece-is-explained",
+               "piece-agrees-with-its-ledger", "piece-holds-together", "piece-parts-fit", "piece-mechanisms-work",
+               "piece-can-be-made", of="piece"),
         _level("piece-instructions", "Its assembly instructions are shown", "piece-is-explained",
-               "piece-agrees-with-its-ledger", "piece-holds-together", "piece-mechanisms-work",
+               "piece-agrees-with-its-ledger", "piece-holds-together", "piece-parts-fit", "piece-mechanisms-work",
                "piece-can-be-made", "piece-steps-build-it", "pages-are-drawn-not-written", "steps-show-how-parts-attach",
                "steps-show-their-parts", of="piece", allows=("assembly",)),
     ])]
@@ -466,7 +470,13 @@ RULES = [
                      "and change the decision."),
     Rule(name="a-pieces-parts-are-fixed-or-guided", kind="piece", expr="solve('furniture/loose_parts', self) == 0",
          description="Say what holds every part: a joint that joins it (to another part, or payload to: what it "
-                     "is fixed to outside the piece), or a motion that moves it."),
+                     "is fixed to outside the piece), or a motion that moves it. A motion holds what it moves as a "
+                     "whole: when it moves several parts together (an assembly), join each of them to another of "
+                     "them."),
+    Rule(name="a-pieces-parts-fill-their-own-space", kind="piece", expr="solve('furniture/parts_overlapping', self) == 0",
+         description="Two parts fill the same space: move one, or model each as what it is. A profile states its "
+                     "section (payload section), so what sits in its hollow is not in its material; a notch is a "
+                     "cut (payload cuts)."),
     Rule(name="a-pieces-motions-are-stated", kind="piece", expr="solve('furniture/motions_unstated', self) == 0",
          description="State each motion whole: type slide or turn, its axis, its travel [from, to], for a turn "
                      "its pivot, what moves and what it is guided by."),
@@ -486,6 +496,11 @@ RULES = [
     Rule(name="a-pieces-steps-close-every-joint", kind="piece", expr="solve('furniture/joints_misclosed', self) == 0",
          description="Close every joint in an assembly step (a step's joints), no sooner than the step that "
                      "brings in the last part it joins."),
+    Rule(name="a-pieces-parts-reach-their-place", kind="piece", expr="solve('furniture/arrivals_blocked', self) == 0",
+         description="A part a step brings in crosses a part already there on its way: say the side it really "
+                     "comes in from (the step's direction: up, down, left, right, front, back, the side it comes "
+                     "from), or bring it in before the part in its way. A part that cannot come in from any side "
+                     "once the others are there does not fit: change the design."),
     Rule(name="a-pieces-parts-say-what-they-are-cut-from", kind="piece",
          expr="solve('furniture/parts_unsourced', self) == 0",
          description="Link every part uses to the material it is cut from: ask the person what they buy."),
@@ -639,6 +654,15 @@ def _counter_examples() -> list[CounterExample]:
                        because="the ledger says the doors overlap by 50 mm, and the model gives 47"),
         CounterExample(rule="a-pieces-parts-are-fixed-or-guided", nodes=_piece_case(piece=piece.example_piece(joints=False)),
                        because="an angle and a channel that nothing fixes"),
+        CounterExample(rule="a-pieces-parts-are-fixed-or-guided",
+                       nodes=_piece_case(piece=piece.example_piece(bar="channel", bar_joined=False)),
+                       because="a sliding door made of a panel and a bar along its foot, which nothing joins to "
+                               "each other"),
+        CounterExample(rule="a-pieces-parts-fill-their-own-space", nodes=_piece_case(piece=piece.example_piece(bar="solid")),
+                       because="a bar along a door's foot modelled as a full box, in the place of the panel's edge "
+                               "it holds"),
+        CounterExample(rule="a-pieces-parts-reach-their-place", nodes=_piece_case(piece=piece.example_piece(doors_from="up")),
+                       because="doors said to come down into a rail that is already screwed up, through it"),
         CounterExample(rule="a-pieces-motions-are-stated", nodes=_piece_case(piece=piece.example_piece(travel=[600])),
                        because="a slide whose travel is one number"),
         CounterExample(rule="a-pieces-sliding-parts-are-held",
@@ -650,7 +674,7 @@ def _counter_examples() -> list[CounterExample]:
     ]
 
 
-VERSION = "0.10.5"
+VERSION = "0.11.0"
 
 
 SOLVERS = [SolverDef(name=name, native=True, reads=[""], description=(fn.__doc__ or "").strip().split("\n\n")[0])
@@ -672,10 +696,12 @@ def make_package() -> Package:
             "packages. And what a piece's design is held to: every sentence of its purpose answered by a decision "
             "of its ledger that names what realises it, the numbers the ledger states given by the model, every part "
             "fixed by a joint or moved by a motion (kind motion: a slide's or a turn's axis and travel, a turn's pivot, "
-            "what moves and what guides or carries it), what slides held on both sides, what turns carried where "
-            "it turns, each with room along its travel; levels: its design says what the "
+            "what moves and what guides or carries it; a motion holds what it moves as a whole, and the parts it "
+            "moves together are joined to each other), no two parts filling the same space, what slides held on both "
+            "sides, what turns carried where it turns, each with room along its travel; levels: its design says what the "
             "person asked for, it holds together and what moves in it works, its assembly instructions are shown (the "
-            "steps bring in every part and close every joint once its parts are in, and the pages as drawn carry no "
+            "steps bring in every part and close every joint once its parts are in, every part reaches its place from "
+            "the side its step says without crossing what is there, and the pages as drawn carry no "
             "sentence, attach one kind of part a step with a line to where it goes and what fastens it, and show "
             "the parts brought in and enough of those already there: Agrawala et al. 2003 and IKEA, as clauses of "
             "the knowledge). The rules grade and refuse nothing."),

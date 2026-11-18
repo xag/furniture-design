@@ -45,10 +45,12 @@ SAY = {
                                     "along its travel",
                               "fr": "Ce qui coulisse est tenu des deux côtés, ce qui pivote est porté, et chacun a "
                                     "la place de sa course"},
+    "piece-parts-fit": {"en": "No two parts fill the same space",
+                        "fr": "Deux pièces n'occupent jamais le même espace"},
     "piece-steps-build-it": {"en": "The assembly steps bring in every part and close every joint, each once its "
-                                   "parts are in",
+                                   "parts are in, and every part reaches its place",
                              "fr": "Les étapes de montage amènent chaque pièce et ferment chaque assemblage, une "
-                                   "fois ses pièces en place"},
+                                   "fois ses pièces en place, et chaque pièce arrive à sa place"},
     "piece-can-be-made": {"en": "Every part says what it is cut from and with, and every joint what fastens it and "
                                 "how many",
                           "fr": "Chaque pièce dit dans quoi et avec quoi elle est coupée, et chaque assemblage ce "
@@ -119,8 +121,16 @@ RED = {
         "en": "The model does not give a number the ledger states.",
         "fr": "Le modèle ne donne pas un chiffre que le registre énonce."},
     "a-pieces-parts-are-fixed-or-guided": {
-        "en": "A part is neither fixed by a joint nor moved by a motion.",
-        "fr": "Une pièce n'est ni fixée par un assemblage ni portée par un mouvement."},
+        "en": "A part is neither fixed by a joint nor moved by a motion, or moves with others that nothing joins "
+              "it to.",
+        "fr": "Une pièce n'est ni fixée par un assemblage ni portée par un mouvement, ou bouge avec d'autres "
+              "auxquelles rien ne la fixe."},
+    "a-pieces-parts-fill-their-own-space": {
+        "en": "Two parts fill the same space.",
+        "fr": "Deux pièces occupent le même espace."},
+    "a-pieces-parts-reach-their-place": {
+        "en": "A part a step brings in crosses a part already in place on its way.",
+        "fr": "Une pièce qu'une étape amène en traverse une autre déjà en place sur son chemin."},
     "a-pieces-motions-are-stated": {
         "en": "A motion does not say its axis, its travel, its pivot, what moves or what guides it.",
         "fr": "Un mouvement ne dit pas son axe, sa course, son pivot, ce qui bouge ou ce qui le guide."},
