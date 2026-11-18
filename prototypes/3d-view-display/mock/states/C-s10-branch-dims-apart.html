@@ -225,7 +225,7 @@ nav.addEventListener('scroll', more);
 const steps = DATA.steps.filter(s => !s.prepare);
 const stepIn = document.getElementById('steps');
 const placedAt = {};
-steps.forEach((s, i) => s.add.forEach(id => placedAt[id] = i + 1));
+steps.forEach((s, i) => s.add.forEach(id => { if (!(id in placedAt)) placedAt[id] = i + 1; }));
 // the steps followed are those that bring a part of what is shown; with fewer than two there is
 // nothing to follow, and the slider is not drawn
 let mine = [];
@@ -270,6 +270,24 @@ function apply() {
 }
 ['steps', 'explode', 'showc'].forEach(id => document.getElementById(id).addEventListener('input', apply));
 document.querySelectorAll('input[name=rest]').forEach(r => r.addEventListener('change', apply));
+// what is drawn is remembered on this device from one view to the next, whatever the piece; where the
+// browser keeps nothing (a private window), each view starts as drawn by default
+const KEPT = 'furniture-design.display';
+try {
+  const k = JSON.parse(localStorage.getItem(KEPT) || '{}');
+  if (typeof k.connectors === 'boolean') document.getElementById('showc').checked = k.connectors;
+  for (const [name, v] of [['dims', k.dims], ['rest', k.rest]]) {
+    const r = v && document.querySelector(`input[name=${name}][value="${CSS.escape(v)}"]`);
+    if (r) r.checked = true;
+  }
+} catch (e) { /* nothing kept */ }
+function keep() {
+  try {
+    localStorage.setItem(KEPT, JSON.stringify({connectors: document.getElementById('showc').checked,
+      dims: document.querySelector('input[name=dims]:checked').value, rest: document.querySelector('input[name=rest]:checked').value}));
+  } catch (e) { /* not kept */ }
+}
+document.querySelectorAll('#display input').forEach(i => i.addEventListener('change', keep));
 // a part drawn at an opacity; see-through parts write no depth, so what is shown is seen through them
 function look(m, a, edge) {
   const see = a < 1;

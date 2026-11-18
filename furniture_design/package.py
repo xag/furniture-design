@@ -795,7 +795,7 @@ def written_at(name: str) -> str:
     return ""
 
 
-VERSION = "0.26.1"
+VERSION = "0.27.0"
 
 
 def make_package() -> Package:

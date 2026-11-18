@@ -1662,6 +1662,65 @@ def entries() -> list[Node]:
             ],
         ),
         Node(
+            id="the-3d-views-settings-stand-under-the-tree-or-behind-display", kind="decision",
+            name="The 3D view reads from the top on a narrow screen: the tree, the model, the tools; on a wide "
+                 "screen the tree stands over the tools, beside the model. What is drawn is set in one block: "
+                 "Connecteurs, Cotes (Masquées, Positions, Tailles) and, while an assembly or a part is open, Reste "
+                 "du meuble (Masqué, Transparent, Plein: the rest of the piece left out, drawn grey see-through and "
+                 "passing taps, or drawn grey and solid, catching them). The block stands at the head of the tools, "
+                 "under the tree, when the tools fit their place with it; otherwise (a phone, a short window) it "
+                 "opens from a text button, Affichage, beside Réinitialiser, in the sliders' place, and takes the "
+                 "height it needs from the tree, never from the model, down to the tree's title and size line. It "
+                 "adds no step to the browser's history, and what it sets is remembered on the device",
+            links={"rests_on": ["the-tree-leads-the-3d-views-panel"],
+                   "supersedes": ["on-a-narrow-screen-the-tree-stands-above-the-model"]},
+            payload={"decided_on": "2026-11-18",
+                     "the_owner": "I'd say it goes just below the tree on desktop, and in a settings modal on "
+                                  "phone [...] I find the button ugly and a friction. I thought you wouldn't keep "
+                                  "it when you talked about a menu attached to the bottom [...] Perfect, go",
+                     "why": "The owner asked for the measurements and for the rest of the piece to be shown or "
+                            "not; the settings belong with the tree they act on. A step in the history would "
+                            "spend Soban's one history.back() on Close (app.js) and reloads the page on WebKit "
+                            "(bug 209753). The record: prototypes/3d-view-display/DESIGN.md.",
+                     "not_yet": "Inside Soban's wide page on a 1280 × 800 or 1366 × 768 laptop the view is about "
+                                "495 px tall and the block stays behind Affichage; under the tree only on taller "
+                                "screens or in full screen. Accepted by the owner."},
+            children=[
+                _alt("a-settings-button-over-the-model", "A round settings button over the model's top right "
+                     "corner opening a sheet", "Prototyped and turned down by the owner: ugly and a friction."),
+                _alt("the-sheet-pushes-a-history-step", "Back closes the opened settings",
+                     "Soban's Close goes back once and would land on the step; WebKit reloads the parent."),
+            ],
+        ),
+        Node(
+            id="the-3d-views-dimensions-are-positions-or-sizes", kind="decision",
+            name="The 3D view dimensions what is shown, one kind at a time, and only what can be read at the zoom: "
+                 "a dimension is drawn when its line is longer than its number, its number is on screen and meets "
+                 "no other, and no line of it crosses a number nor a number of it lies under a line; the whole "
+                 "first, then the longest. Positions: along each axis the whole and the chain of the parts' edges, "
+                 "as the plans dimension a view. Tailles: each row of the list at the level shown, as the list "
+                 "gives it, a size per span. Each stands off the outline in rows as far apart as a number is deep, "
+                 "the shortest nearest; a size stands on the opposite edge when its row is a quarter of the box "
+                 "nearer it. Nothing is dimensioned while the parts are pulled apart",
+            links={"rests_on": ["the-tree-leads-the-3d-views-panel",
+                                "the-3d-views-settings-stand-under-the-tree-or-behind-display"]},
+            payload={"decided_on": "2026-11-18",
+                     "the_owner": "display measurements (only those readable at current zoom level) [...] I'm "
+                                  "sorry but B is unreadable as prototyped [...] So we need both options",
+                     "why": "Positions say where parts are, as the plans do; sizes say what each row of the list "
+                            "measures, so a number on the model is found in the list. Both at once drew numbers "
+                            "over the doors that no part could be told by.",
+                     "not_yet": "A chain shows only the gaps long enough to read, so its numbers may not add up "
+                                "on screen, and inside an open assembly it measures within it, not where it "
+                                "stands in what holds it. Kept by the owner, as the plans dimension."},
+            children=[
+                _alt("each-part-on-its-own-edges", "Each part's three sizes on its own edges, all at once",
+                     "Prototyped: lines across the door faces, numbers that no part could be told by."),
+                _alt("positions-from-one-end", "Positions measured from one end of the box",
+                     "Would say where a part starts directly; the plans dimension in chains, and the owner kept them."),
+            ],
+        ),
+        Node(
             id="what-an-assistant-is-told-is-guidance-in-the-packages", kind="decision",
             name="What whoever designs with a package must be told before reading its nodes is a node of kind "
                  "guidance in that package's knowledge (branch guidance: a name, payload text, the link about to "
