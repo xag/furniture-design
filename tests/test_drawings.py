@@ -475,7 +475,9 @@ def test_one_document_is_drawn_as_the_four_are_and_says_how_far_it_has_got(tmp_p
     seen: list[float] = []
     for what in drawings.DOCUMENTS:
         one = drawings.document(tree, BENCH, tmp_path / "one", what, progress=seen.append)
-        assert {k: v.name for k, v in one.items()} == {k: every[k].name for k in one}
+        # the plans and the cutting sheet as drawn: "pages" alone, "pages-<what>" among the four
+        named = {k: f"pages-{what}" if k == "pages" and what != "assembly" else k for k in one}
+        assert {k: v.name for k, v in one.items()} == {k: every[named[k]].name for k in one}
     assert seen and seen == sorted(seen) and seen[0] >= 0 and seen[-1] == 1.0
     with pytest.raises(ValueError, match="viewer, design, assembly, cutting"):
         drawings.document(tree, BENCH, tmp_path, "poster")
@@ -501,3 +503,21 @@ def test_a_tools_pages_are_the_blocks_that_show_it_at_work_keyed_by_their_place(
         assert same["tool"] == saw.path
     with pytest.raises(ValueError, match="no block"):
         drawings.tool_pages(tree, "pieces/bench-side", tmp_path / "none", "tools/another")
+
+
+def test_the_documents_drawn_print_only_what_the_model_says_and_keep_to_the_paper(tmp_path):
+    """The instructions, the plans and the cutting sheet each note what they print and of what in the model,
+    and what they draw beyond the paper (pages.model): drawn from the bench, the standards find nothing in
+    them that the model does not say, and nothing off the paper."""
+    import json
+
+    from quern.tree import Node
+
+    from furniture_design import standards_pages as pg
+    tree = _tree()
+    made = drawings.documents(tree, BENCH, tmp_path)
+    for key in ("pages", "pages-design", "pages-cutting"):
+        tree.root.children = tree.root.children + [Node.model_validate(json.loads(made[key].read_text(encoding="utf-8")))]
+    assert tree.get(f"plans/{BENCH.rsplit('/', 1)[-1]}", depth=0) is not None
+    assert pg.EXPLAINERS["furniture/printed_unsupported"](tree, BENCH) == []
+    assert pg.EXPLAINERS["furniture/drawn_off_the_paper"](tree, BENCH) == []

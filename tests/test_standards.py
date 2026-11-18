@@ -75,10 +75,10 @@ PIECE = "pieces/doors"
 
 
 def piece_cert(pages: dict | None = None, **kw) -> dict:
-    from furniture_design.standards_pages import example_pages
+    from furniture_design.standards_pages import example_knowledge, example_pages
 
     t = Quern(vocabulary=standards.VOCABULARY, rules=standards.RULES, solvers=standards.SOLVERS)
-    t.root.children = _world() + sp.piece_world(**kw) + [example_pages(**(pages or {}))]
+    t.root.children = _world() + sp.piece_world(**kw) + example_knowledge() + [example_pages(**(pages or {}))]
     return certificate(t, PIECE)
 
 

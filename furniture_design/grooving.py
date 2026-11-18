@@ -180,10 +180,10 @@ def closeup(pen, center, r, spot, draw_inside):
     pen.circle(sx, sy, 0.7, fill=INK, stroke=INK, w=0.1)
 
 
-def section_edge(pen, cx, cy, r, t, off, standing=False):
+def section_edge(pen, cx, cy, r, t, off, standing=False, *, of: list[str]):
     """Inside a close-up: a part in section, its reference face (blue) on top, the groove `off` under it
     in its edge (right), the machine's front stop on the face (or, standing, its base plate against
-    the edge, groove `off` in from it)."""
+    the edge, groove `off` in from it). `of`: the part it is, which the groove's offset measures."""
     k = r * 1.25 / max(t, 22)
     from reportlab.lib.colors import Color as C
     wood = C(*WOOD)
@@ -195,7 +195,7 @@ def section_edge(pen, cx, cy, r, t, off, standing=False):
         pen.rect(xe - 11 * k, gy - 3.5 * k, 11 * k, 7 * k, fill=MARK, stroke=None)
         pen.rect(xe - 14 * k, top, 14 * k + 1, 1.0, fill=INK, stroke=None)         # the folded stop
         pen.rect(xe, gy - 14 * k, 4, 30 * k, fill=white, stroke=INK, lw_=0.3)      # the machine's front
-        pen.dim((xe - 6 * k - 4, top), (xe - 6 * k - 4, gy), -2, fr(off), horizontal=False, size=2.6)
+        pen.dim((xe - 6 * k - 4, top), (xe - 6 * k - 4, gy), -2, fr(off), horizontal=False, size=2.6, of=of)
     else:
         xl, bot = cx - t * k * 0.2, cy - t * k / 2
         top = bot + t * k
@@ -205,7 +205,7 @@ def section_edge(pen, cx, cy, r, t, off, standing=False):
         pen.rect(gx - 3.5 * k, top - 11 * k, 7 * k, 11 * k, fill=MARK, stroke=None)
         pen.rect(xl, top, 30 * k, 4, fill=white, stroke=INK, lw_=0.3)              # the machine's front
         pen.line(xl, top, xl, top + 12, 0.9, INK)                                  # its base plate
-        pen.dim((xl, bot), (gx, bot), -3, fr(off), size=2.6)
+        pen.dim((xl, bot), (gx, bot), -3, fr(off), size=2.6, of=of)
 
 
 # --- the four frames ---------------------------------------------------------------------------
@@ -298,7 +298,7 @@ def f_mark(pen, b, sc, e, f):
     pen.c.restoreState()
 
 
-def f_edge(pen, b, e, t, letter_, mach_model, offset):
+def f_edge(pen, b, e, t, letter_, mach_model, offset, of: list[str]):
     """The edge-grooved part lying reference face up, its joint edge at x = W_SHOW; the machine's front
     stop folded down on that face, its centre mark on the pencil tick."""
     yg = L_SHOW / 2
@@ -312,10 +312,10 @@ def f_edge(pen, b, e, t, letter_, mach_model, offset):
     pa, pb = W((W_SHOW - 130, yg - 60, t)), W((W_SHOW - 130, yg - 59, t))
     pen.c.restoreState()
     spot = W((W_SHOW, yg + 40, t - e.offset))
-    closeup(pen, side_spot(b), 12.5, spot, lambda cx, cy, r: section_edge(pen, cx, cy, r, t, e.offset))
+    closeup(pen, side_spot(b), 12.5, spot, lambda cx, cy, r: section_edge(pen, cx, cy, r, t, e.offset, of=of))
 
 
-def f_face(pen, b, f, t, letter_, mach_model):
+def f_face(pen, b, f, t, letter_, mach_model, of: list[str]):
     """The face-grooved part lying grooved face up, its reference edge at x = 0; the machine standing on
     that face, its base plate flush with the edge, its centre mark on the tick."""
     yg = L_SHOW / 2
@@ -329,7 +329,7 @@ def f_face(pen, b, f, t, letter_, mach_model):
     pen.c.restoreState()
     spot = W((0, yg + 70, t / 2))
     closeup(pen, side_spot(b), 12.5, spot,
-            lambda cx, cy, r: section_edge(pen, cx, cy, r, t, f.offset, standing=True))
+            lambda cx, cy, r: section_edge(pen, cx, cy, r, t, f.offset, standing=True, of=of))
 
 
 def f_drill(pen, b, e, t, n, letter_, jig_model):
@@ -413,11 +413,11 @@ def f_shelf(pen, b, e, f, sc, which, mach_model, offset):
     if which == "shelf":
         spot = W((line, yg + 60, ts + e.offset))
         closeup(pen, side_spot(b), 12.5, spot,
-                lambda cx, cy, r: section_edge(pen, cx, cy, r, tc, e.offset))
+                lambda cx, cy, r: section_edge(pen, cx, cy, r, tc, e.offset, of=[sc.part(e.part).path]))
     elif which == "side":
         spot = W((line - f.offset, yg + 60, ts))
         closeup(pen, side_spot(b), 12.5, spot,
-                lambda cx, cy, r: section_edge(pen, cx, cy, r, ts, f.offset, standing=True))
+                lambda cx, cy, r: section_edge(pen, cx, cy, r, ts, f.offset, standing=True, of=[sc.part(f.part).path]))
 
 
 # --- the pages ---------------------------------------------------------------------------------
@@ -440,7 +440,7 @@ def groups(sc, joint_ids):
     return out
 
 
-def settings(pen, b, model, setting, spacer, spacers, recess):
+def settings(pen, b, model, setting, spacer, spacers, recess, of: list[str] = ()):
     """The settings, each drawn: the machine with a close-up on each depth adjuster showing what it is set
     to (max, or the joint's setting); the spacer, crossed out when none is used; a test groove in an
     offcut, the connector `recess` under the surface."""
@@ -489,7 +489,8 @@ def settings(pen, b, model, setting, spacer, spacers, recess):
         pen.rect(tx, y + h / 2 - 5, 30, 8, fill=Color(*WOOD), stroke=INK, lw_=0.3)
         pen.rect(tx + 10, y + h / 2 - 1, 10, 4, fill=MARK, stroke=None)
         pen.rect(tx + 10.5, y + h / 2 - 1.4, 9, 2.8, fill=INK, stroke=None)
-        pen.dim((tx + 22, y + h / 2 + 3), (tx + 22, y + h / 2 + 1.6), 4, fr(recess), horizontal=False, size=2.4)
+        pen.dim((tx + 22, y + h / 2 + 3), (tx + 22, y + h / 2 + 1.6), 4, fr(recess), horizontal=False, size=2.4,
+                of=list(of))
 
 
 def _tool_model(sc: Scene, path: str):
@@ -522,7 +523,7 @@ def grooving_pages(c, pen, sc: Scene, step, L: dict, W_: float = 210, H_: float 
     by = {"tool": j0.machine} if j0.machine else {}   # the tool the block shows at work, by its path
     pen.note("block", (15, H_ - 78, 180, 38), step=step.number, head=True, **by)
     settings(pen, (15, H_ - 78, 180, 38), mach_model, j0.setting, gs[0]["e"].spacer, j0.spacers,
-             None if short else j0.test_recess)
+             None if short else j0.test_recess, of=[j0.machine] if j0.machine else [j0.path])
     fw, fh = (W_ - 30 - 4) / 2, 62.0
     y_top = H_ - 84
     rows = 1 if short else 2
@@ -562,8 +563,8 @@ def grooving_pages(c, pen, sc: Scene, step, L: dict, W_: float = 210, H_: float 
             f_shelf(pen, boxes[2], e, f, sc, "side", mach_model, offset)
         else:
             f_mark(pen, boxes[0], sc, e, f)
-            f_edge(pen, boxes[1], e, thickness(pe), pe.mark, mach_model, offset)
-            f_face(pen, boxes[2], f, thickness(pf), pf.mark, mach_model)
+            f_edge(pen, boxes[1], e, thickness(pe), pe.mark, mach_model, offset, [pe.path])
+            f_face(pen, boxes[2], f, thickness(pf), pf.mark, mach_model, [pf.path])
         if e.hole:
             f_drill(pen, boxes[3], e, thickness(pe), len(e.points), pe.mark, jig_model)
         for i, bx in enumerate(boxes):

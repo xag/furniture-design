@@ -220,7 +220,8 @@ def documents(tree: Quern, piece: str, out_dir: Path, *, lang: str = "fr",
     view (HTML), the design document (PDF, A3), the assembly instructions (PDF, A4) and the
     cutting sheet for a shop's cutting service (PDF, A4); and the instructions as screens for an
     app (steps.instruction_screens), in a folder named as their PDF, `steps` its screens.json, and
-    `pages` the instructions as they were drawn (pages.model), in that folder too.
+    `pages` the instructions as they were drawn (pages.model), in that folder too; `pages-design` and
+    `pages-cutting` the plans and the cutting sheet as drawn, each beside its PDF.
     `notes` are the design document's notes, sections of a heading and its paragraphs, a
     paragraph being a text or (text, [lines under it]) (the piece's payload description when none
     are given). `stock` is what can be bought of each material, the sheets the cutting sheet lays
@@ -231,8 +232,11 @@ def documents(tree: Quern, piece: str, out_dir: Path, *, lang: str = "fr",
     sc = scene(tree, piece)
     out: dict[str, Path] = {}
     for what in DOCUMENTS:
-        out |= document(tree, piece, out_dir, what, lang=lang, stem=stem, notes=notes, stock=stock,
+        made = document(tree, piece, out_dir, what, lang=lang, stem=stem, notes=notes, stock=stock,
                         at_work=at_work, sc=sc)
+        if "pages" in made and what != "assembly":    # the plans and the cutting sheet as drawn
+            made[f"pages-{what}"] = made.pop("pages")
+        out |= made
     return out
 
 
@@ -246,6 +250,7 @@ def document(tree: Quern, piece: str, out_dir: Path, what: str, *, lang: str = "
     0 to 1, as the instructions draw their steps then cut their screens. `sc`, the piece's scene when the
     caller has it already."""
     from .cutting import cutting_sheet
+    from .pages import DRAWN
     from .pages import model as pages_model
     from .report import checks as plain_checks
     from .scene import scene
@@ -261,11 +266,23 @@ def document(tree: Quern, piece: str, out_dir: Path, what: str, *, lang: str = "
     names = {"fr": ("3d", "plans", "montage", "decoupe"), "en": ("3d", "design", "assembly", "cutting")}[lang]
     if what == "viewer":
         return {"viewer": viewer_html(sc, out_dir / f"{stem}-{names[0]}.html", lang)}
+    pid = piece.rsplit("/", 1)[-1]
+
+    def kept(doc: Path, regions: list, words: list) -> Path:   # the document as drawn, beside it
+        drawn = doc.with_suffix(".json")
+        drawn.write_text(pages_model(pid, regions, words, DRAWN[what]).model_dump_json(exclude_defaults=True),
+                         encoding="utf-8")
+        return drawn
+
     if what == "design":
-        return {"design": design_document(sc, out_dir / f"{stem}-{names[1]}.pdf",
-                                          plain_checks(tree, piece, lang), lang, notes)}
+        regions, words = [], []
+        pdf = design_document(sc, out_dir / f"{stem}-{names[1]}.pdf", plain_checks(tree, piece, lang), lang, notes,
+                              regions, words)
+        return {"design": pdf, "pages": kept(pdf, regions, words)}
     if what == "cutting":
-        return {"cutting": cutting_sheet(sc, out_dir / f"{stem}-{names[3]}.pdf", lang, stock)}
+        words = []
+        pdf = cutting_sheet(sc, out_dir / f"{stem}-{names[3]}.pdf", lang, stock, words=words)
+        return {"cutting": pdf, "pages": kept(pdf, [], words)}
     regions: list[dict] = []     # where the assembly instructions draw each picture, for their screens
     words: list[dict] = []       # every text they set on a page
     pdf = out_dir / f"{stem}-{names[2]}.pdf"

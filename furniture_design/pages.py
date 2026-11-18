@@ -17,6 +17,9 @@ from quern.tree import Node
 from . import linework as lw
 
 INSTRUCTIONS = "instructions"
+# each document a piece's version is drawn as, by the key drawings.document makes it by, and the branch its
+# record mounts under (model): the assembly instructions, the plans, the cutting sheet
+DRAWN = {"assembly": INSTRUCTIONS, "design": "plans", "cutting": "cutting"}
 
 
 def _paint(faces, keys, size, to_px):
@@ -63,12 +66,11 @@ def shares(boxes: dict, view: lw.View, earlier: list[str], px: int = 320) -> tup
     return out, context
 
 
-def model(piece_id: str, regions: list[dict], words: list[dict]) -> Node:
-    """The instructions as drawn, for a tree to mount under `instructions`: a node named as the piece,
-    its pages in order (kind page, payload words: every text set on it, each {text, role?, off?: set
-    beyond the paper}), and under
-    each page its pictures (kind frame, payload: what sheets.assembly_instructions noted of it, less
-    where it is on the paper)."""
+def model(piece_id: str, regions: list[dict], words: list[dict], branch: str = INSTRUCTIONS) -> Node:
+    """A document as drawn, for a tree to mount under `branch` (DRAWN: instructions, plans or cutting): a
+    node named as the piece, its pages in order (kind page, payload words: every text set on it, each
+    {text, role?, off?: set beyond the paper, says?: what in the model it states}), and under each page its
+    pictures (kind frame, payload: what the drawing noted of it, less where it is on the paper)."""
     pages: dict[int, Node] = {}
 
     def page(n: int) -> Node:
@@ -77,9 +79,10 @@ def model(piece_id: str, regions: list[dict], words: list[dict]) -> Node:
         return pages[n]
 
     for w in words:
-        page(w["page"]).payload["words"].append({k: w[k] for k in ("text", "role", "off") if k in w})
+        page(w["page"]).payload["words"].append({k: w[k] for k in ("text", "role", "off", "says") if k in w})
     for i, r in enumerate(regions):
         facts = {k: v for k, v in r.items() if k not in ("page", "box", "blank")}
         page(r["page"]).children.append(Node(id=f"frame-{i + 1}", kind="frame", payload=facts))
-    return Node(id=INSTRUCTIONS, kind="", children=[
-        Node(id=piece_id, kind="instructions", children=[pages[n] for n in sorted(pages)])])
+    return Node(id=branch, kind="", children=[
+        Node(id=piece_id, kind="instructions" if branch == INSTRUCTIONS else "drawn",
+             children=[pages[n] for n in sorted(pages)])])

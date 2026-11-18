@@ -347,33 +347,69 @@ class Scene:
     def connectors(self) -> int:
         return sum(j.count for j in self.joints)
 
-    def apart(self) -> list[tuple[str, tuple, tuple]]:
-        """The things the piece is made of that stand apart from each other, each (name, lo, hi): its
-        parts and top-level groups, those whose boxes meet taken together. One for a piece that is one
-        thing; two for two wardrobes' doors modelled side by side with a gap the model chose for the
-        drawing, whose overall size would print the gap as a fact."""
-        top: dict[str, list] = {}
-        names: dict[str, str] = {}
-        for p in self.parts:
-            key, name = p.within[0] if p.within else (p.id, p.name)
-            top.setdefault(key, []).append(p)
-            names[key] = name
-        boxes = {k: (tuple(min(p.lo[i] for p in ps) for i in range(3)), tuple(max(p.hi[i] for p in ps) for i in range(3)))
-                 for k, ps in top.items()}
-        groups: list[list[str]] = []
-        for k in boxes:
-            meets = [g for g in groups if any(all(boxes[k][0][i] <= boxes[o][1][i] + TOUCH and
-                                                  boxes[o][0][i] <= boxes[k][1][i] + TOUCH for i in range(3)) for o in g)]
-            merged = [k] + [o for g in meets for o in g]
-            groups = [g for g in groups if g not in meets] + [merged]
+    def part_at(self, path: str) -> Part:
+        return next(p for p in self.parts if p.path == path)
+
+    def apart(self) -> list[tuple[str, tuple, tuple, list[str]]]:
+        """The things the piece is made of that stand apart from each other (standing_apart), each
+        (name, lo, hi, the paths of its parts). One for a piece that is one thing; two for two wardrobes'
+        doors modelled side by side with a gap the model chose for the drawing, whose overall size would
+        print the gap as a fact."""
+        names = {(p.within[0] if p.within else (p.id, p.name))[0]: (p.within[0] if p.within else (p.id, p.name))[1]
+                 for p in self.parts}
+        by = {p.path: p for p in self.parts}
+        groups = standing_apart([(p.path, (p.within[0][0] if p.within else p.id), p.lo, p.hi) for p in self.parts])
         if len(groups) == 1:
-            return [(self.title, self.lo, self.hi)]
+            return [(self.title, self.lo, self.hi, [p.path for p in self.parts])]
         out = []
-        for g in sorted(groups, key=lambda g: min(boxes[k][0][0] for k in g)):
-            lo = tuple(min(boxes[k][0][i] for k in g) for i in range(3))
-            hi = tuple(max(boxes[k][1][i] for k in g) for i in range(3))
-            out.append((" + ".join(names[k] for k in g), lo, hi))
+        for g in groups:
+            ps = [by[q] for q in g]
+            keys = list(dict.fromkeys(p.within[0][0] if p.within else p.id for p in ps))
+            lo = tuple(min(p.lo[i] for p in ps) for i in range(3))
+            hi = tuple(max(p.hi[i] for p in ps) for i in range(3))
+            out.append((" + ".join(names[k] for k in keys), lo, hi, g))
         return out
+
+
+def standing_apart(items: list[tuple[str, str, tuple, tuple]]) -> list[list[str]]:
+    """The things that stand apart from each other, as the paths of their parts, left to right: `items` are
+    the parts, each (path, the part or top-level group of the piece holding it, lo, hi); a top-level group
+    is one thing, and those whose boxes meet are taken together."""
+    top: dict[str, list] = {}
+    for path, key, lo, hi in items:
+        top.setdefault(key, []).append((path, lo, hi))
+    boxes = {k: (tuple(min(lo[i] for _, lo, _ in ps) for i in range(3)), tuple(max(hi[i] for _, _, hi in ps) for i in range(3)))
+             for k, ps in top.items()}
+    groups: list[list[str]] = []
+    for k in boxes:
+        meets = [g for g in groups if any(all(boxes[k][0][i] <= boxes[o][1][i] + TOUCH and
+                                              boxes[o][0][i] <= boxes[k][1][i] + TOUCH for i in range(3)) for o in g)]
+        merged = [k] + [o for g in meets for o in g]
+        groups = [g for g in groups if g not in meets] + [merged]
+    groups.sort(key=lambda g: min(boxes[k][0][0] for k in g))
+    return [[path for k in g for path, _, _ in top[k]] for g in groups]
+
+
+def material_label(tree: Quern, piece: str, path: str) -> str:
+    """How the documents name the material a part is cut from: the piece's payload material_names for it,
+    else the material's payload label, else its name up to the first comma; empty when it names none."""
+    uses = ((get_node(tree, path).links or {}).get("uses") or [])
+    if not uses:
+        return ""
+    mat = get_node(tree, uses[0])
+    names = (get_node(tree, piece).payload or {}).get("material_names", {})
+    return (names.get(uses[0].rsplit("/", 1)[-1]) or ((mat.payload or {}).get("label") if mat else "")
+            or ((mat.name if mat else "") or "").split(",")[0])
+
+
+def connector_size(tree: Quern, links: dict) -> tuple[float, float] | None:
+    """The size of a joint's connector, (length, thickness), from the first connector it uses that states
+    both; None when none does."""
+    for c in links.get("uses", []):
+        length, thickness = _param(tree, c, "length"), _param(tree, c, "thickness")
+        if length is not None and thickness is not None:
+            return (length, thickness)
+    return None
 
 
 def _tool(tree: Quern, path: str) -> Tool:
@@ -424,13 +460,11 @@ def scene(tree: Quern, piece: str) -> Scene:
 
     rows = cut_list(tree, piece)
     marks = {p: r.mark for r in rows for p in r.paths}
-    names = (get_node(tree, piece).payload or {}).get("material_names", {})
     parts = []
     root_path = "/".join(_segs(piece))
     for b in bodies(tree, piece, existing=True):
         node = get_node(tree, b.path)
         uses = (node.links or {}).get("uses", [])
-        mat = get_node(tree, uses[0]) if uses else None
         payload = node.payload or {}
         cuts = []
         for c in payload.get("cuts", []):
@@ -442,8 +476,7 @@ def scene(tree: Quern, piece: str) -> Scene:
         saws = [(get_node(tree, t).name or t.rsplit("/", 1)[-1], _kerf(tree, t))
                 for t in (node.links or {}).get("sawn_with", [])]
         material = uses[0].rsplit("/", 1)[-1] if uses else ""
-        label = (names.get(material) or ((mat.payload or {}).get("label") if mat else "")
-                 or ((mat.name if mat else "") or "").split(",")[0])
+        label = material_label(tree, piece, b.path)
         segs, within = b.path[len(root_path) + 1:].split("/")[:-1], []
         for i in range(len(segs)):
             holder = get_node(tree, "/".join([root_path, *segs[:i + 1]]))
@@ -470,12 +503,7 @@ def scene(tree: Quern, piece: str) -> Scene:
                               for c in links.get("uses", []))
         tools = [(get_node(tree, t).name or t.rsplit("/", 1)[-1])
                  for t in links.get("made_with", [])]
-        size = None
-        for c in links.get("uses", []):
-            length, thickness = _param(tree, c, "length"), _param(tree, c, "thickness")
-            if length is not None and thickness is not None:
-                size = (length, thickness)
-                break
+        size = connector_size(tree, links)
         joint = Joint(path, node.id, node.name or node.id, [p.id for p in ps], connector,
                       int(_param(tree, path, "count") or 0),
                       (node.payload or {}).get("setting", ""), tools, lay.lo, lay.hi,

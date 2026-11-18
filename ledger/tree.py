@@ -2138,12 +2138,13 @@ def entries() -> list[Node]:
                             "door standing over four of them, printed an overall width that held the 295 mm "
                             "the model set between two wardrobes for the drawing, and their 3D view showed the "
                             "rails floating where the lintel is.",
-                     "not_yet": "The plans' dimension chains still run across a gap between things that stand "
-                                "apart. A connector is a line, not a body: one driven into a part too thin to "
-                                "take it is not found."},
+                     "not_yet": "A connector is a line, not a body: one driven into a part too thin to take it "
+                                "is not found."},
             links={"rests_on": ["a-notice-is-certified-by-what-agrees",
                                 "what-a-piece-is-fixed-to-is-a-part-already-there",
                                 "the-instructions-state-only-what-the-model-says-and-all-of-it"]},
+            meta={"amended": "432edae44e7d the plans' sentence left not_yet: "
+                             "a-document-prints-only-what-the-model-says settles it"},
             children=[
                 _alt("a-screw-is-a-part", "Model every screw as a part of the piece",
                      "Thirty bodies listed, weighed and brought in for what the joint already places; the "
@@ -2152,6 +2153,44 @@ def entries() -> list[Node]:
                 _alt("a-gap-param", "Let a piece state the gap that is for the drawing only, and take it off",
                      "The model would carry a number that says nothing about the furniture; what stands apart "
                      "is found from where the parts are."),
+            ],
+        ),
+        Node(
+            id="a-document-prints-only-what-the-model-says", kind="decision",
+            name="Every document a piece is drawn as (the instructions, the plans, the cutting sheet) notes, as it "
+                 "draws, what each size, material, name and fastening mark it prints stands for in the model "
+                 "(Pen.text's says, Pen.dim's of, which a dimension cannot be drawn without, a fastening's region), "
+                 "and what it draws beyond the paper; the record travels with it (pages.model, under instructions, "
+                 "plans or cutting). One rule refuses what the model does not support "
+                 "(a-pieces-documents-print-only-its-model, criterion documents-say-only-the-model, judged on the "
+                 "pages at the instructions' level): a size across things that stand apart or of nothing in the "
+                 "model, a name or material cut short, a part drawn in a colour, a fastening drawn in proportions "
+                 "its connector does not have, a size printed that says nothing of what it measures; and "
+                 "a-pieces-pages-keep-to-the-paper reads all three documents. A fault a reader finds in a "
+                 "document is fixed by making a rule refuse it first, then the drawing",
+            payload={"decided_on": "2026-11-18",
+                     "why": "The owner: 'I don't want to fix the symptom but the process that allowed them.' The "
+                            "instructions' wood colour, biscuit icon and 2402 mm width were corrected by hand in "
+                            "the drawing (0.26.0, 0.28.0) and nothing refused the next: the plans went on printing "
+                            "2402 mm and a 297 mm gap between two wardrobes, a material cut off at 48 letters, "
+                            "and their part drawings at a negative scale off the paper. The rule found all of "
+                            "these on the sliding doors without being pointed at them, and refuses the colour, "
+                            "the biscuit and the width when they are drawn as they were for V14.",
+                     "not_yet": "What a document draws without noting it is not judged: the groove pages' close-ups "
+                                "in a wood's colour (pen.rect, not draw_parts) and their single numbers; a plain "
+                                "number printed with nothing said of it is refused only when it reads as a number "
+                                "times a number. Whether an arrow points the way a part comes, and whether a page "
+                                "reads clearly, still need a reader. A document drawn before it noted what it "
+                                "prints has no record and is not judged until generated again."},
+            links={"rests_on": ["a-notice-is-certified-by-what-agrees",
+                                "what-a-step-drives-and-what-a-document-sizes-are-the-models"]},
+            children=[
+                _alt("fix-each-statement-in-the-drawing", "Correct each false statement in the drawing code as a "
+                     "reader finds it", "What 0.26.0 to 0.28.1 did: the plans kept the 2402 mm after the cover "
+                     "lost it, and nothing refuses the next one."),
+                _alt("list-the-facts-on-the-server", "Have the server list the facts a document would print, "
+                     "without drawing it", "A second path beside the drawing: it says what the drawing should "
+                     "print, not what it printed."),
             ],
         ),
     ]

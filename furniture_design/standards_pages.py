@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import re
 
+from quern.provenance import Quantity
 from quern.tree import Node, Quern, get_node
 
 from .pages import INSTRUCTIONS
@@ -134,23 +135,152 @@ def steps_unlettered(tree: Quern, piece: str) -> float:
 
 
 @_lines
-def _off_the_paper(node: Node) -> list[str]:
+def _off_the_paper_node(node: Node, tree: Quern, piece: str) -> list[str]:
     out = []
-    for p in _pages(node):
-        if any(f.kind == "frame" and f.payload.get("kind") == "spill" for f in p.children):
-            out.append(f"page {p.payload.get('number')}: something is drawn beyond the edge of the paper")
-        out += [f"page {p.payload.get('number')}: \"{w['text']}\" is set beyond the edge of the paper"
-                for w in p.payload.get("words") or [] if w.get("off")]
+    for branch, doc in _DOCUMENTS:
+        drawn = node if branch == INSTRUCTIONS else get_node(tree, f"{branch}/{piece.rpartition('/')[2]}")
+        for p in _pages(drawn) if drawn is not None else []:
+            where = f"page {p.payload.get('number')}" if branch == INSTRUCTIONS else f"{doc}, page {p.payload.get('number')}"
+            if any(f.kind == "frame" and f.payload.get("kind") == "spill" for f in p.children):
+                out.append(f"{where}: something is drawn beyond the edge of the paper")
+            out += [f"{where}: \"{w['text']}\" is set beyond the edge of the paper"
+                    for w in p.payload.get("words") or [] if w.get("off")]
     return out
 
 
+def _off_the_paper(tree: Quern, piece: str) -> list[str]:
+    return _off_the_paper_node(tree, piece, tree, piece)
+
+
+_DOCUMENTS = ((INSTRUCTIONS, "the instructions"), ("plans", "the plans"), ("cutting", "the cutting sheet"))
+_A_SIZE = re.compile(r"\d\s*×\s*\d")   # a text that prints a size: a number times a number
+# how far a fastening's bar may be from its connector's proportions (thickness over length), drawn as
+# sheets._fastening draws it: 16 long, between 1.2 and 6 thick
+_BAR = (1.2 / 16, 6 / 16, 0.02)
+
+
+def _things(tree: Quern, piece: str) -> tuple[set, dict, list[str]]:
+    """The piece's parts (natives.bodies: what is already there is no part of it), which thing that
+    stands apart each is in (scene.standing_apart, as the documents group them), and each thing's name."""
+    from .natives import bodies
+    from .scene import standing_apart
+
+    base = piece.rstrip("/")
+    bs = bodies(tree, piece)
+
+    def holder(path: str) -> str:   # the part, or the outermost group of the piece holding it
+        segs = path[len(base) + 1:].split("/")
+        for i, seg in enumerate(segs[:-1]):
+            if get_node(tree, "/".join([base, *segs[:i + 1]])).kind != "part":
+                return seg
+        return segs[-1]
+
+    keyed = [(b.path, holder(b.path), b.lo, b.hi) for b in bs]
+    groups = standing_apart(keyed)
+    key = {path: k for path, k, _, _ in keyed}
+    names = [" + ".join(dict.fromkeys((get_node(tree, f"{base}/{key[q]}").name or key[q]) for q in g)) for g in groups]
+    return {b.path for b in bs}, {q: i for i, g in enumerate(groups) for q in g}, names
+
+
+@_lines
+def _unsupported_node(node: Node, tree: Quern, piece: str) -> list[str]:
+    from .scene import connector_size, material_label
+
+    pid = piece.rpartition("/")[2]
+    parts, thing, names = _things(tree, piece)
+    out: list[str] = []
+    for branch, doc in _DOCUMENTS:
+        drawn = node if branch == INSTRUCTIONS else get_node(tree, f"{branch}/{pid}")
+        for page in _pages(drawn) if drawn is not None else []:
+            where = f"{doc}, page {page.payload.get('number')}"
+            for w in page.payload.get("words") or []:
+                text, says = w.get("text", ""), w.get("says") or {}
+                if not says:
+                    if _A_SIZE.search(text):
+                        out.append(f"{where}: \"{text}\" prints a size and says nothing of what it measures")
+                    continue
+                if "size" in says:
+                    of = says["size"]
+                    gone = [q for q in of if get_node(tree, q) is None]
+                    if gone or not of:
+                        out.append(f"{where}: \"{text}\" measures {gone[0] if gone else 'nothing'}, which is "
+                                   "not in the model")
+                    elif not says.get("each") and len({thing[q] for q in of if q in parts}) > 1:
+                        apart = " and ".join(dict.fromkeys(names[thing[q]] for q in of if q in parts))
+                        out.append(f"{where}: \"{text}\" measures across things that stand apart ({apart}): "
+                                   "the model sets no distance between them but the one it draws them at")
+                left = [m for m in dict.fromkeys(material_label(tree, piece, q) for q in says.get("material") or [])
+                        if m and m not in text]
+                if left:
+                    out.append(f"{where}: \"{text}\" leaves out {'the material' if len(left) == 1 else 'materials'} "
+                               f"the model gives: {'; '.join(left)}")
+                if "name" in says:
+                    named = get_node(tree, says["name"])
+                    name = (named.name or named.id) if named is not None else ""
+                    if named is None or name not in text:
+                        out.append(f"{where}: \"{text}\" stands for {says['name']}, whose name is "
+                                   f"{name or 'not in the model'}")
+                fasteners = []
+                for j in says.get("connector") or []:
+                    joint = get_node(tree, j)
+                    for c in ((joint.links or {}).get("uses") or []) if joint is not None else []:
+                        known = get_node(tree, c)
+                        fasteners.append((known.name if known is not None else "") or c.rsplit("/", 1)[-1])
+                left = [f for f in dict.fromkeys(fasteners) if f not in text]
+                if left:
+                    out.append(f"{where}: \"{text}\" leaves out what the model fastens with: {'; '.join(left)}")
+            coloured = [f.payload for f in page.children if (f.payload or {}).get("kind") == "colour"]
+            if coloured:
+                made_of = "; ".join(dict.fromkeys(material_label(tree, piece, c.get("part", "")) or "nothing"
+                                                  for c in coloured))
+                out.append(f"{where}: {len(coloured)} part{'s are' if len(coloured) > 1 else ' is'} drawn in a colour "
+                           f"({', '.join(dict.fromkeys(c.get('colour', '') for c in coloured))}), which says what "
+                           f"{'they are' if len(coloured) > 1 else 'it is'} made of, and the model says {made_of}")
+            for f in page.children:
+                facts = f.payload or {}
+                if facts.get("kind") == "fastening":
+                    drawn_as = facts.get("drawn")
+                    for j in facts.get("joints") or []:
+                        joint = get_node(tree, j)
+                        size = connector_size(tree, joint.links or {}) if joint is not None else None
+                        if drawn_as and size is None:
+                            out.append(f"{where}: what fastens {j} is drawn as a bar of a size the model does "
+                                       "not give it")
+                        elif size and not drawn_as:
+                            out.append(f"{where}: what fastens {j} is drawn as a dot, and the model gives it "
+                                       f"{size[0]:g} × {size[1]:g}")
+                        elif size and drawn_as:
+                            lo, hi, slack = _BAR
+                            want = min(max(size[1] / size[0], lo), hi)
+                            if abs(drawn_as[1] / drawn_as[0] - want) > slack:
+                                out.append(f"{where}: what fastens {j} is drawn {drawn_as[0]:g} by {drawn_as[1]:g}, "
+                                           f"and the model gives it {size[0]:g} × {size[1]:g}")
+    return out
+
+
+def _unsupported(tree: Quern, piece: str) -> list[str]:
+    return _unsupported_node(tree, piece, tree, piece)
+
+
+def printed_unsupported(tree: Quern, piece: str) -> float:
+    """How many things the piece's documents print or draw that its model does not say, read from what
+    each noted as it drew (pages.model: the instructions, the plans, the cutting sheet): a size across
+    things that stand apart, or of something that is no part of it; a text that cuts short the name or
+    the material it stands for, or leaves out what fastens a joint it names; a part drawn in a colour,
+    which says a material; a fastening drawn in proportions its connector does not have; and a size
+    printed that says nothing of what it measures."""
+    return float(len(_unsupported(tree, piece)))
+
+
 def drawn_off_the_paper(tree: Quern, piece: str) -> float:
-    """How many pages of the piece's instructions draw something beyond the edge of the paper, and how many
-    texts are set beyond it: what is there is in the model and never reaches whoever builds."""
+    """How many pages of the piece's documents (the instructions, the plans, the cutting sheet, as each
+    noted what it drew) draw something beyond the edge of the paper, and how many texts are set beyond it:
+    what is there is in the model and never reaches whoever builds."""
     return float(len(_off_the_paper(tree, piece)))
 
 
 NATIVES = {
+    "furniture/printed_unsupported": printed_unsupported,
     "furniture/steps_unlettered": steps_unlettered,
     "furniture/drawn_off_the_paper": drawn_off_the_paper,
     "furniture/pages_worded": pages_worded,
@@ -162,6 +292,7 @@ NATIVES = {
 }
 
 EXPLAINERS = {
+    "furniture/printed_unsupported": _unsupported,
     "furniture/steps_unlettered": _unlettered,
     "furniture/drawn_off_the_paper": _off_the_paper,
     "furniture/pages_worded": _worded,
@@ -178,23 +309,52 @@ EXPLAINERS = {
 _PIECE = "pieces/doors"
 
 
+_DOORS = [f"{_PIECE}/angle", f"{_PIECE}/channel", f"{_PIECE}/front-door/front-panel", f"{_PIECE}/back-door/back-panel"]
+
+
+def example_knowledge() -> list[Node]:
+    """What the two doors are cut from and screwed with, named as the documents name them."""
+    return [Node(id="materials", kind="", children=[
+                Node(id="example-profile", kind="material", name="Aluminium profile, white")]),
+            Node(id="connectors", kind="", children=[
+                Node(id="example-screw", kind="connector", name="Screw 3 x 16",
+                     params={k: Quantity(value=v, unit="mm", provenance="published", grounded=False)
+                             for k, v in (("length", 16), ("thickness", 3))})])]
+
+
 def example_pages(*, sentence: str | None = None, role: str = "", rail_kinds: tuple = ("R",), doors_guided: tuple = ("back-panel", "front-panel"),
                   door_shows: float = 0.9, context: float = 0.8, fastened: tuple = ("angle-to-lintel", "channel-to-angle"),
-                  drawn: bool = True, lettered: bool | None = True, spilled: bool = False, off: str = "") -> Node:
+                  drawn: bool = True, lettered: bool | None = True, spilled: bool = False, off: str = "",
+                  overall: tuple = (), material: str = "Aluminium profile", unsaid: bool = False,
+                  coloured: bool = False, bar: tuple = (16, 3)) -> Node:
     """The instructions of the two doors as their drawing would note them: a cover with the piece's
-    name, a page of what is needed with counts and sizes, the rail, then the doors hung in it. Not
-    `lettered`: the doors' step draws no letter beside them. `spilled`: the page of what is needed draws a
-    part beyond the paper's foot; `off`: a text it sets there."""
+    name and its overall size, a page of what is needed with counts, sizes, the material and the screws,
+    then the rail, then the doors hung in it. Not `lettered`: the doors' step draws no letter beside them.
+    `spilled`: the page of what is needed draws a part beyond the paper's foot; `off`: a text it sets there.
+    What the pages say of the model: `overall`, more parts the overall size measures across; `material`,
+    the material as printed; `unsaid`: a size printed with nothing said of what it measures; `coloured`: the
+    front panel drawn in a wood's colour; `bar`: the screws' mark as drawn, length and thickness."""
     if not drawn:
         return Node(id=INSTRUCTIONS, kind="")
+    lintel = f"{_PIECE}/angle-to-lintel"
+    needed = [{"text": "A"}, {"text": "2 ×"},
+              {"text": "600 × 8 × 1190", **({} if unsaid else {"says": {"size": [_DOORS[2]]}})},
+              {"text": material, "role": "label", "says": {"material": [_DOORS[2]]}},
+              {"text": "Screw 3 x 16", "role": "label", "says": {"connector": [lintel]}}]
     step = lambda **kw: Node(id=f"frame-{kw['step'] + 2}", kind="frame", payload={"kind": "step", **kw})  # noqa: E731
     return Node(id=INSTRUCTIONS, kind="", children=[Node(id="doors", kind="instructions", children=[
-        Node(id="page-1", kind="page", payload={"number": 1, "words": [{"text": "Two sliding doors", "role": "name"}]},
-             children=[Node(id="frame-1", kind="frame", payload={"kind": "cover"})]),
-        Node(id="page-2", kind="page", payload={"number": 2, "words": [{"text": "A"}, {"text": "2 ×"},
-                                                                       {"text": "600 × 8 × 1190"}]
+        Node(id="page-1", kind="page", payload={"number": 1, "words": [
+                {"text": "Two sliding doors", "role": "name"},
+                {"text": "Overall size : 1150 × 22 × 1200 mm", "role": "label",
+                 "says": {"size": _DOORS + [f"{_PIECE}/{q}" for q in overall]}}]},
+             children=[Node(id="frame-1", kind="frame", payload={"kind": "cover"})]
+             + ([Node(id="frame-10", kind="frame", payload={"kind": "colour", "part": _DOORS[2], "colour": "0xe5c9a0"})]
+                if coloured else [])),
+        Node(id="page-2", kind="page", payload={"number": 2, "words": needed
                                                 + ([{"text": off, "role": "label", "off": True}] if off else [])},
-             children=[Node(id="frame-2", kind="frame", payload={"kind": "board", "mark": "A"})]
+             children=[Node(id="frame-2", kind="frame", payload={"kind": "board", "mark": "A"}),
+                       Node(id="frame-11", kind="frame", payload={"kind": "fastening", "joints": [lintel],
+                                                                  "drawn": list(bar)})]
              + ([Node(id="frame-9", kind="frame", payload={"kind": "spill"})] if spilled else [])),
         Node(id="page-3", kind="page",
              payload={"number": 3, "words": [{"text": "1"}, {"text": "2"}] + ([{"text": sentence, **({"role": role} if role else {})}] if sentence else [])},
@@ -210,15 +370,37 @@ def example_pages(*, sentence: str | None = None, role: str = "", rail_kinds: tu
     ])])
 
 
-def _demo(contract: str, expect: float, because: str, *args, **kw):
+def _demo(contract: str, expect: float, because: str, *args, piece: Node | None = None, **kw):
     from quern.tree import Demonstration
 
     from .standards_piece import piece_world
-    return Demonstration(contract=contract, nodes=piece_world() + [example_pages(**kw)], args=[_PIECE, *args],
-                         expect=expect, because=because)
+    return Demonstration(contract=contract, nodes=piece_world(piece) + example_knowledge() + [example_pages(**kw)],
+                         args=[_PIECE, *args], expect=expect, because=because)
+
+
+def _beside() -> Node:
+    from .standards_piece import example_piece
+    return example_piece(beside=300)
 
 
 SPEC = {
+    "furniture/printed_unsupported": [
+        _demo("furniture/printed_unsupported", 0, "the overall size measures the doors and their rail, the panel's "
+              "size, material and screws are the model's, and the screws' mark has their proportions"),
+        _demo("furniture/printed_unsupported", 1, "a spare panel stands 300 mm beside the opening, and the cover "
+              "prints one overall size across it and the doors", piece=_beside(), overall=("spare",)),
+        _demo("furniture/printed_unsupported", 0, "the same spare panel beside, and the cover sizes the doors alone",
+              piece=_beside()),
+        _demo("furniture/printed_unsupported", 1, "the panel's material cut short to fit its box",
+              material="Aluminium pro"),
+        _demo("furniture/printed_unsupported", 1, "a panel's size printed with nothing saying what it measures",
+              unsaid=True),
+        _demo("furniture/printed_unsupported", 1, "the front panel drawn in a wood's colour", coloured=True),
+        _demo("furniture/printed_unsupported", 1, "the screws marked with a biscuit's fixed proportions",
+              bar=(16, 6)),
+        _demo("furniture/printed_unsupported", 1, "instructions that were not drawn have no page to judge",
+              drawn=False),
+    ],
     "furniture/steps_unlettered": [
         _demo("furniture/steps_unlettered", 0, "the rail's parts and the doors each carry their letter where "
               "they come in"),

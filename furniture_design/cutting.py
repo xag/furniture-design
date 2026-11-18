@@ -84,6 +84,7 @@ class Cut:
     glued: int = 1  # how many such sheets are glued into the one part
     kerf: float | None = None  # the widest cut of the saws that cut it out, when they state one
     saw: str = ""              # that saw's name
+    path: str = ""             # the part's path in the piece
 
 
 def cuts(sc: Scene) -> list[Cut]:
@@ -101,7 +102,7 @@ def cuts(sc: Scene) -> list[Cut]:
             known = [(k, n) for n, k in p.saws if k is not None]
             kerf, saw = max(known) if known and len(known) == len(p.saws) else (None, "")
             out.append(Cut(p.mark, p.name, a, b, dims[2] / p.sheets, p.material, p.material_name, bool(p.cuts),
-                           p.sheets, kerf, saw))
+                           p.sheets, kerf, saw, p.path))
     return out
 
 
@@ -151,12 +152,20 @@ def _f(v: float) -> str:
 
 
 class _Page:
-    def __init__(self, path: Path, sc: Scene, L: dict, scale: int):
+    def __init__(self, path: Path, sc: Scene, L: dict, scale: int, words: list | None = None):
         self.c = Canvas(str(path), pagesize=A4)
         self.c.setTitle(f"{sc.title} - {L['title']}")
         self.sc, self.L, self.scale = sc, L, scale
         self.W, self.H = A4
         self.M = 15 * mm
+        self.words = words   # every text set, as sheets.Pen.text notes it, when kept
+
+    def say(self, x, y, text: str, says: dict | None = None, how: str = "drawString"):
+        """Set `text` at (x, y) in points, as `how` (a canvas method) sets it; noted with what in the model it
+        says when words are kept (sheets.Pen.text's says)."""
+        getattr(self.c, how)(x, y, text)
+        if self.words is not None and text.strip():
+            self.words.append({"page": self.c.getPageNumber() - 1, "text": text, **({"says": says} if says else {})})
 
     def head(self) -> float:
         c, L = self.c, self.L
@@ -217,9 +226,11 @@ def _table(pg: _Page, y: float, parts: list[Cut]) -> float:
         rows.setdefault((q.mark, round(q.length, 1), round(q.width, 1), round(q.thickness, 1)), [q, 0])[1] += 1
     for (_, length, width, t), (q, n) in rows.items():
         y = pg.room(y, 6 * mm) - 5.5 * mm
-        vals = [q.mark, part_name(q, L), str(n), _f(length), _f(width), _f(t), L["cut_later"] if q.cut_later else ""]
-        for (_, x), v in zip(cols, vals):
-            c.drawString(M + x * mm, y, v)
+        size = {"size": [q.path]}
+        vals = [(q.mark, None), (part_name(q, L), {"name": q.path}), (str(n), None), (_f(length), size),
+                (_f(width), size), (_f(t), size), (L["cut_later"] if q.cut_later else "", None)]
+        for (_, x), (v, says) in zip(cols, vals):
+            pg.say(M + x * mm, y, v, says)
     return y - 9 * mm
 
 
@@ -230,8 +241,9 @@ def _panel(pg: _Page, y: float, i: int, sheet: dict, placed, q0: Cut) -> float:
     y = pg.room(y, h + 22 * mm)
     c.setFillColor(INK)
     c.setFont("Helvetica-Bold", 10.5)
-    c.drawString(M, y, L["panel"].format(i=i, material=q0.material_name, t=_f(q0.thickness),
-                                         L=_f(sheet["length"]), W=_f(sheet["width"])))
+    pg.say(M, y, L["panel"].format(i=i, material=q0.material_name, t=_f(q0.thickness),
+                                   L=_f(sheet["length"]), W=_f(sheet["width"])),
+           {"material": [q.path for q, _, _ in placed] or [q0.path], "sold": True})
     if sheet.get("ref"):
         c.setFont("Helvetica", 8.5)
         c.setFillColor(MUTED)
@@ -264,8 +276,8 @@ def _panel(pg: _Page, y: float, i: int, sheet: dict, placed, q0: Cut) -> float:
             _arrow(c, rx + rw * 0.25, ry + rh / 2 - 2.5 * mm, rx + rw * 0.75)
         c.setFillColor(INK)
         c.setFont("Helvetica-Bold", 9 if rw > 30 * mm else 7)
-        c.drawCentredString(rx + rw / 2, ry + rh / 2 + (0.5 * mm if roomy else -1.2 * mm),
-                            f"{q.mark}  {_f(q.length)} × {_f(q.width)}")
+        pg.say(rx + rw / 2, ry + rh / 2 + (0.5 * mm if roomy else -1.2 * mm),
+               f"{q.mark}  {_f(q.length)} × {_f(q.width)}", {"size": [q.path]}, "drawCentredString")
     yy = top - h - 5 * mm
     c.setLineWidth(1)
     _arrow(c, M, yy, M + 30 * mm)
@@ -302,15 +314,16 @@ def layout(sc: Scene, stock: dict[str, list[dict]] | None = None, kerf: float = 
 
 
 def cutting_sheet(sc: Scene, path: Path, lang: str = "fr", stock: dict[str, list[dict]] | None = None,
-                  kerf: float = 4.0) -> Path:
+                  kerf: float = 4.0, words: list | None = None) -> Path:
     """Write the cutting sheet to `path`. `kerf` is the room left between two parts whose saws state
-    no cut, an allowance and not a measurement."""
+    no cut, an allowance and not a measurement. `words`, a list, gets every text it sets with what in the
+    model it says (sheets.Pen.text), which pages.model makes the sheet as drawn."""
     L = LABELS[lang]
     parts = cuts(sc)
     longest = max((max(q.length for q in parts), *(s["length"] for v in (stock or {}).values() for s in v)),
                   default=1000)
     scale = 10 if longest <= 1800 else 20 if longest <= 3600 else 40
-    pg = _Page(path, sc, L, scale)
+    pg = _Page(path, sc, L, scale, words)
     y = _table(pg, pg.head(), parts)
     i = 0
     for group, done, left in layout(sc, stock, kerf):
@@ -333,7 +346,7 @@ def cutting_sheet(sc: Scene, path: Path, lang: str = "fr", stock: dict[str, list
             pg.c.setFillColor(INK)
             text = L["choose"].format(material=group[0].material_name, t=_f(t),
                                       parts=", ".join(f"{q.mark} {_f(q.length)} × {_f(q.width)}" for q in left))
-            pg.c.drawString(pg.M, y, text)
+            pg.say(pg.M, y, text, {"material": [q.path for q in left], "size": [q.path for q in left], "each": True})
             y -= 9 * mm
     pg.c.save()
     return path

@@ -31,7 +31,7 @@ rl_config.useA85 = 0
 
 from . import linework as lw
 from .natives import away, drawn_apart
-from .scene import Part, Scene, cut_plan
+from .scene import TOUCH, Part, Scene, cut_plan
 
 INK = HexColor("#1d1d1b")
 THIN = HexColor("#5b5b58")
@@ -41,6 +41,10 @@ DIM = HexColor("#1f4e5a")
 PLAIN = HexColor("#ecebe8")
 NEW = HexColor("#b4c2ce")
 MARK = HexColor("#c0392b")
+# the most a part's fill may spread between its red, green and blue and still be a grey (draw_parts): PLAIN
+# and NEW, the tones of a part there and of one brought in, say nothing of what it is made of; a wood's
+# colour spreads more than twice as far
+GREY = 0.12
 OK = HexColor("#2e7d32")
 OPEN = HexColor("#b26a00")
 
@@ -50,6 +54,7 @@ LABELS = {
         "front": "Face", "left": "Gauche", "top": "Dessus", "axo": "Vue 3/4",
         "title": "Titre", "version": "Version", "drawn": "Dessiné par", "date": "Date",
         "scale": "Échelle", "sheet": "Feuille", "units": "Cotes en mm", "material": "Matériau",
+        "see_parts": "voir la liste des pièces, feuille 2",
         "projection": "Projection européenne (1er dièdre)",
         "mark": "Rep.", "name": "Désignation", "qty": "Qté", "length": "Long.", "width": "Larg.",
         "thickness": "Ép.", "grain": "Fil", "connectors": "Assemblages",
@@ -81,6 +86,7 @@ LABELS = {
         "front": "Front", "left": "Left", "top": "Top", "axo": "3/4 view",
         "title": "Title", "version": "Version", "drawn": "Drawn by", "date": "Date",
         "scale": "Scale", "sheet": "Sheet", "units": "Dimensions in mm", "material": "Material",
+        "see_parts": "see the parts list, sheet 2",
         "projection": "First-angle projection",
         "mark": "Mark", "name": "Part", "qty": "Qty", "length": "Length", "width": "Width",
         "thickness": "Thk.", "grain": "Grain", "connectors": "Joints",
@@ -122,8 +128,10 @@ class Pen:
 
     def __init__(self, c: Canvas):
         self.c = c
-        self.regions = None   # a list to note where each picture is drawn in (note()), or None
-        self.words = None     # a list to note every text set on a page (text()), or None
+        # a list to note where each picture is drawn in (note()), and one to note every text set on a page
+        # (text()), or None; a canvas that carries them (drawn_regions, drawn_words) gives them to its pens
+        self.regions = getattr(c, "drawn_regions", None)
+        self.words = getattr(c, "drawn_words", None)
 
     def note(self, kind: str, box, blank=None, **info):
         """When regions are kept, note that a picture of `kind` is drawn in `box` (x, y, w, h in mm from the
@@ -175,17 +183,20 @@ class Pen:
     def rect(self, x, y, w, h, fill=None, stroke=INK, lw_=0.35):
         self.poly([(x, y), (x + w, y), (x + w, y + h), (x, y + h)], fill, stroke, lw_)
 
-    def text(self, x, y, s, size=3.0, color=INK, anchor="start", bold=False, angle=0, role=""):
+    def text(self, x, y, s, size=3.0, color=INK, anchor="start", bold=False, angle=0, role="", says=None):
         """Set a text. When words are kept, note it with its page; `role` says what it is where that
         is not a thing to read as a sentence: "name", the piece's own name; "heading", a heading the
         drawing sets; "label", the name of a thing (a tool, the hardware) or a size; "note", the
         sentence of a step that brings in, cuts and closes nothing, so that no picture can say it. A text
-        set beyond the paper is noted so (off)."""
+        set beyond the paper is noted so (off). `says` is what in the model the text states, for a standard
+        to hold it to (standards_pages.printed_unsupported): {"size": the paths of the parts it measures
+        across}, {"material": the parts whose materials it names}, {"name": the node whose name it is},
+        {"connector": the joints whose connectors it names}."""
         c = self.c
         on = self._seen((x, y))
         if self.words is not None and str(s).strip():
             self.words.append({"page": c.getPageNumber() - 1, "text": str(s), **({"role": role} if role else {}),
-                               **({} if on else {"off": True})})
+                               **({} if on else {"off": True}), **({"says": says} if says else {})})
         c.saveState()
         c.setFillColor(color)
         c.setFont("Helvetica-Bold" if bold else "Helvetica", size * mm / 0.3528 * 0.3528)
@@ -212,10 +223,12 @@ class Pen:
         c.setLineWidth(w * mm)
         c.circle(x * mm, y * mm, r * mm, fill=1, stroke=1)
 
-    def dim(self, a, b, offset, label, horizontal=True, size=2.6):
+    def dim(self, a, b, offset, label, horizontal=True, size=2.6, *, of: list[str]):
         """An ISO-style dimension between points a and b (paper mm), the dimension line
-        `offset` mm away (positive: above / to the right)."""
+        `offset` mm away (positive: above / to the right). `of`: the paths of the parts whose edges it
+        runs between, or of the thing it spans: what in the model it measures (Pen.text's says)."""
         (ax, ay), (bx, by) = a, b
+        says = {"size": list(of)}
         if horizontal:
             y = (ay if offset > 0 else min(ay, by)) + offset
             y = max(ay, by) + offset if offset > 0 else min(ay, by) + offset
@@ -227,9 +240,9 @@ class Pen:
             self.arrowhead(bx, y, bx - ax, 0, 2.0, DIM)
             room = abs(bx - ax)
             if room >= len(label) * size * 0.55 + 1:
-                self.text((ax + bx) / 2, y + 0.8, label, size, DIM, "middle")
+                self.text((ax + bx) / 2, y + 0.8, label, size, DIM, "middle", says=says)
             else:  # too short to hold its figure: write it beside, past the right end
-                self.text(max(ax, bx) + 1.2, y + 0.8, label, size * 0.9, DIM)
+                self.text(max(ax, bx) + 1.2, y + 0.8, label, size * 0.9, DIM, says=says)
         else:
             x = max(ax, bx) + offset if offset > 0 else min(ax, bx) + offset
             for px, py in (a, b):
@@ -240,9 +253,9 @@ class Pen:
             self.arrowhead(x, by, 0, by - ay, 2.0, DIM)
             room = abs(by - ay)
             if room >= len(label) * size * 0.55 + 1:
-                self.text(x - 0.8, (ay + by) / 2, label, size, DIM, "middle", angle=90)
+                self.text(x - 0.8, (ay + by) / 2, label, size, DIM, "middle", angle=90, says=says)
             else:
-                self.text(x - 0.8, max(ay, by) + 1.2, label, size * 0.9, DIM, angle=90)
+                self.text(x - 0.8, max(ay, by) + 1.2, label, size * 0.9, DIM, angle=90, says=says)
 
 
 class Placed:
@@ -290,8 +303,10 @@ def _fit(boxes, view, x, y, w, h, scale=None, pad=0.0):
 def draw_parts(pen: Pen, placed: Placed, parts: list[Part], *, fill_for=None, offsets=None,
                line=0.3, shaded=True):
     """Fill and stroke each part's visible faces, back to front. `fill_for(part_id, shade)`
-    gives the face colour."""
+    gives the face colour. A part filled in a colour that is not a grey is noted (a region of kind
+    colour, when regions are kept): a colour says what a part is made of."""
     boxes = _boxes(parts, offsets)
+    paths, coloured = {p.id: p.path for p in parts}, set()
     for f in lw.faces(boxes, placed.view):
         pts = [placed.pt(p) for p in f.points]
         if fill_for:
@@ -299,6 +314,11 @@ def draw_parts(pen: Pen, placed: Placed, parts: list[Part], *, fill_for=None, of
         else:
             g = 1 - (0.12 * f.shade if shaded else 0)
             fill = Color(g, g, g)
+        if (pen.regions is not None and f.key not in coloured and fill is not None
+                and max(fill.red, fill.green, fill.blue) - min(fill.red, fill.green, fill.blue) > GREY):
+            coloured.add(f.key)
+            pen.regions.append({"kind": "colour", "page": pen.c.getPageNumber() - 1, "box": [0, 0, 0, 0],
+                                "part": paths.get(f.key, f.key), "colour": fill.hexval()})
         pen.poly(pts, fill=fill, stroke=INK, w=line)
     return boxes
 
@@ -306,11 +326,16 @@ def draw_parts(pen: Pen, placed: Placed, parts: list[Part], *, fill_for=None, of
 def overall(sc: Scene, L: dict) -> list[str]:
     """The overall size as the instructions print it: the piece's, or, when it is made of things that stand
     apart (Scene.apart), each one's with its name, so that no gap the model chose is printed as a size."""
+    return [line for line, _ in overall_said(sc, L)]
+
+
+def overall_said(sc: Scene, L: dict) -> list[tuple[str, list[str]]]:
+    """overall's lines, each with the paths of the parts it measures across."""
     things = sc.apart()
     say = lambda lo, hi: " × ".join(_fmt(b - a) for a, b in zip(lo, hi)) + " mm"  # noqa: E731
     if len(things) == 1:
-        return [f"{L['overall']} : {say(*things[0][1:])}"]
-    return [f"{L['overall']}, {name} : {say(lo, hi)}" for name, lo, hi in things]
+        return [(f"{L['overall']} : {say(*things[0][1:3])}", things[0][3])]
+    return [(f"{L['overall']}, {name} : {say(lo, hi)}", paths) for name, lo, hi, paths in things]
 
 
 def _tone(shade: float, base=PLAIN) -> Color:
@@ -409,18 +434,20 @@ def _frame(pen: Pen, W: float, H: float, sc: Scene, sheet: int, sheets: int, tit
     pen.text(x0 + 3, y0 + 26.3, title, 3.0, THIN)
     pen.text(x0 + bw - 3, y0 + 26.3, f"{L['version']} {sc.info.get('version', '')}", 3.0, THIN,
              "end")
+    materials = sorted({p.material_name for p in sc.parts if p.material_name})
     cells = [
         (0, 12, L["drawn"], ", ".join(sc.info.get("authors", [])) or "-"),
         (60, 12, L["date"], sc.info.get("date") or dt.date.today().isoformat()),
         (105, 12, L["scale"], f"1:{_fmt(1 / scale)}" if scale else "-"),
         (140, 12, L["sheet"], f"{sheet}/{sheets}"),
-        (0, 0, L["material"], ", ".join(sorted({p.material_name.split(',')[0] for p in sc.parts}))),
+        (0, 0, L["material"], materials[0] if len(materials) == 1 else L["see_parts"]),
         (105, 0, L["units"], ""),
         (140, 0, "", ""),
     ]
     for x, y, k, v in cells:
         pen.text(x0 + x + 2, y0 + y + 8.6, k, 2.2, THIN)
-        pen.text(x0 + x + 2, y0 + y + 3.2, v[:48], 3.0, INK)
+        pen.text(x0 + x + 2, y0 + y + 3.2, v, _fitted(v, 3.0, (105 if k == L["material"] else 45) - 4), INK,
+                 says={"material": [p.path for p in sc.parts]} if k == L["material"] and len(materials) == 1 else None)
     # first-angle projection symbol
     sx, sy = x0 + 152, y0 + 6
     pen.poly([(sx, sy - 3), (sx + 9, sy - 1.5), (sx + 9, sy + 1.5), (sx, sy + 3)], fill=None, w=0.25)
@@ -436,10 +463,46 @@ def _chain(values):
 
 def _view_dims(pen: Pen, placed: Placed, sc: Scene, h_axis: int, v_axis: int,
                h_sign: int = 1, chain_h=True, chain_v=True, side_v="left"):
-    parts = sc.parts
+    """A view's dimension chains and overall sizes. The things that stand apart along the view's width
+    (Scene.apart) are dimensioned each on its own, the first on side_v and the others on the right: the
+    model gives no distance between them (standards_pages.printed_unsupported)."""
+    things = [ps for _, _, _, ps in sc.apart()]
+    thing = {q: i for i, ps in enumerate(things) for q in ps}
+    spans: list[list] = []     # along the width: [lo, hi, the things], things that overlap in the view together
+    for ps in sorted(things, key=lambda ps: min(sc.part_at(q).lo[h_axis] for q in ps)):
+        lo, hi = min(sc.part_at(q).lo[h_axis] for q in ps), max(sc.part_at(q).hi[h_axis] for q in ps)
+        if spans and lo <= spans[-1][1] + TOUCH:
+            spans[-1][1] = max(spans[-1][1], hi)
+            spans[-1][2].append(ps)
+        else:
+            spans.append([lo, hi, [ps]])
+    size = lambda ps: sum(sc.part_at(q).hi[i] - sc.part_at(q).lo[i] for q in ps for i in range(3))  # noqa: E731
+    for k, (_, _, overlapping) in enumerate(spans):
+        # things one behind the other in this view: the largest is dimensioned, the others where they stand apart
+        ps = max(overlapping, key=size)
+        _dims_of(pen, placed, sc, [sc.part_at(q) for q in ps], thing, h_axis, v_axis, chain_h, chain_v,
+                 side_v if k == 0 else "right")
+
+
+def _dims_of(pen: Pen, placed: Placed, sc: Scene, parts: list, thing: dict, h_axis: int, v_axis: int,
+             chain_h: bool, chain_v: bool, side_v: str):
+    """The chains and overall sizes of `parts`, each dimension saying the parts it measures (Pen.dim's of):
+    two of one thing when one thing has both its edges, and one thing's when one spans it."""
     hs = _chain(v for p in parts for v in (p.lo[h_axis], p.hi[h_axis]))
     vs = _chain(v for p in parts for v in (p.lo[v_axis], p.hi[v_axis]))
     lo, hi = sc.lo, sc.hi
+
+    def between(va, vb, axis) -> list[str]:
+        at = lambda v: [p.path for p in parts if round(p.lo[axis], 1) == v or round(p.hi[axis], 1) == v]  # noqa: E731
+        a, b = at(va), at(vb)
+        return next(([x, y] for x in a for y in b if thing[x] == thing[y]), [a[0], b[0]])
+
+    def spanning(v0, v1, axis) -> list[str]:
+        groups: dict[int, list] = {}
+        for p in parts:
+            groups.setdefault(thing[p.path], []).append(p)
+        return next(([p.path for p in ps] for ps in groups.values() if round(min(p.lo[axis] for p in ps), 1) == v0
+                     and round(max(p.hi[axis] for p in ps), 1) == v1), [p.path for p in parts])
 
     def at(hv, vv):
         p = [(lo[i] + hi[i]) / 2 for i in range(3)]
@@ -451,9 +514,9 @@ def _view_dims(pen: Pen, placed: Placed, sc: Scene, h_axis: int, v_axis: int,
     if chain_h and len(hs) > 2:
         pts = sorted((at(h, vs[0])[0], h) for h in hs)
         for (xa, ha), (xb, hb) in zip(pts, pts[1:]):
-            pen.dim((xa, base), (xb, base), -7, _fmt(abs(hb - ha)))
+            pen.dim((xa, base), (xb, base), -7, _fmt(abs(hb - ha)), of=between(ha, hb, h_axis))
     pen.dim((xs[0], base), (xs[-1], base), -15 if chain_h and len(hs) > 2 else -7,
-            _fmt(hs[-1] - hs[0]))
+            _fmt(hs[-1] - hs[0]), of=spanning(hs[0], hs[-1], h_axis))
     ys = sorted(at(hs[0], v)[1] for v in vs)
     if side_v == "left":
         edge = min(at(h, vs[0])[0] for h in hs)
@@ -463,9 +526,10 @@ def _view_dims(pen: Pen, placed: Placed, sc: Scene, h_axis: int, v_axis: int,
         off1, off2 = 7, 15
     if chain_v and len(vs) > 2:
         for a, b, va, vb in zip(ys, ys[1:], vs, vs[1:]):
-            pen.dim((edge, a), (edge, b), off1, _fmt(vb - va), horizontal=False)
+            pen.dim((edge, a), (edge, b), off1, _fmt(vb - va), horizontal=False,
+                    of=between(va, vb, v_axis))
     pen.dim((edge, ys[0]), (edge, ys[-1]), off2 if chain_v and len(vs) > 2 else off1,
-            _fmt(vs[-1] - vs[0]), horizontal=False)
+            _fmt(vs[-1] - vs[0]), horizontal=False, of=spanning(vs[0], vs[-1], v_axis))
 
 
 def _scale_for(extent_mm: float, room_mm: float) -> float:
@@ -525,6 +589,14 @@ def _balloons(pen: Pen, placed: Placed, sc: Scene):
         pen.text(bx, by - 1.4, p.mark, 4, INK, "middle", bold=True)
 
 
+def _fitted(text: str, size: float, width: float, bold: bool = False) -> float:
+    """The size (Pen.text's) at which `text` fits `width` mm: `size`, or smaller; never cut short."""
+    from reportlab.pdfbase.pdfmetrics import stringWidth
+
+    w = stringWidth(text, "Helvetica-Bold" if bold else "Helvetica", size * mm) / mm
+    return size if w <= width else size * width / w
+
+
 def _parts_table(pen: Pen, x: float, y: float, rows: list[list[str]], widths: list[float],
                  header: list[str], row_h=7.0, size=3.0):
     pen.rect(x, y - row_h, sum(widths), row_h, fill=HexColor("#ece7dd"), stroke=INK, lw_=0.3)
@@ -537,7 +609,8 @@ def _parts_table(pen: Pen, x: float, y: float, rows: list[list[str]], widths: li
         pen.rect(x, yy, sum(widths), row_h, fill=None, stroke=THIN, lw_=0.15)
         cx = x
         for v, w in zip(row, widths):
-            pen.text(cx + 2, yy + 2.2, v, size, INK)
+            text, says = v if isinstance(v, tuple) else (v, None)
+            pen.text(cx + 2, yy + 2.2, text, _fitted(text, size, w - 3), INK, says=says)
             cx += w
     return y - row_h * (len(rows) + 1)
 
@@ -567,9 +640,9 @@ def _part_drawing(pen: Pen, sc: Scene, p: Part, x, y, w, h, L: dict):
         top = y1 < oy + lv * s - 0.5
         right = x1 < ox + lu * s - 0.5
         pen.dim((x0, y1 if top else y0), (x1, y1 if top else y0), 4 if top else -4,
-                _fmt(abs(hi[u] - lo[u])), size=2.2)
+                _fmt(abs(hi[u] - lo[u])), size=2.2, of=[p.path])
         pen.dim((x1 if right else x0, y0), (x1 if right else x0, y1), 4 if right else -4,
-                _fmt(abs(hi[v] - lo[v])), horizontal=False, size=2.2)
+                _fmt(abs(hi[v] - lo[v])), horizontal=False, size=2.2, of=[p.path])
     # grooves of every joint this part is in
     for j in sc.joints:
         if p.id not in j.parts:
@@ -590,14 +663,14 @@ def _part_drawing(pen: Pen, sc: Scene, p: Part, x, y, w, h, L: dict):
                     pen.rect(cu - length / 2 * s, cv - 1.2, length * s, 2.4, fill=MARK, stroke=None)
                 else:
                     pen.rect(cu - 1.2, cv - length / 2 * s, 2.4, length * s, fill=MARK, stroke=None)
-    pen.dim((ox, oy), (ox + lu * s, oy), -6, _fmt(lu))
-    pen.dim((ox, oy), (ox, oy + lv * s), -6, _fmt(lv), horizontal=False)
+    pen.dim((ox, oy), (ox + lu * s, oy), -6, _fmt(lu), of=[p.path])
+    pen.dim((ox, oy), (ox, oy + lv * s), -6, _fmt(lv), horizontal=False, of=[p.path])
     thick = p.size[t] / p.sheets
     label = f"{p.mark}  {p.name}"
-    pen.text(x + 2, y + h - 4, label, 3.4, INK, bold=True)
+    pen.text(x + 2, y + h - 4, label, 3.4, INK, bold=True, says={"name": p.path})
     extra = f"{L['thick']} {_fmt(p.size[t])}" if p.sheets == 1 else \
         f"{L['thick']} {_fmt(p.size[t])} ({L['glued_from']} {p.sheets} {L['sheets_of']} {_fmt(thick)})"
-    pen.text(x + 2, y + h - 8.5, extra, 2.6, THIN)
+    pen.text(x + 2, y + h - 8.5, extra, 2.6, THIN, says={"size": [p.path]})
     if p.grain:
         gx, gy = ox + lu * s * 0.2, oy + lv * s / 2
         pen.line(gx, gy, gx + lu * s * 0.6, gy, 0.25, THIN)
@@ -606,25 +679,57 @@ def _part_drawing(pen: Pen, sc: Scene, p: Part, x, y, w, h, L: dict):
         pen.text(gx + lu * s * 0.3, gy + 1.2, L["grain_along"], 2.4, THIN, "middle")
 
 
-def _sheet_parts(c: Canvas, sc: Scene, L: dict, sheets: int):
-    W, H = 420, 297
-    pen = Pen(c)
+PART_ROW = 45.0   # mm: the least height a part's drawing takes on the parts sheets
+PARTS_FOOT = 52.0  # mm: where the part drawings stop, above the title block
+
+
+def _distinct(sc: Scene) -> list[Part]:
     distinct = []
     for p in sc.parts:
         if p.mark not in [d.mark for d in distinct]:
             distinct.append(p)
+    return distinct
+
+
+def _part_sheets(sc: Scene) -> list[tuple[float, list[Part]]]:
+    """The part drawings by sheet, each (where its grid starts, its parts): under the parts and joints tables
+    on the first, as many rows as fit PART_ROW high, then on sheets of their own; never smaller."""
+    H = 297
+    distinct = _distinct(sc)
+    bottom = H - 26 - 7.0 * (len(distinct) + 1)    # under the parts table, and the joints table (_sheet_parts)
+    if sc.joints:
+        bottom = min(bottom, H - 26 - 6.0 * (len(sc.joints) + 1) - (6 if any(not j.stated for j in sc.joints) else 0))
+    top = bottom - 6
+    out, i = [], 0
+    while True:
+        n = 3 * max(0, int((top - PARTS_FOOT) // PART_ROW))
+        out.append((top, distinct[i:i + n]))
+        i += n
+        if i >= len(distinct):
+            return out
+        top = H - 30
+
+
+def _sheet_parts(c: Canvas, sc: Scene, L: dict, sheets: int) -> int:
+    """The parts sheets: the parts and joints tables, and a drawing of each part (_part_sheets); returns how
+    many sheets they took, numbered from 2."""
+    W, H = 420, 297
+    pen = Pen(c)
+    distinct = _distinct(sc)
     qty = {m: sum(pp.sheets for pp in sc.parts if pp.mark == m) for m in {p.mark for p in sc.parts}}
     rows = []
     for p in distinct:
         dims = sorted(p.size, reverse=True)
-        rows.append([p.mark, p.name[:34], str(qty[p.mark]), _fmt(dims[0]), _fmt(dims[1]),
-                     _fmt(dims[2] / p.sheets), p.material_name.split(",")[0][:30],
+        size = {"size": [p.path]}
+        rows.append([p.mark, (p.name, {"name": p.path}), str(qty[p.mark]), (_fmt(dims[0]), size),
+                     (_fmt(dims[1]), size), (_fmt(dims[2] / p.sheets), size),
+                     (p.material_name, {"material": [p.path]}),
                      L["grain_along"] if p.grain else ""])
     pen.text(18, H - 22, L["parts"], 5, INK, bold=True)
     bottom = _parts_table(pen, 18, H - 26, rows, [12, 66, 10, 18, 18, 12, 60, 12],
                           [L["mark"], L["name"], L["qty"], L["length"], L["width"],
                            L["thickness"], L["material"], L["grain"]])
-    jrows = [[" + ".join(sc.part(i).mark for i in j.parts), j.connector, str(j.count),
+    jrows = [[" + ".join(sc.part(i).mark for i in j.parts), (j.connector, {"connector": [j.path]}), str(j.count),
               j.setting, ", ".join(j.tools)] for j in sc.joints]
     jbottom = bottom
     if jrows:
@@ -635,17 +740,22 @@ def _sheet_parts(c: Canvas, sc: Scene, L: dict, sheets: int):
         if any(not j.stated for j in sc.joints):
             pen.text(238, jbottom - 4, L["positions_note"], 2.4, THIN)
             jbottom -= 6
-    # one drawing per distinct board, in a grid
-    top = min(bottom, jbottom) - 6
+    # one drawing per distinct board, in a grid, over as many sheets as they take
     cols = 3
-    cw, ch = (W - 36) / cols, (top - 52) / max(1, (len(distinct) + cols - 1) // cols)
-    ch = min(ch, 95)
-    for i, p in enumerate(distinct):
-        r, k = divmod(i, cols)
-        x, y = 18 + k * cw, top - (r + 1) * ch
-        pen.rect(x, y, cw - 4, ch - 4, fill=None, stroke=THIN, lw_=0.15)
-        _part_drawing(pen, sc, p, x, y, cw - 4, ch - 4, L)
-    _frame(pen, W, H, sc, 2, sheets, L["parts"], None, L)
+    for n, (top, shown) in enumerate(_part_sheets(sc)):
+        if n:
+            _frame(pen, W, H, sc, 1 + n, sheets, L["parts"], None, L)
+            c.showPage()
+            pen.text(18, H - 22, L["parts"], 5, INK, bold=True, role="heading")
+        cw, ch = (W - 36) / cols, (top - PARTS_FOOT) / max(1, (len(shown) + cols - 1) // cols)
+        ch = min(ch, 95)
+        for i, p in enumerate(shown):
+            r, k = divmod(i, cols)
+            x, y = 18 + k * cw, top - (r + 1) * ch
+            pen.rect(x, y, cw - 4, ch - 4, fill=None, stroke=THIN, lw_=0.15)
+            _part_drawing(pen, sc, p, x, y, cw - 4, ch - 4, L)
+    _frame(pen, W, H, sc, 1 + len(_part_sheets(sc)), sheets, L["parts"], None, L)
+    return len(_part_sheets(sc))
 
 
 def _wrap(text: str, width_chars: int) -> list[str]:
@@ -735,7 +845,7 @@ def _sheet_notes(c: Canvas, sc: Scene, lines: list[tuple], L: dict, sheet: int, 
 
 
 def _sheet_checks(c: Canvas, sc: Scene, checks: list[dict], L: dict, sheets: int,
-                  notes: tuple[float, list[tuple]] | None = None):
+                  notes: tuple[float, list[tuple]] | None = None, sheet: int = 3):
     W, H = 420, 297
     pen = Pen(c)
     pen.text(18, H - 22, L["checks"], 5, INK, bold=True)
@@ -757,29 +867,32 @@ def _sheet_checks(c: Canvas, sc: Scene, checks: list[dict], L: dict, sheets: int
         y -= hgt
     if notes and notes[1]:
         _set_lines(pen, notes[1], notes[0])
-    _frame(pen, W, H, sc, 3, sheets, L["checks"], None, L)
+    _frame(pen, W, H, sc, sheet, sheets, L["checks"], None, L)
 
 
 def design_document(sc: Scene, path: Path, checks: list[dict], lang: str = "fr",
-                    notes: Notes | None = None) -> Path:
+                    notes: Notes | None = None, regions: list | None = None, words: list | None = None) -> Path:
     """The design file of a piece, A3 landscape: the general views, the parts, the checks with
     the design notes under them, the notes going on over as many sheets of their own as they
     need. `notes` are the caller's sections (a heading and its paragraphs each); given none, the
-    piece's payload description is the notes, one paragraph each, under no heading."""
+    piece's payload description is the notes, one paragraph each, under no heading. `regions` and `words`,
+    lists, get what its pens note (Pen.note, Pen.text), which pages.model makes the plans as drawn."""
     L = LABELS[lang]
     if notes is None:
         notes = [("", list(sc.info.get("description") or []))] if sc.info.get("description") else []
     pages = _flow(_note_lines(notes, L), 297 - 30 - sum(_check_height(r) for r in checks) - 10) if notes else []
-    sheets = 3 + max(0, len(pages) - 1)
+    parts = len(_part_sheets(sc))
+    sheets = 2 + parts + max(0, len(pages) - 1)
     c = Canvas(str(path), pagesize=landscape(A3))
+    c.drawn_regions, c.drawn_words = regions, words
     c.setTitle(f"{sc.title} - {sc.info.get('version', '')}")
     _sheet_general(c, sc, L, sheets)
     c.showPage()
     _sheet_parts(c, sc, L, sheets)
     c.showPage()
-    _sheet_checks(c, sc, checks, L, sheets, pages[0] if pages else None)
+    _sheet_checks(c, sc, checks, L, sheets, pages[0] if pages else None, sheet=2 + parts)
     c.showPage()
-    for sheet, (_, lines) in enumerate(pages[1:], start=4):
+    for sheet, (_, lines) in enumerate(pages[1:], start=3 + parts):
         _sheet_notes(c, sc, lines, L, sheet, sheets)
         c.showPage()
     c.save()
@@ -788,16 +901,23 @@ def design_document(sc: Scene, path: Path, checks: list[dict], lang: str = "fr",
 
 # --- the assembly instructions ----------------------------------------------------------
 
-def _fastening(pen: Pen, x, y, n: int | None = None, size=None, scale=1.0):
+def _fastening(pen: Pen, x, y, n: int | None = None, size=None, scale=1.0, joints: list[str] = ()):
     """What fastens a joint, as the steps' pictures mark it where it goes (draw_slots): a bar of the
     connector's own proportions when its node states its size (length, thickness), else the dot; and how
-    many. It claims no kind of connector the model does not state."""
+    many. It claims no kind of connector the model does not state. When regions are kept it notes what it
+    drew and for which `joints` (a region of kind fastening: drawn, the bar's length and thickness, or
+    none for the dot), for a standard to hold the drawing to their connectors."""
     if size and size[0] > 0:
         w = 16 * scale
         h = max(1.2 * scale, min(6 * scale, w * size[1] / size[0]))
         pen.rect(x, y + (6 * scale - h) / 2, w, h, fill=MARK, stroke=None)
+        drawn = [round(w, 3), round(h, 3)]
     else:
         pen.circle(x + 8 * scale, y + 3 * scale, 1.8 * scale, fill=MARK, stroke=MARK, w=0)
+        drawn = None
+    if pen.regions is not None:
+        pen.regions.append({"kind": "fastening", "page": pen.c.getPageNumber() - 1, "box": [0, 0, 0, 0],
+                            "joints": list(joints), "drawn": drawn})
     if n is not None:
         pen.text(x + 19 * scale, y + 1.2 * scale, f"{n} ×", 5 * scale, INK, bold=True)
 
@@ -1005,8 +1125,8 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list
     placed = _fit(boxes, view, 20, 70, W - 40, 150, pad=10)
     draw_parts(pen, placed, sc.parts, fill_for=lambda k, sh: _tone(sh), line=0.4)
     size = [h - l for l, h in zip(sc.lo, sc.hi)]
-    for k, line in enumerate(overall(sc, L)):     # one size for each thing that stands apart
-        pen.text(W / 2, 50 - 6 * k, line, 4, INK, "middle", role="label")
+    for k, (line, paths) in enumerate(overall_said(sc, L)):     # one size for each thing that stands apart
+        pen.text(W / 2, 50 - 6 * k, line, 4, INK, "middle", role="label", says={"size": paths})
     c.showPage()
     # what is needed
     pen.text(15, H - 20, L["inbox"], 7, INK, bold=True, role="heading")
@@ -1042,12 +1162,13 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list
         pen.text(x + cw / 2, y + 3, f"{qty[p.mark]} ×", 5, INK, "middle", bold=True)
         dims = sorted(p.size, reverse=True)
         pen.text(x + cw / 2, y - 2, f"{_fmt(dims[0])} × {_fmt(dims[1])} × {_fmt(dims[2] / p.sheets)}",
-                 2.8, THIN, "middle")
+                 2.8, THIN, "middle", says={"size": [p.path]})
     yy = top - ((len(distinct) + 2) // 3 - first) * ch - 16
-    fastenings: dict[str, list] = {}     # each kind of connector: how many, and its size when it states one
+    fastenings: dict[str, list] = {}     # each kind of connector: how many, its size when it states one, its joints
     for j in sc.joints:
-        kind = fastenings.setdefault(j.connector, [0, j.size])
+        kind = fastenings.setdefault(j.connector, [0, j.size, []])
         kind[0] += j.count
+        kind[2].append(j.path)
     if fastenings and yy - 14 * len(fastenings) - 4 < FOOT:
         c.showPage()
         yy = H - 20
@@ -1055,8 +1176,8 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list
         pen.text(15, yy, L["hardware"], 4.5, INK, bold=True, role="heading")
     for name in sorted(fastenings):
         yy -= 14
-        _fastening(pen, 18, yy, fastenings[name][0], fastenings[name][1], 1.2)
-        pen.text(65, yy + 3, name, 3.4, INK, role="label")
+        _fastening(pen, 18, yy, fastenings[name][0], fastenings[name][1], 1.2, joints=fastenings[name][2])
+        pen.text(65, yy + 3, name, 3.4, INK, role="label", says={"connector": fastenings[name][2]})
     yy -= 14
     tools = []
     for s in sc.steps:
@@ -1112,7 +1233,8 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list
         joints = [j for j in sc.joints if j.id in step.joints]
         n = sum(j.count for j in joints)
         if n and not step.prepare:
-            _fastening(pen, x + w - 46, y + h - 12, n, next((j.size for j in joints if j.size), None), 1.0)
+            _fastening(pen, x + w - 46, y + h - 12, n, next((j.size for j in joints if j.size), None), 1.0,
+                       joints=[j.path for j in joints])
         tx = x + 22
         for t in step.tools:
             tx += _tool_badge(pen, tx, y + h - 13, t) + 3

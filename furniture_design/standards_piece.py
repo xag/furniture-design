@@ -779,7 +779,7 @@ def example_piece(*, channel_at: float = 0.0, joints: bool = True, back_guides: 
                   steps: list | None = None, flap: dict | None = None, made: bool = True,
                   fastened: bool = True, unsaid: tuple[str, ...] = (), bought: tuple[str, ...] = (),
                   doors_from: str = "down", bar: str = "", bar_joined: bool = True, lintel: bool = True,
-                  aside: bool = False) -> Node:
+                  aside: bool = False, beside: float = 0.0) -> Node:
     """Two doors, 600 wide, in an opening `2 * 600 - overlap` wide; the channel `channel_at` mm from the
     flange's front edge (0: at the edge, as designed; 7: glued in the angle). The channel says neither
     what it is cut from nor with what when not `made`, and leaves out the links `unsaid` otherwise. The door
@@ -789,7 +789,8 @@ def example_piece(*, channel_at: float = 0.0, joints: bool = True, back_guides: 
     edge sits in, or "solid", the same bar modelled as a full box, in the panel's place; glued to the panel
     unless not `bar_joined`. The lintel the angle is screwed under is a part already there, unless not
     `lintel`: then the joint only says it in words. With `aside`, the front door is put together away
-    from the rail (the panel, then its bar) and brought in whole."""
+    from the rail (the panel, then its bar) and brought in whole. With `beside`, a spare panel stands that far
+    to the right of the opening, a thing apart from the doors."""
     sold = "the panel's maker, cut to order"
     angle = _part("angle", ["width", 20, 20], [0, 0, 1180],
                   [[0, 19], [19, 19], [19, 0], [20, 0], [20, 20], [0, 20]])
@@ -819,6 +820,8 @@ def example_piece(*, channel_at: float = 0.0, joints: bool = True, back_guides: 
                 children=[_part("back-panel", [600, 6, 1190], ["width - 600", 12.5, 5],
                                 bought=sold if "back-panel" in bought else "")])
     children = [angle, channel, front, back]
+    if beside:
+        children.append(_part("spare", [300, 8, 300], [f"width + {beside:g}", 0, 0]))
     if lintel:
         children.append(_part("lintel", ["width", 20, 19], [0, 0, 1200], existing="the lintel over the opening"))
     if joints:

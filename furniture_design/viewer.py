@@ -772,7 +772,7 @@ def viewer_html(sc: Scene, path: Path, lang: str = "fr") -> Path:
         "lo": sc.lo, "hi": sc.hi, "finished": W["finished"], "title": sc.title,
         "subtitle": f"{sc.info.get('version', '')} · " + " ; ".join(
             (f"{name} " if len(sc.apart()) > 1 else "") + " × ".join(str(round(b - a)) for a, b in zip(lo, hi)) + " mm"
-            for name, lo, hi in sc.apart()),
+            for name, lo, hi, _ in sc.apart()),
         "parts": [{"id": p.id, "mark": p.mark, "name": p.name, "lo": p.lo, "hi": p.hi,
                    "sheets": p.sheets, "material": p.material_name, "within": p.within,
                    "profile": _profile(p)} for p in sc.parts],
