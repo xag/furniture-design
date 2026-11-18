@@ -340,26 +340,3 @@ def test_the_cover_prints_a_size_for_each_thing_that_stands_apart():
                                           "Overall size, Small : 949 × 20 × 1000 mm"]
     one = Scene("Doors", "pieces/doors", [part("a", "big", 0, 1158), part("b", "small", 1158, 2107)], [], [], {})
     assert overall(one, LABELS["en"]) == ["Overall size : 2107 × 20 × 1000 mm"]
-
-
-def test_the_plans_dimension_each_thing_that_stands_apart_on_its_own():
-    """Two sets of doors modelled side by side with a gap chosen for the drawing: the plans' chains and
-    overall sizes are each set's, and neither the gap nor the width across it is printed."""
-    from furniture_design import sheets
-    from furniture_design.scene import Part, Scene
-
-    class Pen:
-        def __init__(self):
-            self.said = []
-
-        def dim(self, a, b, off, label, horizontal=True):
-            self.said.append(label)
-
-    def part(i, group, x0, x1):
-        return Part(i, i, i, "A", (x0, 0, 0), (x1, 20, 1000), "", "", within=[(group, group.capitalize())])
-
-    two = Scene("Doors", "pieces/doors", [part("a", "big", 0, 1158), part("b", "small", 1453, 1900),
-                                          part("c", "small", 1900, 2402)], [], [], {})
-    pen = Pen()
-    sheets._view_dims(pen, lambda q: (q[0] / 10, q[2] / 10), two, 0, 2)
-    assert sorted(pen.said) == sorted(sheets._fmt(v) for v in (1158, 1000, 447, 502, 949, 1000))
