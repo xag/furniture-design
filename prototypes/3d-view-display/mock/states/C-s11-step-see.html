@@ -64,8 +64,8 @@ label.opt input { width:18px; height:18px; margin:0; accent-color:var(--ink); }
   #tools { max-height:30%; padding:0 16px 12px; border-left:none; border-top:1px solid var(--line); }
   #tools.sheet { max-height:none; flex:none; }   /* open, the settings take what they need; the tree gives it up */
 }
-/* with a mouse, a row needs no finger's height: the settings fit under the tree on a laptop */
-@media (pointer: fine) {
+/* with a mouse and no touch screen, a row needs no finger's height: the settings fit under the tree on a laptop */
+@media not (any-pointer: coarse) {
   label.opt, .seg span { min-height:32px; }
 }
 /* with no room for it under the tree (room(): a phone, or a column too short to hold it and the
@@ -288,6 +288,22 @@ function sheet(open) {
   display.classList.toggle('open', open); tools.classList.toggle('sheet', open);
   opts.setAttribute('aria-expanded', String(open));
   if (!open && display.contains(document.activeElement)) opts.focus();
+  give();
+}
+// open, the settings take the height they need from the tree, never from the model, down to the
+// tree's title and size line: the model keeps the height it had, so a change is seen at its scale
+function give() {
+  nav.style.maxHeight = '';
+  if (!isOpen() || !document.getElementById('app').classList.contains('tight')) { more(); return; }
+  display.classList.remove('open'); tools.classList.remove('sheet');
+  const before = stage.clientHeight;
+  display.classList.add('open'); tools.classList.add('sheet');
+  const owed = Math.max(0, before - stage.clientHeight) + Math.max(0, tools.scrollHeight - tools.clientHeight);
+  if (owed) {
+    const floor = document.getElementById('sub').getBoundingClientRect().bottom - nav.getBoundingClientRect().top + nav.scrollTop + 8;
+    nav.style.maxHeight = Math.max(floor, nav.clientHeight - owed) + 'px';
+  }
+  more();
 }
 opts.onclick = () => sheet(!isOpen());
 document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && isOpen()) sheet(false); });
@@ -296,8 +312,9 @@ document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && isOpen()
 const narrow = matchMedia('(max-width: 720px)');
 function room() {
   const app = document.getElementById('app');
-  app.classList.remove('tight');
+  nav.style.maxHeight = ''; app.classList.remove('tight');
   if (narrow.matches || tools.scrollHeight > tools.clientHeight + 1) app.classList.add('tight');
+  give();
 }
 new ResizeObserver(room).observe(document.getElementById('app'));
 document.getElementById('reset').onclick = () => { stepIn.value = 0; document.getElementById('explode').value = 0; go([]); };
@@ -501,6 +518,17 @@ function edgeFor(lo, hi, a, w, h, name, far) {
   if (nx * ex + ny * ey < 0) { nx = -nx; ny = -ny; }
   return {p0: best.p0, nx, ny};
 }
+// the rows of the list among the parts given, as boxes: a group at the depth shown as the box of
+// its parts, a part by its letter, the first of it
+function rowsOfList(ps) {
+  const depth = groupsOf().length, rows = new Map();
+  ps.forEach(p => {
+    const g = p.within[depth], key = g ? 'g' + g[0] : 'm' + p.mark, r = rows.get(key);
+    if (!r) rows.set(key, {lo: p.lo.slice(), hi: p.hi.slice()});
+    else if (g) [0, 1, 2].forEach(i => { r.lo[i] = Math.min(r.lo[i], p.lo[i]); r.hi[i] = Math.max(r.hi[i], p.hi[i]); });
+  });
+  return [...rows.values()];
+}
 // each dimension: its axis, the edge it stands on, its two ends along the axis, the point of a part
 // each end is measured from (where its extension line starts), how far off the box, and its order:
 // the whole first, then from the longest down, in mm, so the order never changes as the view turns
@@ -527,16 +555,19 @@ function candidates(w, h) {
       }));
       return best.q;
     };
-    // a part's size stands on the edge of the two opposite ones that is nearer it, as an elevation
-    // dimensions a top rail above the view and a bottom rail below; one size per span: two parts
-    // as long, side by side, give one
+    // the sizes of the rows of the list, each as the list gives it: a group as its box, a part once
+    // however many times it is used. A size stands on the nearer of two opposite edges, as an
+    // elevation dimensions a top rail above the view and a bottom rail below, when the row is
+    // nearer the far edge by a quarter of the box; one size per span: two rows as long, side by
+    // side, give one
     if (dimsMode() === 'part') {
       const e2 = edgeFor(lo, hi, a, w, h, 'far' + a, true), seen = new Set();
-      ps.forEach(p => {
+      const across = Math.hypot(hi[b] - lo[b], hi[c] - lo[c]) / 4;
+      rowsOfList(ps).forEach(p => {
         const key = r1(p.lo[a]) + ':' + r1(p.hi[a]);
         if (seen.has(key)) return;
         seen.add(key);
-        const far = e2 && corner(p, p.lo[a], e2).d < corner(p, p.lo[a]).d - 1, at = far ? e2 : e;
+        const far = e2 && corner(p, p.lo[a], e2).d < corner(p, p.lo[a]).d - across, at = far ? e2 : e;
         out.push({e: at, a, k: a + (far ? 3 : 0), from: p.lo[a], to: p.hi[a], f: corner(p, p.lo[a], at).q,
                   t: corner(p, p.hi[a], at).q, rows: true, rank: 1, size: p.hi[a] - p.lo[a]});
       });
@@ -544,8 +575,8 @@ function candidates(w, h) {
     }
     const vs = [...new Set(ps.flatMap(p => [p.lo[a], p.hi[a]]).map(r1))].sort((x, y) => x - y);
     const chained = vs.length > 2, n = vs.length - 1;
-    out.push({e, a, from: vs[0], to: vs[n], f: from(vs[0]), t: from(vs[n]), gap: chained ? 40 : 18, rank: 0, size: vs[n] - vs[0]});
-    if (chained) vs.slice(1).forEach((v, i) => out.push({e, a, from: vs[i], to: v, f: from(vs[i]), t: from(v), gap: 18, rank: 1, size: v - vs[i]}));
+    out.push({e, a, k: a, row: chained ? 1 : 0, from: vs[0], to: vs[n], f: from(vs[0]), t: from(vs[n]), rank: 0, size: vs[n] - vs[0]});
+    if (chained) vs.slice(1).forEach((v, i) => out.push({e, a, k: a, row: 0, from: vs[i], to: v, f: from(vs[i]), t: from(v), rank: 1, size: v - vs[i]}));
   });
   return out.sort((x, y) => x.rank - y.rank || y.size - x.size);
 }
@@ -559,7 +590,6 @@ function marks() {
   if (dimsMode() === 'none' || +explodeIn.value > 0) return;
   mk.font = '12px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
   mk.lineWidth = 1; mk.strokeStyle = ink; mk.fillStyle = ink;
-  const placed = [], lines = [], rows = [[], [], [], [], [], []];
   const meets = (o, b) => b.x < o.x + o.w && o.x < b.x + b.w && b.y < o.y + o.h && o.y < b.y + b.h;
   // whether the segment p-q passes through the box b (clipped against it, Liang-Barsky)
   const through = (p, q, b) => {
@@ -582,31 +612,50 @@ function marks() {
     d.tw = mk.measureText(d.text).width;
     return d.len >= d.tw + 16;
   });
-  // the sizes long enough to be read take rows outward from the box, the shortest nearest, each in
-  // the first row where it overlaps no other size on that axis, as a drawing stacks its dimensions;
-  // the rows stand as far apart as a number is deep across its line, so a row's numbers clear the next
-  const sized = ds.filter(d => d.rows), step = [0, 1, 2, 3, 4, 5].map(k => {
-    const on = sized.filter(d => d.k === k), e = on.length && on[0].e;
+  // rows outward from the box, as far apart as a number is deep across its line, so a row's
+  // numbers clear the next. Positions: its chain in the first, the whole in the second. Sizes: the
+  // shortest nearest, each in the first row where it overlaps no other size on that side; a size that
+  // is then not drawn gives its row up, and the rows are given again among the others
+  const step = [0, 1, 2, 3, 4, 5].map(k => {
+    const on = ds.filter(d => d.k === k), e = on.length && on[0].e;
     return on.length ? Math.max(22, Math.abs(e.nx) * (Math.max(...on.map(d => d.tw)) + 8) + Math.abs(e.ny) * 16 + 6) : 0;
   });
-  sized.sort((x, y) => x.size - y.size).forEach(d => {
-    let row = 0;
-    while (rows[d.k][row] && rows[d.k][row].some(o => d.from < o.to - 0.05 && o.from < d.to - 0.05)) row++;
-    (rows[d.k][row] = rows[d.k][row] || []).push(d);
-    d.gap = 18 + step[d.k] * row;
-  });
-  ds.forEach(d => {
-    const {e, s0, s1, f0, f1, len, text, gap} = d, box = {w: d.tw + 8, h: 16};
-    const ox = e.nx * gap, oy = e.ny * gap;
-    const a0 = [s0[0] + ox, s0[1] + oy], a1 = [s1[0] + ox, s1[1] + oy];
-    const cx = (a0[0] + a1[0]) / 2, cy = (a0[1] + a1[1]) / 2;
-    box.x = cx - box.w / 2; box.y = cy - box.h / 2;
-    if (box.x < 0 || box.y < 0 || box.x + box.w > w || box.y + box.h > h) return;
-    if (placed.some(o => meets(o, box))) return;
-    const mine = [[f0, a0], [f1, a1], [a0, a1]];
-    if (mine.some(([p, q]) => placed.some(o => through(p, q, o)))) return;
-    if (lines.some(([p, q]) => through(p, q, box))) return;
-    placed.push(box); lines.push(...mine);
+  let left = ds.slice(), drawn = [];
+  for (let tries = 0; tries < 8; tries++) {
+    const rows = [[], [], [], [], [], []];
+    left.filter(d => d.rows).sort((x, y) => x.size - y.size).forEach(d => {
+      let row = 0;
+      while (rows[d.k][row] && rows[d.k][row].some(o => d.from < o.to - 0.05 && o.from < d.to - 0.05)) row++;
+      (rows[d.k][row] = rows[d.k][row] || []).push(d);
+      d.row = row;
+    });
+    drawn = place(left);
+    const lost = left.filter(d => d.rows && !drawn.includes(d));
+    if (!lost.length) break;
+    left = left.filter(d => !lost.includes(d));
+  }
+  drawn.forEach(draw);
+  function place(list) {
+    const placed = [], lines = [], ok = [];
+    list.forEach(d => {
+      const {e, s0, s1, f0, f1} = d, gap = 18 + step[d.k] * d.row, box = {w: d.tw + 8, h: 16};
+      const ox = e.nx * gap, oy = e.ny * gap;
+      const a0 = [s0[0] + ox, s0[1] + oy], a1 = [s1[0] + ox, s1[1] + oy];
+      const cx = (a0[0] + a1[0]) / 2, cy = (a0[1] + a1[1]) / 2;
+      box.x = cx - box.w / 2; box.y = cy - box.h / 2;
+      if (box.x < 0 || box.y < 0 || box.x + box.w > w || box.y + box.h > h) return;
+      if (placed.some(o => meets(o, box))) return;
+      const mine = [[f0, a0], [f1, a1], [a0, a1]];
+      if (mine.some(([p, q]) => placed.some(o => through(p, q, o)))) return;
+      if (lines.some(([p, q]) => through(p, q, box))) return;
+      placed.push(box); lines.push(...mine);
+      Object.assign(d, {a0, a1, cx, cy, box});
+      ok.push(d);
+    });
+    return ok;
+  }
+  function draw(d) {
+    const {f0, f1, a0, a1, cx, cy, box, len, text} = d;
     // the extension lines, from the part's own edge to just past the dimension line
     mk.globalAlpha = 0.55; mk.beginPath();
     [[f0, a0], [f1, a1]].forEach(([s, t]) => {
@@ -623,7 +672,7 @@ function marks() {
     });
     mk.fillStyle = paper; mk.fillRect(box.x, box.y, box.w, box.h);
     mk.fillStyle = ink; mk.textAlign = 'center'; mk.textBaseline = 'middle'; mk.fillText(text, cx, cy + 0.5);
-  });
+  }
 }
 (function loop() {
   requestAnimationFrame(loop); controls.update();
