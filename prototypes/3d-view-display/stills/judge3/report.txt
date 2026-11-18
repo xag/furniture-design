@@ -1,0 +1,19 @@
+J C-s01-rest.html 390 light: landmark-one-main — html
+J C-s01-rest.html 390 light: region — #title | #sub | #nav > label | li:nth-child(1) > span:nth-child(2) | li:nth-child(2) > span:nth-child(2) | #marks | canvas:nth-child(3) | #assembly | label[for="explode"] | #explode
+J C-s02-sheet.html 390 light: landmark-one-main — html
+J C-s02-sheet.html 390 light: region — #title | #sub | #nav > label | li:nth-child(1) > span:nth-child(2) | li:nth-child(2) > span:nth-child(2) | #marks | canvas:nth-child(3) | .opt | .choice:nth-child(2)
+J C-s03-dims-part.html 390 light: landmark-one-main — html
+J C-s03-dims-part.html 390 light: region — #title | #sub | #nav > label | li:nth-child(1) > span:nth-child(2) | li:nth-child(2) > span:nth-child(2) | #marks | canvas:nth-child(3) | #assembly | label[for="explode"] | #explode
+J C-s12-wardrobe-chain.html 390 light: landmark-one-main — html
+J C-s12-wardrobe-chain.html 390 light: region — #title | #sub | #nav > label | li:nth-child(1) > span:nth-child(2) | li:nth-child(2) > span:nth-child(2) | li:nth-child(3) > span:nth-child(2) | li:nth-child(4) > span:nth-child(2) | li:nth-child(5) > span:nth-child(2) | li:nth-child(6) > span:nth-child(2) | #marks | canvas:nth-child(3) | #assembly | label[for="explode"] | #explode
+C-s12-wardrobe-chain.html 390 light: content scrolls inside div#nav
+J C-s12-wardrobe-part.html 390 light: landmark-one-main — html
+J C-s12-wardrobe-part.html 390 light: region — #title | #sub | #nav > label | li:nth-child(1) > span:nth-child(2) | li:nth-child(2) > span:nth-child(2) | li:nth-child(3) > span:nth-child(2) | li:nth-child(4) > span:nth-child(2) | li:nth-child(5) > span:nth-child(2) | li:nth-child(6) > span:nth-child(2) | #marks | canvas:nth-child(3) | #assembly | label[for="explode"] | #explode
+C-s12-wardrobe-part.html 390 light: content scrolls inside div#nav
+J C-s07-branch-sheet.html 390 light: landmark-one-main — html
+J C-s07-branch-sheet.html 390 light: region — #title | #sub | #nav > label | li:nth-child(1) > span:nth-child(2) | .mark | li:nth-child(2) > span:nth-child(2) | #marks | canvas:nth-child(3) | #display
+C-s07-branch-sheet.html 390 light: content scrolls inside div#nav
+J C-s08-branch-dims-part.html 390 light: landmark-one-main — html
+J C-s08-branch-dims-part.html 390 light: region — #title | #sub | #nav > label | li:nth-child(1) > span:nth-child(2) | .mark | li:nth-child(2) > span:nth-child(2) | #marks | canvas:nth-child(3) | label[for="explode"] | #explode
+J C-s09-branch-dims-close.html 390 light: landmark-one-main — html
+J C-s09-branch-dims-close.html 390 light: region — #title | #sub | #nav > label | li:nth-child(1) > span:nth-child(2) | .mark | li:nth-child(2) > span:nth-child(2) | #marks | canvas:nth-child(3) | label[for="explode"] | #explode

@@ -1,0 +1,12 @@
+o play-C.html 320 light: landmark-one-main — html
+o play-C.html 320 light: region — #title | #sub | #nav > label | li:nth-child(1) > span:nth-child(2) | li:nth-child(2) > span:nth-child(2) | li:nth-child(3) > span:nth-child(2) | li:nth-child(4) > span:nth-child(2) | li:nth-child(5) > span:nth-child(2) | li:nth-child(6) > span:nth-child(2) | #marks | canvas:nth-child(3) | #display
+play-C.html 320 light: content scrolls inside div#nav
+o C-s07-branch-sheet.html 320 light: landmark-one-main — html
+o C-s07-branch-sheet.html 320 light: region — #title | #sub | #nav > label | li:nth-child(1) > span:nth-child(2) | .mark | li:nth-child(2) > span:nth-child(2) | #marks | canvas:nth-child(3) | #display
+C-s07-branch-sheet.html 320 light: content scrolls inside div#nav
+o play-C.html 844 light: landmark-one-main — html
+o play-C.html 844 light: region — #title | #sub | #nav > label | li:nth-child(1) > span:nth-child(2) | li:nth-child(2) > span:nth-child(2) | li:nth-child(3) > span:nth-child(2) | li:nth-child(4) > span:nth-child(2) | li:nth-child(5) > span:nth-child(2) | li:nth-child(6) > span:nth-child(2) | #marks | canvas:nth-child(3) | #display
+play-C.html 844 light: content scrolls inside div#nav
+o C-s07-branch-sheet.html 844 light: landmark-one-main — html
+o C-s07-branch-sheet.html 844 light: region — #title | #sub | #nav > label | li:nth-child(1) > span:nth-child(2) | .mark | li:nth-child(2) > span:nth-child(2) | #marks | canvas:nth-child(3) | #display
+C-s07-branch-sheet.html 844 light: content scrolls inside div#nav

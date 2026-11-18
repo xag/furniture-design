@@ -307,7 +307,8 @@ function sheet(open) {
   give();
 }
 // open, the settings take the height they need from the tree, never from the model, down to the
-// tree's title and size line: the model keeps the height it had, so a change is seen at its scale
+// tree's title and size line with the fade that says the list goes on under them: the model
+// keeps the height it had, so a change is seen at its scale
 function give() {
   nav.style.maxHeight = '';
   if (!isOpen() || !document.getElementById('app').classList.contains('tight')) { more(); return; }
@@ -316,7 +317,7 @@ function give() {
   display.classList.add('open'); tools.classList.add('sheet');
   const owed = Math.max(0, before - stage.clientHeight) + Math.max(0, tools.scrollHeight - tools.clientHeight);
   if (owed) {
-    const floor = document.getElementById('sub').getBoundingClientRect().bottom - nav.getBoundingClientRect().top + nav.scrollTop + 8;
+    const floor = document.getElementById('sub').getBoundingClientRect().bottom - nav.getBoundingClientRect().top + nav.scrollTop + 44;
     nav.style.maxHeight = Math.max(floor, nav.clientHeight - owed) + 'px';
   }
   more();

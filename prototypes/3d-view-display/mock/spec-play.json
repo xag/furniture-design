@@ -2,8 +2,7 @@
  {
   "group": "Cotes :",
   "alts": [
-   {"name": "A · positions", "screens": ["play-A.html"]},
-   {"name": "B · tailles des pièces", "screens": ["play-B.html"]}
+   {"name": "Positions · Tailles", "screens": ["play-C.html"]}
   ]
  }
 ]
