@@ -421,7 +421,51 @@ def _blocked(tree: Quern, piece: str) -> list[str]:
                     out.append(f"step {n}: {what}, brought in from {_FROM[sides[d]]}"
                                f"{'' if said else ' (its step says no direction: the way its picture draws it)'}, "
                                f"crosses {o.path} {near:g} mm before its place")
+        out += _driven_through(tree, piece, n, step, there, everything, solids, far)
         there += [b for _, movers in coming for b in movers if b not in there]
+    return out
+
+
+def _driven_through(tree: Quern, piece: str, n: int, step: dict, there: list, everything: list, solids: dict,
+                    far: float) -> list[str]:
+    """What stands in the way of the connectors of the joints a step closes: each is driven in square to
+    the face its joint's first two parts meet on (natives.joint_layout, where the pictures draw it), from
+    the side of the first part, through that part, over the distance the picture draws parts apart by;
+    a part an earlier step brought in, or one already there, that this line crosses and the joint does
+    not join stands in its way."""
+    base = piece.rstrip("/")
+    boxes = {b.path: b for b in everything}
+    out = []
+    for jid in step.get("joints") or []:
+        node = get_node(tree, f"{base}/{jid}")
+        if node is None:
+            continue
+        try:
+            lay = natives.joint_layout(tree, f"{base}/{jid}", node, boxes)
+        except ValueError:
+            continue
+        if lay is None or not lay.positions:
+            continue
+        ends = [t.rstrip("/") for t in node.links.get("joins", [])]
+        first = boxes[ends[0]]
+        k = lay.normal
+        face = lay.lo[k]
+        outward = 1 if (first.lo[k] + first.hi[k]) / 2 > face else -1   # the side it is driven from
+        hit: dict[str, list] = {}
+        for o in there:
+            if any(_under(o.path, [e]) or _under(e, [o.path]) for e in ends):
+                continue
+            for i, pos in enumerate(lay.positions):
+                for olo, ohi in solids[o.path]:
+                    if any(not (olo[a] + _FIT < pos[a] < ohi[a] - _FIT) for a in range(3) if a != k):
+                        continue
+                    a0, a1 = sorted((face, face + outward * far))
+                    if min(a1, ohi[k]) - max(a0, olo[k]) > _FIT:
+                        hit.setdefault(o.path, []).append(i + 1)
+                        break
+        for path, at in hit.items():
+            out.append(f"step {n}: {len(at)} of the {len(lay.positions)} connectors of {base}/{jid} are driven in "
+                       f"through {path} (number{'s' if len(at) > 1 else ''} {', '.join(map(str, at))} along the joint)")
     return out
 
 
@@ -434,7 +478,8 @@ def arrivals_blocked(tree: Quern, piece: str) -> float:
     against each other, nor two parts that fill the same space at rest (parts_overlapping counts those).
     A step that puts an assembly together aside (payload builds) is judged against that assembly's parts
     only; an assembly a step brings in whole (its add names it) comes in as one, against everything in
-    place."""
+    place. The connectors of the joints a step closes are driven in the same way, and a part that stands in their
+    line counts too (_driven_through)."""
     return float(len(_blocked(tree, piece)))
 
 
@@ -932,6 +977,12 @@ SPEC = {
               "above, through the lintel it is screwed under",
               piece=example_piece(steps=[{"add": ["angle", "channel"], "joints": ["angle-to-lintel", "channel-to-angle"],
                                           "direction": {"channel": "down"}}, _steps_from("down")[1]])),
+        _demo("furniture/arrivals_blocked", 1, "the channel slid onto the doors' tops from the left once they hang, "
+              "then screwed to the angle from below: its screws go through the front door",
+              piece=example_piece(steps=[
+                  {"add": ["angle"], "joints": ["angle-to-lintel"], "direction": {"angle": "down"}},
+                  {"add": ["back-panel", "front-panel"], "direction": {"back-panel": "down", "front-panel": "down"}},
+                  {"add": ["channel"], "joints": ["channel-to-angle"], "direction": {"channel": "left"}}])),
         _demo("furniture/arrivals_blocked", 0, "a door put together aside, its bar clipped under its panel, then "
               "lifted whole into the rail from below", piece=example_piece(bar="channel", aside=True)),
         _demo("furniture/arrivals_blocked", 5, "that door, whole, said to come down from above: through the lintel, "

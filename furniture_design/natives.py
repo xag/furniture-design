@@ -177,8 +177,10 @@ def joint_layout(tree: Quern, jpath: str, node: Node, boxes: dict) -> Layout | N
     """The one place a joint's connectors are placed, for the checks and the documents alike:
     along the longer side of the face its parts meet on, at the middle across it, at the
     offsets the joint states (`positions`, mm from the start of that side) or else spread
-    evenly, count of them. None when the joint does not join two of `boxes`."""
-    ends = [boxes.get("/".join(_segs(t))) for t in (node.links or {}).get("joins", [])]
+    evenly, count of them. A joint of more than two parts (a rail screwed through its two profiles
+    into a lintel) places them on the face its first two meet on. None when the joint does not join
+    two of `boxes`."""
+    ends = [boxes.get("/".join(_segs(t))) for t in (node.links or {}).get("joins", [])][:2]
     if len(ends) != 2 or None in ends:
         return None
     touch = contact(*ends)

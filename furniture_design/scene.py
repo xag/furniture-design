@@ -347,6 +347,34 @@ class Scene:
     def connectors(self) -> int:
         return sum(j.count for j in self.joints)
 
+    def apart(self) -> list[tuple[str, tuple, tuple]]:
+        """The things the piece is made of that stand apart from each other, each (name, lo, hi): its
+        parts and top-level groups, those whose boxes meet taken together. One for a piece that is one
+        thing; two for two wardrobes' doors modelled side by side with a gap the model chose for the
+        drawing, whose overall size would print the gap as a fact."""
+        top: dict[str, list] = {}
+        names: dict[str, str] = {}
+        for p in self.parts:
+            key, name = p.within[0] if p.within else (p.id, p.name)
+            top.setdefault(key, []).append(p)
+            names[key] = name
+        boxes = {k: (tuple(min(p.lo[i] for p in ps) for i in range(3)), tuple(max(p.hi[i] for p in ps) for i in range(3)))
+                 for k, ps in top.items()}
+        groups: list[list[str]] = []
+        for k in boxes:
+            meets = [g for g in groups if any(all(boxes[k][0][i] <= boxes[o][1][i] + TOUCH and
+                                                  boxes[o][0][i] <= boxes[k][1][i] + TOUCH for i in range(3)) for o in g)]
+            merged = [k] + [o for g in meets for o in g]
+            groups = [g for g in groups if g not in meets] + [merged]
+        if len(groups) == 1:
+            return [(self.title, self.lo, self.hi)]
+        out = []
+        for g in sorted(groups, key=lambda g: min(boxes[k][0][0] for k in g)):
+            lo = tuple(min(boxes[k][0][i] for k in g) for i in range(3))
+            hi = tuple(max(boxes[k][1][i] for k in g) for i in range(3))
+            out.append((" + ".join(names[k] for k in g), lo, hi))
+        return out
+
 
 def _tool(tree: Quern, path: str) -> Tool:
     node = get_node(tree, path)

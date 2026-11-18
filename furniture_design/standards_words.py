@@ -136,8 +136,9 @@ RED = {
         "en": "Two parts fill the same space.",
         "fr": "Deux pièces occupent le même espace."},
     "a-pieces-parts-reach-their-place": {
-        "en": "A part a step brings in crosses a part already in place on its way.",
-        "fr": "Une pièce qu'une étape amène en traverse une autre déjà en place sur son chemin."},
+        "en": "A part a step brings in, or a screw it drives, crosses a part already in place on its way.",
+        "fr": "Une pièce qu'une étape amène, ou une vis qu'elle enfonce, en traverse une autre déjà en place sur "
+              "son chemin."},
     "a-pieces-motions-are-stated": {
         "en": "A motion does not say its axis, its travel, its pivot, what moves or what guides it.",
         "fr": "Un mouvement ne dit pas son axe, sa course, son pivot, ce qui bouge ou ce qui le guide."},

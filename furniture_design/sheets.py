@@ -303,6 +303,16 @@ def draw_parts(pen: Pen, placed: Placed, parts: list[Part], *, fill_for=None, of
     return boxes
 
 
+def overall(sc: Scene, L: dict) -> list[str]:
+    """The overall size as the instructions print it: the piece's, or, when it is made of things that stand
+    apart (Scene.apart), each one's with its name, so that no gap the model chose is printed as a size."""
+    things = sc.apart()
+    say = lambda lo, hi: " × ".join(_fmt(b - a) for a, b in zip(lo, hi)) + " mm"  # noqa: E731
+    if len(things) == 1:
+        return [f"{L['overall']} : {say(*things[0][1:])}"]
+    return [f"{L['overall']}, {name} : {say(lo, hi)}" for name, lo, hi in things]
+
+
 def _tone(shade: float, base=PLAIN) -> Color:
     k = 1 - 0.22 * shade
     return Color(base.red * k, base.green * k, base.blue * k)
@@ -995,8 +1005,8 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list
     placed = _fit(boxes, view, 20, 70, W - 40, 150, pad=10)
     draw_parts(pen, placed, sc.parts, fill_for=lambda k, sh: _tone(sh), line=0.4)
     size = [h - l for l, h in zip(sc.lo, sc.hi)]
-    pen.text(W / 2, 50, f"{L['overall']} : {_fmt(size[0])} × {_fmt(size[1])} × {_fmt(size[2])} mm",
-             4, INK, "middle", role="label")
+    for k, line in enumerate(overall(sc, L)):     # one size for each thing that stands apart
+        pen.text(W / 2, 50 - 6 * k, line, 4, INK, "middle", role="label")
     c.showPage()
     # what is needed
     pen.text(15, H - 20, L["inbox"], 7, INK, bold=True, role="heading")

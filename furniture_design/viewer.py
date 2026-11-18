@@ -153,7 +153,8 @@ const T = (x, y, z) => new THREE.Vector3(x, z, -y);
 const lo = DATA.lo, hi = DATA.hi;
 const mid = T((lo[0]+hi[0])/2, (lo[1]+hi[1])/2, (lo[2]+hi[2])/2);
 const size = Math.max(hi[0]-lo[0], hi[1]-lo[1], hi[2]-lo[2]);
-const woodColor = new THREE.Color(0xe6cfa4), newColor = new THREE.Color(0xb07a3c), pick = new THREE.Color(0xf0b45a);
+// no colour says what a part is made of: a plain tone, a deeper one for what a step brings in, as the instructions draw them
+const woodColor = new THREE.Color(0xdcdad5), newColor = new THREE.Color(0x8fa3b5), pick = new THREE.Color(0xf0b45a);
 const restColor = new THREE.Color(0x8f8b85);
 // how the rest of the piece is drawn while a group is shown: hidden, see, solid
 const rest = () => here.length ? document.querySelector('input[name=rest]:checked').value : 'hidden';
@@ -179,6 +180,22 @@ DATA.parts.forEach((p, i) => {
     new THREE.LineBasicMaterial({color:0x3b3428, transparent:true}));
   m.add(edges);
   scene.add(m); meshes.push(m);
+});
+// what the piece is fixed to or must clear (a lintel, a wall): drawn where it is, light and
+// see-through, in the whole piece only; never listed, picked, pulled apart or brought in by a step
+const around = DATA.existing.map(p => {
+  const f = p.profile, shape = new THREE.Shape();
+  f.outline.forEach(([a, b], k) => k ? shape.lineTo(a, b) : shape.moveTo(a, b));
+  const geo = new THREE.ExtrudeGeometry(shape, {depth: f.t1 - f.t0, bevelEnabled: false});
+  const m4 = new THREE.Matrix4().makeBasis(E[f.u], E[f.v], E[f.t]);
+  m4.setPosition(E[f.t].clone().multiplyScalar(f.t0));
+  geo.applyMatrix4(m4);
+  const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({color: 0xbdbab3, roughness: 0.9,
+    transparent: true, opacity: 0.35, depthWrite: false, side: THREE.DoubleSide}));
+  m.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo),
+    new THREE.LineBasicMaterial({color: 0x8a867d, transparent: true, opacity: 0.6})));
+  scene.add(m);
+  return m;
 });
 const connectors = [];
 DATA.joints.forEach(j => j.positions.forEach(q => {
@@ -256,6 +273,7 @@ function apply() {
   document.getElementById('stepn').textContent = n ? `${n} / ${mine.length}` : '';
   document.getElementById('steptext').textContent = k ? steps[k-1].text : DATA.finished;
   const mode = rest();
+  around.forEach(m => m.visible = !groupsOf().length && !opened() && !e);
   meshes.forEach(m => {
     const p = m.userData.part, at = placedAt[p.id] || 0;
     if (!under(p)) {
@@ -278,7 +296,7 @@ function apply() {
   connectors.forEach(c => {
     const ids = c.userData.joint.parts;
     const on = document.getElementById('showc').checked &&
-      ids.every(id => (!k || (placedAt[id] || 0) <= k) && under(byId[id]));
+      ids.every(id => !byId[id] || ((!k || (placedAt[id] || 0) <= k) && under(byId[id])));   // what is already there is
     c.visible = on;
     const dir = c.userData.home.clone().sub(view.mid);
     c.position.copy(c.userData.home).add(dir.multiplyScalar(e * view.pull));
@@ -750,14 +768,15 @@ def _profile(p) -> dict:
 
 def viewer_html(sc: Scene, path: Path, lang: str = "fr") -> Path:
     W = WORDS[lang]
-    size = [h - l for l, h in zip(sc.lo, sc.hi)]
     data = {
         "lo": sc.lo, "hi": sc.hi, "finished": W["finished"], "title": sc.title,
-        "subtitle": f"{sc.info.get('version', '')} · {round(size[0])} × {round(size[1])} × "
-                    f"{round(size[2])} mm",
+        "subtitle": f"{sc.info.get('version', '')} · " + " ; ".join(
+            (f"{name} " if len(sc.apart()) > 1 else "") + " × ".join(str(round(b - a)) for a, b in zip(lo, hi)) + " mm"
+            for name, lo, hi in sc.apart()),
         "parts": [{"id": p.id, "mark": p.mark, "name": p.name, "lo": p.lo, "hi": p.hi,
                    "sheets": p.sheets, "material": p.material_name, "within": p.within,
                    "profile": _profile(p)} for p in sc.parts],
+        "existing": [{"id": p.id, "name": p.existing, "profile": _profile(p)} for p in sc.existing],
         "joints": [{"id": j.id, "parts": j.parts, "along": j.along_axis, "normal": j.normal_axis,
                     "positions": j.positions, "size": j.size} for j in sc.joints],
         "steps": [{"text": s.text, "add": s.add, "prepare": s.prepare} for s in sc.steps],

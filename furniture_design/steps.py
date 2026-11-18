@@ -22,7 +22,7 @@ import json
 from pathlib import Path
 
 from .scene import Scene
-from .sheets import LABELS, _fmt, cut_sentences
+from .sheets import LABELS, _fmt, cut_sentences, overall
 
 DPI = 200
 
@@ -93,9 +93,8 @@ def screens_of(sc: Scene, regions: list[dict], cut, lang: str) -> list[dict]:
     for r in regions:
         kind = r["kind"]
         if kind == "cover":
-            size = [h - l for l, h in zip(sc.lo, sc.hi)]
             out.append({"kind": "cover", "title": sc.title, "version": f"{L['version']} {sc.info.get('version', '')}",
-                        "image": cut(r), "size": f"{L['overall']} : {_fmt(size[0])} × {_fmt(size[1])} × {_fmt(size[2])} mm"})
+                        "image": cut(r), "size": " ; ".join(overall(sc, L))})
         elif kind == "board":
             if not out or out[-1]["kind"] != "needed":
                 tools: list[str] = []

@@ -513,9 +513,10 @@ RULES = [
          description="Close every joint in an assembly step (a step's joints), no sooner than the step that "
                      "brings in the last part it joins."),
     Rule(name="a-pieces-parts-reach-their-place", kind="piece", expr="solve('furniture/arrivals_blocked', self) == 0",
-         description="A part a step brings in crosses a part already there on its way: say the side it really "
-                     "comes in from (the step's direction: up, down, left, right, front, back, the side it comes "
-                     "from), or bring it in before the part in its way. What is put together away from the "
+         description="A part a step brings in crosses a part already there on its way, or the screws of a "
+                     "joint it closes are driven through one: say the side it really comes in from (the step's "
+                     "direction: up, down, left, right, front, back, the side it comes from), or bring it in, or "
+                     "close the joint, before the part in its way. What is put together away from the "
                      "piece (a door, a drawer) is a step that says so (payload builds: the assembly's id), and the "
                      "step that brings it in names the assembly whole (add and direction: its id). A part that "
                      "cannot come in from any side once the others are there does not fit: change the design."),
@@ -707,7 +708,7 @@ def _counter_examples() -> list[CounterExample]:
     ]
 
 
-VERSION = "0.14.1"
+VERSION = "0.15.0"
 
 
 SOLVERS = [SolverDef(name=name, native=True, reads=[""], description=(fn.__doc__ or "").strip().split("\n\n")[0])

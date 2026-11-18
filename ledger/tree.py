@@ -2120,6 +2120,40 @@ def entries() -> list[Node]:
                      "and judges nothing."),
             ],
         ),
+        Node(
+            id="what-a-step-drives-and-what-a-document-sizes-are-the-models", kind="decision",
+            name="Three things the documents said that the model did not, made the model's. The connectors of "
+                 "a joint a step closes are driven in square to the face its first two parts meet on, from "
+                 "the first part's side, where the pictures draw them (natives.joint_layout, which takes the "
+                 "first two parts of a joint of more); a part already in place that their line crosses, and "
+                 "the joint does not join, stands in their way (a-pieces-parts-reach-their-place). The "
+                 "overall size the instructions, their screens and the 3D view print is the piece's, or, "
+                 "when it is made of things that stand apart (its parts and top-level groups, those whose "
+                 "boxes meet taken together: Scene.apart), each one's with its name, so a gap chosen for the "
+                 "drawing is never printed as a size. The 3D view draws what is already there, light and "
+                 "see-through, in the whole piece, never listed, picked or pulled apart, and draws its parts "
+                 "in a plain tone, as the instructions do",
+            payload={"decided_on": "2026-11-18",
+                     "why": "Sliding doors' instructions closed a rail's screws at the last step with the rear "
+                            "door standing over four of them, printed an overall width that held the 295 mm "
+                            "the model set between two wardrobes for the drawing, and their 3D view showed the "
+                            "rails floating where the lintel is.",
+                     "not_yet": "The plans' dimension chains still run across a gap between things that stand "
+                                "apart. A connector is a line, not a body: one driven into a part too thin to "
+                                "take it is not found."},
+            links={"rests_on": ["a-notice-is-certified-by-what-agrees",
+                                "what-a-piece-is-fixed-to-is-a-part-already-there",
+                                "the-instructions-state-only-what-the-model-says-and-all-of-it"]},
+            children=[
+                _alt("a-screw-is-a-part", "Model every screw as a part of the piece",
+                     "Thirty bodies listed, weighed and brought in for what the joint already places; the "
+                     "joint's own positions are where the pictures draw them, and the line is what needs "
+                     "clearing."),
+                _alt("a-gap-param", "Let a piece state the gap that is for the drawing only, and take it off",
+                     "The model would carry a number that says nothing about the furniture; what stands apart "
+                     "is found from where the parts are."),
+            ],
+        ),
     ]
 
 

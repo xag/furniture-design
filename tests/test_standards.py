@@ -324,3 +324,19 @@ def test_the_instructions_drawn_keep_to_the_paper_and_letter_their_parts(tmp_pat
     pen.text(10, -5, "M")
     assert [r["kind"] for r in pen.regions] == ["spill"]
     assert pen.words == [{"page": 0, "text": "M", "off": True}]
+
+
+def test_the_cover_prints_a_size_for_each_thing_that_stands_apart():
+    """Two sets of doors modelled side by side with a gap chosen for the drawing: the cover prints each
+    set's size, never one that spans the gap; a piece that is one thing prints one size."""
+    from furniture_design.scene import Part, Scene
+    from furniture_design.sheets import LABELS, overall
+
+    def part(i, group, x0, x1):
+        return Part(i, i, i, "A", (x0, 0, 0), (x1, 20, 1000), "", "", within=[(group, group.capitalize())])
+
+    two = Scene("Doors", "pieces/doors", [part("a", "big", 0, 1158), part("b", "small", 1453, 2402)], [], [], {})
+    assert overall(two, LABELS["en"]) == ["Overall size, Big : 1158 × 20 × 1000 mm",
+                                          "Overall size, Small : 949 × 20 × 1000 mm"]
+    one = Scene("Doors", "pieces/doors", [part("a", "big", 0, 1158), part("b", "small", 1158, 2107)], [], [], {})
+    assert overall(one, LABELS["en"]) == ["Overall size : 2107 × 20 × 1000 mm"]
