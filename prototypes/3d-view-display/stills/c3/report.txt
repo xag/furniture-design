@@ -1,0 +1,23 @@
+p C-s03-dims-chain.html 390 light: landmark-one-main — html
+p C-s03-dims-chain.html 390 light: region — #title | #sub | #nav > label | li:nth-child(1) > span:nth-child(2) | li:nth-child(2) > span:nth-child(2) | #marks | canvas:nth-child(3) | #assembly | label[for="explode"] | #explode
+p C-s12-wardrobe-chain.html 390 light: landmark-one-main — html
+p C-s12-wardrobe-chain.html 390 light: region — #title | #sub | #nav > label | li:nth-child(1) > span:nth-child(2) | li:nth-child(2) > span:nth-child(2) | li:nth-child(3) > span:nth-child(2) | li:nth-child(4) > span:nth-child(2) | li:nth-child(5) > span:nth-child(2) | li:nth-child(6) > span:nth-child(2) | #marks | canvas:nth-child(3) | #assembly | label[for="explode"] | #explode
+C-s12-wardrobe-chain.html 390 light: content scrolls inside div#nav
+p C-s12-wardrobe-part.html 390 light: landmark-one-main — html
+p C-s12-wardrobe-part.html 390 light: region — #title | #sub | #nav > label | li:nth-child(1) > span:nth-child(2) | li:nth-child(2) > span:nth-child(2) | li:nth-child(3) > span:nth-child(2) | li:nth-child(4) > span:nth-child(2) | li:nth-child(5) > span:nth-child(2) | li:nth-child(6) > span:nth-child(2) | #marks | canvas:nth-child(3) | #assembly | label[for="explode"] | #explode
+C-s12-wardrobe-part.html 390 light: content scrolls inside div#nav
+p C-s03-dims-chain.html 320 light: landmark-one-main — html
+p C-s03-dims-chain.html 320 light: region — #title | #sub | #nav > label | li:nth-child(1) > span:nth-child(2) | li:nth-child(2) > span:nth-child(2) | #marks | canvas:nth-child(3) | #assembly | label[for="explode"] | #explode
+C-s03-dims-chain.html 320 light: content scrolls inside div#tools
+p C-s12-wardrobe-chain.html 320 light: landmark-one-main — html
+p C-s12-wardrobe-chain.html 320 light: region — #title | #sub | #nav > label | li:nth-child(1) > span:nth-child(2) | li:nth-child(2) > span:nth-child(2) | li:nth-child(3) > span:nth-child(2) | li:nth-child(4) > span:nth-child(2) | li:nth-child(5) > span:nth-child(2) | li:nth-child(6) > span:nth-child(2) | #marks | canvas:nth-child(3) | #assembly | label[for="explode"] | #explode
+C-s12-wardrobe-chain.html 320 light: content scrolls inside div#nav, div#tools
+p C-s12-wardrobe-part.html 320 light: landmark-one-main — html
+p C-s12-wardrobe-part.html 320 light: region — #title | #sub | #nav > label | li:nth-child(1) > span:nth-child(2) | li:nth-child(2) > span:nth-child(2) | li:nth-child(3) > span:nth-child(2) | li:nth-child(4) > span:nth-child(2) | li:nth-child(5) > span:nth-child(2) | li:nth-child(6) > span:nth-child(2) | #marks | canvas:nth-child(3) | #assembly | label[for="explode"] | #explode
+C-s12-wardrobe-part.html 320 light: content scrolls inside div#nav, div#tools
+p C-s03-dims-chain.html 1280 light: landmark-one-main — html
+p C-s03-dims-chain.html 1280 light: region — #title | #sub | #nav > label | li:nth-child(1) > span:nth-child(2) | li:nth-child(2) > span:nth-child(2) | #marks | canvas:nth-child(3) | .opt | .choice:nth-child(2) | #assembly | label[for="explode"] | #explode
+p C-s12-wardrobe-chain.html 1280 light: landmark-one-main — html
+p C-s12-wardrobe-chain.html 1280 light: region — #title | #sub | #nav > label | li:nth-child(1) > span:nth-child(2) | li:nth-child(2) > span:nth-child(2) | li:nth-child(3) > span:nth-child(2) | li:nth-child(4) > span:nth-child(2) | li:nth-child(5) > span:nth-child(2) | li:nth-child(6) > span:nth-child(2) | #marks | canvas:nth-child(3) | #display | #assembly | label[for="explode"] | #explode
+p C-s12-wardrobe-part.html 1280 light: landmark-one-main — html
+p C-s12-wardrobe-part.html 1280 light: region — #title | #sub | #nav > label | li:nth-child(1) > span:nth-child(2) | li:nth-child(2) > span:nth-child(2) | li:nth-child(3) > span:nth-child(2) | li:nth-child(4) > span:nth-child(2) | li:nth-child(5) > span:nth-child(2) | li:nth-child(6) > span:nth-child(2) | #marks | canvas:nth-child(3) | #display | #assembly | label[for="explode"] | #explode

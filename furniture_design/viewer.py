@@ -630,9 +630,10 @@ function marks() {
     return d.len >= d.tw + 16;
   });
   // rows outward from the box, as far apart as a number is deep across its line, so a row's
-  // numbers clear the next. Positions: its chain in the first, the whole in the second. Sizes: the
-  // shortest nearest, each in the first row where it overlaps no other size on that side; a size that
-  // is then not drawn gives its row up, and the rows are given again among the others
+  // numbers clear the next. Positions: its chain in the first, the whole in the second; a whole with
+  // no room in the second takes the first, and its axis's chain gives way. Sizes: the shortest
+  // nearest, each in the first row where it overlaps no other size on that side; a size that is then
+  // not drawn gives its row up, and the rows are given again among the others
   const step = [0, 1, 2, 3, 4, 5].map(k => {
     const on = ds.filter(d => d.k === k), e = on.length && on[0].e;
     return on.length ? Math.max(22, Math.abs(e.nx) * (Math.max(...on.map(d => d.tw)) + 8) + Math.abs(e.ny) * 16 + 6) : 0;
@@ -647,6 +648,12 @@ function marks() {
       d.row = row;
     });
     drawn = place(left);
+    const whole = left.filter(d => !d.rows && d.rank === 0 && d.row > 0 && !drawn.includes(d));
+    if (whole.length) {
+      whole.forEach(d => { d.row = 0; });
+      left = left.filter(d => d.rows || d.rank === 0 || !whole.some(o => o.k === d.k));
+      continue;
+    }
     const lost = left.filter(d => d.rows && !drawn.includes(d));
     if (!lost.length) break;
     left = left.filter(d => !lost.includes(d));
