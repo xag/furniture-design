@@ -707,7 +707,7 @@ def _counter_examples() -> list[CounterExample]:
     ]
 
 
-VERSION = "0.14.0"
+VERSION = "0.14.1"
 
 
 SOLVERS = [SolverDef(name=name, native=True, reads=[""], description=(fn.__doc__ or "").strip().split("\n\n")[0])

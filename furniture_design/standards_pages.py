@@ -121,14 +121,15 @@ def fastenings_not_shown(tree: Quern, piece: str) -> float:
 
 @_lines
 def _unlettered(node: Node) -> list[str]:
-    return [f"step {s.get('step')}: nothing letters the part {k} it brings in" for s in _steps(node)
-            for k in s.get("kinds") or [] if k not in (s.get("lettered") or []) and k not in (s.get("wholes") or [])]
+    return [f"step {s.get('step')}: nothing letters the part {k} it brings in" for s in _steps(node) if "lettered" in s
+            for k in s.get("kinds") or [] if k not in s["lettered"] and k not in (s.get("wholes") or [])]
 
 
 def steps_unlettered(tree: Quern, piece: str) -> float:
     """How many kinds of part a step brings in carry no letter in its picture: the letter the page of what
     is needed gives that kind. An assembly brought in whole carries none: its parts carried theirs when it
-    was put together."""
+    was put together. A step drawn before the drawing noted its letters is judged as before, until drawn
+    again."""
     return float(len(_unlettered(tree, piece)))
 
 
@@ -179,7 +180,7 @@ _PIECE = "pieces/doors"
 
 def example_pages(*, sentence: str | None = None, role: str = "", rail_kinds: tuple = ("R",), doors_guided: tuple = ("back-panel", "front-panel"),
                   door_shows: float = 0.9, context: float = 0.8, fastened: tuple = ("angle-to-lintel", "channel-to-angle"),
-                  drawn: bool = True, lettered: bool = True, spilled: bool = False, off: str = "") -> Node:
+                  drawn: bool = True, lettered: bool | None = True, spilled: bool = False, off: str = "") -> Node:
     """The instructions of the two doors as their drawing would note them: a cover with the piece's
     name, a page of what is needed with counts and sizes, the rail, then the doors hung in it. Not
     `lettered`: the doors' step draws no letter beside them. `spilled`: the page of what is needed draws a
@@ -203,7 +204,7 @@ def example_pages(*, sentence: str | None = None, role: str = "", rail_kinds: tu
                       closes=["angle-to-lintel", "channel-to-angle"], fastened=list(fastened),
                       visible={"angle": 1.0, "channel": 0.7}, context=1.0),
                  step(step=2, shows=["angle", "channel"], brings=["back-panel", "front-panel"], kinds=["A"],
-                      lettered=["A"] if lettered else [],
+                      **({} if lettered is None else {"lettered": ["A"] if lettered else []}),
                       guided=list(doors_guided), closes=[], fastened=[],
                       visible={"back-panel": door_shows, "front-panel": 1.0}, context=context)]),
     ])])
@@ -224,6 +225,8 @@ SPEC = {
         _demo("furniture/steps_unlettered", 1, "two doors drawn coming in, and nothing saying they are the "
               "parts lettered A", lettered=False),
         _demo("furniture/steps_unlettered", 1, "instructions that were not drawn have no page to judge", drawn=False),
+        _demo("furniture/steps_unlettered", 0, "steps drawn before the drawing noted letters are judged as before",
+              lettered=None),
     ],
     "furniture/drawn_off_the_paper": [
         _demo("furniture/drawn_off_the_paper", 0, "every picture and every text is on its page"),
