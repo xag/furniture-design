@@ -298,8 +298,11 @@ function apply() {
     const on = document.getElementById('showc').checked &&
       ids.every(id => !byId[id] || ((!k || (placedAt[id] || 0) <= k) && under(byId[id])));   // what is already there is
     c.visible = on;
-    const dir = c.userData.home.clone().sub(view.mid);
-    c.position.copy(c.userData.home).add(dir.multiplyScalar(e * view.pull));
+    // a connector goes as the first part its joint joins goes (the one a screw is driven through
+    // first, the one a biscuit is seated in), so it shows in the gap the parts open and never
+    // slides along them
+    const first = meshes.find(m => m.userData.part.id === ids[0]);
+    c.position.copy(c.userData.home).add(first ? first.position : new THREE.Vector3());
   });
 }
 ['steps', 'explode', 'showc'].forEach(id => document.getElementById(id).addEventListener('input', apply));
