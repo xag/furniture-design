@@ -215,7 +215,8 @@ DOCUMENTS = ("viewer", "design", "assembly", "cutting")
 
 def documents(tree: Quern, piece: str, out_dir: Path, *, lang: str = "fr",
               stem: str | None = None, notes: list[tuple[str, list[str]]] | None = None,
-              stock: dict[str, list[dict]] | None = None, at_work: set[str] | None = None) -> dict[str, Path]:
+              stock: dict[str, list[dict]] | None = None, at_work: set[str] | None = None,
+              places: dict[str, str] | None = None) -> dict[str, Path]:
     """The four things a piece is built from, written into `out_dir`: the interactive 3D
     view (HTML), the design document (PDF, A3), the assembly instructions (PDF, A4) and the
     cutting sheet for a shop's cutting service (PDF, A4); and the instructions as screens for an
@@ -226,14 +227,14 @@ def documents(tree: Quern, piece: str, out_dir: Path, *, lang: str = "fr",
     paragraph being a text or (text, [lines under it]) (the piece's payload description when none
     are given). `stock` is what can be bought of each material, the sheets the cutting sheet lays
     the parts on (cutting.cutting_sheet). `at_work`: the tools the instructions draw at work
-    (sheets.assembly_instructions)."""
+    (sheets.assembly_instructions); `places`: where the person has each tool, {path: place}."""
     from .scene import scene
 
     sc = scene(tree, piece)
     out: dict[str, Path] = {}
     for what in DOCUMENTS:
         made = document(tree, piece, out_dir, what, lang=lang, stem=stem, notes=notes, stock=stock,
-                        at_work=at_work, sc=sc)
+                        at_work=at_work, places=places, sc=sc)
         if "pages" in made and what != "assembly":    # the plans and the cutting sheet as drawn
             made[f"pages-{what}"] = made.pop("pages")
         out |= made
@@ -243,7 +244,7 @@ def documents(tree: Quern, piece: str, out_dir: Path, *, lang: str = "fr",
 def document(tree: Quern, piece: str, out_dir: Path, what: str, *, lang: str = "fr",
              stem: str | None = None, notes: list[tuple[str, list[str]]] | None = None,
              stock: dict[str, list[dict]] | None = None, at_work: set[str] | None = None,
-             progress=None, sc=None) -> dict[str, Path]:
+             progress=None, sc=None, places: dict[str, str] | None = None) -> dict[str, Path]:
     """One of the four (`what`, one of DOCUMENTS), written into `out_dir` as documents() writes it, by the
     names documents() gives: viewer, design or cutting, its one file; assembly, the PDF, its screens
     (steps) and the instructions as drawn (pages). `progress`, when given, is called with a fraction done,
@@ -288,8 +289,8 @@ def document(tree: Quern, piece: str, out_dir: Path, what: str, *, lang: str = "
     pdf = out_dir / f"{stem}-{names[2]}.pdf"
     half = (lambda d, n: progress(0.5 * d / max(n, 1))) if progress else None
     rest = (lambda d, n: progress(0.5 + 0.5 * d / max(n, 1))) if progress else None
-    out = {"assembly": assembly_instructions(sc, pdf, lang, regions, words, at_work, half),
-           "steps": instruction_screens(sc, pdf, regions, out_dir / f"{stem}-{names[2]}", lang, rest)}
+    out = {"assembly": assembly_instructions(sc, pdf, lang, regions, words, at_work, half, places),
+           "steps": instruction_screens(sc, pdf, regions, out_dir / f"{stem}-{names[2]}", lang, rest, places)}
     # the instructions as drawn (pages.model), for a standard to judge: a tree mounts it under instructions
     drawn = out_dir / f"{stem}-{names[2]}" / "pages.json"
     drawn.write_text(pages_model(piece.rsplit("/", 1)[-1], regions, words).model_dump_json(exclude_defaults=True),

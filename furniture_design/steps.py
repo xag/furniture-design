@@ -22,7 +22,8 @@ import json
 from pathlib import Path
 
 from .scene import Scene
-from .sheets import LABELS, _fmt, cut_sentences, overall
+from .scene import place_of
+from .sheets import LABELS, _fmt, cut_sentences, overall, tool_groups
 
 DPI = 200
 
@@ -63,10 +64,16 @@ def _cutter(pdf: Path, out: Path):
     return cut
 
 
-def _head(sc: Scene, number: int) -> dict:
+def _head(sc: Scene, number: int, places: dict | None = None) -> dict:
+    """A step's head: its number, tools and connectors; `keys`, the paths of the tools it names by path (so a
+    reader can tell, later, whether its place has changed), and `place`, the place that holds every one of them
+    (scene.place_of) when the person making the document has places. A document made before keys existed
+    has neither."""
     s = next(s for s in sc.steps if s.number == number)
     joints = [j for j in sc.joints if j.id in s.joints]
-    return {"number": number, "tools": list(s.tools), "connectors": 0 if s.prepare else sum(j.count for j in joints)}
+    place = place_of(s.keys, places)
+    return {"number": number, "tools": list(s.tools), "connectors": 0 if s.prepare else sum(j.count for j in joints),
+            "keys": [k for k in s.keys if k], **({"place": place} if place else {})}
 
 
 def _card_words(sc: Scene, part_id: str, L: dict, lang: str) -> dict:
@@ -84,7 +91,7 @@ def _card_words(sc: Scene, part_id: str, L: dict, lang: str) -> dict:
             "sources": [f"{src}{colon}{sep.join(locs)}" for src, locs in sources.items()]}
 
 
-def screens_of(sc: Scene, regions: list[dict], cut, lang: str) -> list[dict]:
+def screens_of(sc: Scene, regions: list[dict], cut, lang: str, places: dict | None = None) -> list[dict]:
     """The screens, from the regions the instructions noted in the order drawn; `cut` turns a region into
     an image."""
     L = LABELS[lang]
@@ -107,6 +114,11 @@ def screens_of(sc: Scene, regions: list[dict], cut, lang: str) -> list[dict]:
                             "hardware": [{"name": n, "count": sum(j.count for j in sc.joints if j.connector == n)}
                                          for n in sorted({j.connector for j in sc.joints})],
                             "tools_title": L["tools"], "tools": tools})
+                groups = tool_groups(sc, tools, places)
+                if groups[0][0] is not None:     # the tools by place, the others last: a reader that knows no place shows `tools`
+                    out[-1]["places"] = [{"place": p, "tools": g} for p, g in groups if p is not None]
+                    out[-1]["other"] = next((g for p, g in groups if p is None), [])
+                    out[-1]["other_title"] = L["other_tools"]
             p = next(p for p in sc.parts if p.mark == r["mark"])
             dims = sorted(p.size, reverse=True)
             out[-1]["boards"].append({"mark": p.mark, "parts": [q.path for q in sc.parts if q.mark == p.mark],
@@ -116,12 +128,12 @@ def screens_of(sc: Scene, regions: list[dict], cut, lang: str) -> list[dict]:
             block = None
         elif kind == "step":
             s = next(s for s in sc.steps if s.number == r["step"])
-            out.append({"kind": "step", "step": s.number, "head": _head(sc, s.number), "image": cut(r), "text": s.text})
+            out.append({"kind": "step", "step": s.number, "head": _head(sc, s.number, places), "image": cut(r), "text": s.text})
             block = None
         elif kind == "block":
             block = {"kind": "block", "step": r["step"], "images": [], "_region": r}
             if r.get("head"):
-                block["head"] = _head(sc, r["step"])
+                block["head"] = _head(sc, r["step"], places)
             if r.get("count"):
                 block["count"] = r["count"]
             if r.get("tool"):
@@ -144,11 +156,11 @@ def screens_of(sc: Scene, regions: list[dict], cut, lang: str) -> list[dict]:
 
 
 def instruction_screens(sc: Scene, pdf: Path, regions: list[dict], out: Path, lang: str = "fr",
-                        progress=None) -> Path:
+                        progress=None, places: dict | None = None) -> Path:
     """Write the screens of the instructions in `pdf` (drawn with `regions` kept) into the folder `out`: one
     WebP per drawing and screens.json, {steps: how many steps, screens: [...]}, each image named by its file
     in `out`. Returns screens.json's path. `progress`, when given, is called with (drawings cut, regions)
-    after each drawing is cut."""
+    after each drawing is cut. `places`: where the person making them has each tool (sheets.assembly_instructions)."""
     out.mkdir(parents=True, exist_ok=True)
     for old in out.glob("*.webp"):
         old.unlink()
@@ -160,7 +172,7 @@ def instruction_screens(sc: Scene, pdf: Path, regions: list[dict], out: Path, la
             done[0] += 1
             progress(min(done[0], len(regions)), len(regions))
             return cut(*a, **k)
-    screens = screens_of(sc, regions, counted if progress else cut, lang)
+    screens = screens_of(sc, regions, counted if progress else cut, lang, places)
     path = out / "screens.json"
     path.write_text(json.dumps({"steps": len(sc.steps), "lang": lang, "screens": screens}, ensure_ascii=False, indent=1),
                     encoding="utf-8")

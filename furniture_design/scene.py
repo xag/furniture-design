@@ -210,6 +210,7 @@ class Joint:
     machine: str = ""          # the tool its grooves are cut with (the one stating groove_offset)
     jig: str = ""              # the tool its access holes are drilled with
     test_recess: float | None = None   # how far under the surface a test groove's connector sits
+    tool_keys: list[str] = field(default_factory=list)   # the paths of its tools, as `tools` names them
 
 
 SIDES = {(0, False): "left", (0, True): "right", (1, False): "front", (1, True): "back",
@@ -321,6 +322,19 @@ class Step:
     cuts: list[str] = field(default_factory=list)
     builds: str = ""   # the assembly it puts together aside, away from the piece (payload builds), by id
     wholes: dict[str, str] = field(default_factory=dict)   # part id -> the assembly it comes in with, whole
+    keys: list[str] = field(default_factory=list)   # by tool, its path when the step names it by path, else ""
+
+
+def place_of(keys, places: dict | None) -> str | None:
+    """The one place that holds every tool a step names by path (`keys`, "" for a tool named in words, a
+    material, which is not counted), given where the person has each tool (`places`: {path: place name}):
+    None when the step names no tool by path, when a tool it names is at no place of the person's, and when
+    its tools are at two places. A place is never said for a step that cannot be done there."""
+    held = [k for k in keys or () if k]
+    if not held or not places:
+        return None
+    where = {places.get(k) for k in held}
+    return next(iter(where)) if len(where) == 1 and None not in where else None
 
 
 @dataclass
@@ -332,6 +346,7 @@ class Scene:
     steps: list[Step]
     info: dict
     existing: list[Part] = field(default_factory=list)   # what is already there: a lintel, a wall
+    tool_paths: dict[str, str] = field(default_factory=dict)   # a tool's name as the instructions say it -> its path
 
     def part(self, id_: str) -> Part:
         return next(p for p in [*self.parts, *self.existing] if p.id == id_)
@@ -508,11 +523,16 @@ def scene(tree: Quern, piece: str) -> Scene:
                       int(_param(tree, path, "count") or 0),
                       (node.payload or {}).get("setting", ""), tools, lay.lo, lay.hi,
                       lay.normal, lay.along, lay.positions, lay.stated, size)
+        joint.tool_keys = list(links.get("made_with", []))
         _seat_methods(tree, joint, links)
         joints.append(joint)
     root = get_node(tree, piece)
     payload = root.payload or {}
     steps = []
+    tool_paths: dict[str, str] = {}
+    for j in joints:       # the tools a joint is made with are named by path in its links
+        for t, name in zip(j.tool_keys, j.tools):
+            tool_paths.setdefault(name, t)
     for i, s in enumerate(payload.get("steps", []), 1):
         if isinstance(s, str):
             s = {"text": s}
@@ -527,13 +547,20 @@ def scene(tree: Quern, piece: str) -> Scene:
                     coming |= {i: coming[a] for i in inside}
             else:
                 add.append(a)
+        said, keys = [], []
+        for t in s.get("tools", []):     # a tool named by its path says its node's name; any other text is said as it is
+            node = get_node(tree, t) if isinstance(t, str) and t.startswith("tools/") else None
+            said.append((node.name or node.id) if node is not None else t)
+            keys.append(t if node is not None else "")
+            if node is not None:
+                tool_paths[said[-1]] = t
         steps.append(Step(i, s.get("text", ""), add, list(s.get("joints", [])),
-                          bool(s.get("prepare", False)), list(s.get("tools", [])), coming,
-                          list(s.get("split", [])), list(s.get("cuts", [])), str(s.get("builds") or ""), wholes))
+                          bool(s.get("prepare", False)), said, coming,
+                          list(s.get("split", [])), list(s.get("cuts", [])), str(s.get("builds") or ""), wholes, keys))
     info = {k: payload[k] for k in ("version", "authors", "date", "project", "use", "description")
             if k in payload}
     info["instructions"] = payload.get("instructions", "full")
     if info["instructions"] not in INSTRUCTIONS:
         raise ValueError(f"the piece {piece} has payload instructions {info['instructions']!r}: it must be "
                          f"one of {', '.join(INSTRUCTIONS)}")
-    return Scene(root.name or root.id, piece, parts, joints, steps, info, there)
+    return Scene(root.name or root.id, piece, parts, joints, steps, info, there, tool_paths=tool_paths)

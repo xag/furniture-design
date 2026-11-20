@@ -31,7 +31,7 @@ rl_config.useA85 = 0
 
 from . import linework as lw
 from .natives import away, drawn_apart
-from .scene import TOUCH, Part, Scene, cut_plan
+from .scene import TOUCH, Part, Scene, cut_plan, place_of
 
 INK = HexColor("#1d1d1b")
 THIN = HexColor("#5b5b58")
@@ -66,7 +66,7 @@ LABELS = {
         "sheets_of": "feuilles de", "positions_note": "Positions des rainures indicatives, "
         "réparties régulièrement : à confirmer au traçage.",
         "inbox": "Avant de commencer", "boards": "Pièces", "hardware": "Quincaillerie",
-        "tools": "Outils", "prepare": "Préparation", "assemble": "Montage",
+        "tools": "Outils", "other_tools": "Autres outils", "prepare": "Préparation", "assemble": "Montage",
         "overall": "Encombrement", "step": "Étape",
         "cutting": "Découpe", "sources": "Sources", "mark_out": "Tracer", "from": "depuis", "to": "à",
         "edge": {"bottom": "le chant du bas", "top": "le chant du haut",
@@ -97,7 +97,7 @@ LABELS = {
         "sheets_of": "sheets of", "positions_note": "Groove positions indicative, evenly "
         "spread: to be confirmed when marking out.",
         "inbox": "Before you start", "boards": "Parts", "hardware": "Hardware",
-        "tools": "Tools", "prepare": "Preparation", "assemble": "Assembly",
+        "tools": "Tools", "other_tools": "Other tools", "prepare": "Preparation", "assemble": "Assembly",
         "overall": "Overall size", "step": "Step",
         "cutting": "Cutting", "sources": "Sources", "mark_out": "Mark out", "from": "from", "to": "to",
         "edge": {"bottom": "the bottom edge", "top": "the top edge", "front": "the front edge",
@@ -924,6 +924,21 @@ def _fastening(pen: Pen, x, y, n: int | None = None, size=None, scale=1.0, joint
         pen.text(x + 19 * scale, y + 1.2 * scale, f"{n} ×", 5 * scale, INK, bold=True)
 
 
+def _pin(pen: Pen, x, y, size: float = 1.0) -> float:
+    """A place's mark, a map pin (a round head over a point), its foot at (x, y) mm; returns its width."""
+    pen.poly([(x + 1.5 * size, y + 4 * size), (x + 3.5 * size, y + 4 * size), (x + 2.5 * size, y)], fill=INK, stroke=None)
+    pen.circle(x + 2.5 * size, y + 5.2 * size, 1.9 * size, fill=INK, stroke=INK)
+    pen.circle(x + 2.5 * size, y + 5.2 * size, 0.7 * size, fill=white, stroke=white)
+    return 5 * size
+
+
+def _place_mark(pen: Pen, x, y, place: str) -> float:
+    """A place's pin and name, as a tool badge's height; returns the width drawn."""
+    w = _pin(pen, x, y)
+    pen.text(x + w + 1, y + 2.6, place, 3.2, INK, bold=True, role="label")
+    return w + 1 + len(place) * 1.9
+
+
 def _tool_badge(pen: Pen, x, y, name: str) -> float:
     w = 4 + len(name) * 1.9
     pen._seen((x, y), (x + w, y + 8))
@@ -1091,8 +1106,22 @@ def cut_sentences(p: Part, L: dict, lang: str) -> list[str]:
             L["saw_from_hole"] if starts == 0 else L["saw_mixed"]]
 
 
+def tool_groups(sc: Scene, tools: list[str], places: dict[str, str] | None) -> list[tuple[str | None, list[str]]]:
+    """What is needed's tools by place: [(place name, its tools)] in the order of `places` (where the person has
+    each tool, {path: place}), then (None, the others) when a place is drawn. Without `places`, or when none
+    of the tools is at a place of the person's, the one group (None, every tool): the tools under "Tools"."""
+    at = {name: (places or {}).get(path) for name, path in sc.tool_paths.items()}
+    order = list(dict.fromkeys(v for v in (places or {}).values()))
+    named = [p for p in order if any(at.get(t) == p for t in tools)]
+    if not named:
+        return [(None, list(tools))]
+    rest = [t for t in tools if at.get(t) not in named]
+    return [(p, [t for t in tools if at.get(t) == p]) for p in named] + ([(None, rest)] if rest else [])
+
+
 def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list | None = None,
-                          words: list | None = None, at_work: set[str] | None = None, progress=None) -> Path:
+                          words: list | None = None, at_work: set[str] | None = None, progress=None,
+                          places: dict[str, str] | None = None) -> Path:
     """Picture-first assembly instructions, A4 portrait. A piece whose payload instructions is short
     leaves out how its tools are used: the saw and the jointer drawn at work and the test groove;
     what the piece needs (the cuts, the marks, the settings, the holes) stays. A cut is drawn by
@@ -1104,7 +1133,10 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list
     set on a page: pages.model makes of both the instructions as drawn, which a standard judges.
     `at_work`, when given, overrides the payload's choice tool by tool: a block draws its tool at work when
     the tool's path is in it, and leaves it out otherwise (an empty set: no tool at work). `progress`, when
-    given, is called with (steps drawn, steps) before each step."""
+    given, is called with (steps drawn, steps) before each step. `places`, when given, is where the person
+    making the document has each tool ({tool path: the place's name}, the places in their order): a step's head
+    ends with the place that holds every tool it names by path (scene.place_of), and what is needed lists each
+    place's tools under its pin and name, then the others under "Other tools"."""
     L = LABELS[lang]
     short = sc.info.get("instructions") == "short"
 
@@ -1197,14 +1229,27 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list
         pen.text(15, yy, L["tools"], 4.5, INK, bold=True, role="heading")
     x = 15
     row = yy - 13
-    for t in tools:
-        w = 4 + len(t) * 1.9
-        if x > 15 and x + w > W - 15:
+    groups = tool_groups(sc, tools, places)
+    for place, group in groups:
+        if place is not None or len(groups) > 1:     # a heading only once the tools are told apart by place
+            if x > 15:
+                x, row = 15, row - 11
+            if row < FOOT:
+                c.showPage()
+                x, row = 15, H - 30
+            if place is not None:
+                _place_mark(pen, 15, row, place)
+            else:
+                pen.text(15, row + 2.6, L["other_tools"], 3.2, INK, bold=True, role="heading")
             x, row = 15, row - 11
-        if row < FOOT:
-            c.showPage()
-            x, row = 15, H - 30
-        x += _tool_badge(pen, x, row, t) + 4
+        for t in group:
+            w = 4 + len(t) * 1.9
+            if x > 15 and x + w > W - 15:
+                x, row = 15, row - 11
+            if row < FOOT:
+                c.showPage()
+                x, row = 15, H - 30
+            x += _tool_badge(pen, x, row, t) + 4
     c.showPage()
     # the steps, two to a page
     explode = drawn_apart(sc.lo, sc.hi)
@@ -1240,6 +1285,9 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list
         tx = x + 22
         for t in step.tools:
             tx += _tool_badge(pen, tx, y + h - 13, t) + 3
+        place = place_of(step.keys, places)
+        if place and tx + 6 + len(place) * 1.9 <= x + w - (46 if n and not step.prepare else 0):
+            _place_mark(pen, tx + 1, y + h - 13, place)   # where the person has every tool the step names
         pic = (x, y + 14, w, h - 32)
         if step.prepare:
             pen.note("step", pic, step=step.number, prepare=True)
