@@ -323,19 +323,27 @@ function home() {
     homeAt = [camera.position.clone(), controls.target.clone()];
     return;
   }
+  // what is drawn: the piece shown, or, while its parts are pulled apart, the parts where the pull has put them
+  let mid = view.mid, corners = null;
+  if (+document.getElementById('explode').value > 0) {
+    const b = new THREE.Box3();
+    meshes.forEach(m => { if (m.visible && under(m.userData.part)) { m.updateMatrixWorld(true); b.expandByObject(m); } });
+    if (!b.isEmpty()) { mid = b.getCenter(new THREE.Vector3()); corners = []; for (const x of [b.min.x, b.max.x]) for (const y of [b.min.y, b.max.y]) for (const z of [b.min.z, b.max.z]) corners.push(new THREE.Vector3(x, y, z)); }
+  }
+  if (!corners) { corners = []; for (const a of [view.lo[0], view.hi[0]]) for (const b of [view.lo[1], view.hi[1]]) for (const c of [view.lo[2], view.hi[2]]) corners.push(T(a, b, c)); }
   const d = view.size * 2.4;
-  camera.position.set(view.mid.x - d*0.55, view.mid.y + d*0.45, view.mid.z + d*0.75);
-  controls.target.copy(view.mid); controls.update();
+  camera.position.set(mid.x - d*0.55, mid.y + d*0.45, mid.z + d*0.75);
+  controls.target.copy(mid); controls.update();
   for (let i = 0; i < 3; i++) {
     camera.updateMatrixWorld();
     let x0 = 1, x1 = -1, y0 = 1, y1 = -1;
-    for (const a of [view.lo[0], view.hi[0]]) for (const b of [view.lo[1], view.hi[1]]) for (const c of [view.lo[2], view.hi[2]]) {
-      const q = T(a, b, c).project(camera);
+    for (const c of corners) {
+      const q = c.clone().project(camera);
       x0 = Math.min(x0, q.x); x1 = Math.max(x1, q.x); y0 = Math.min(y0, q.y); y1 = Math.max(y1, q.y);
     }
     const s = Math.max(x1 - x0, y1 - y0) / 1.5;
-    const off = camera.position.clone().sub(view.mid).multiplyScalar(s);
-    camera.position.copy(view.mid).add(off); controls.update();
+    const off = camera.position.clone().sub(mid).multiplyScalar(s);
+    camera.position.copy(mid).add(off); controls.update();
   }
   homeAt = [camera.position.clone(), controls.target.clone()];
 }
@@ -612,6 +620,8 @@ nested(); follow(); listing(); more();
 apply();
 controls.addEventListener('end', offer);
 ['explode', 'steps'].forEach(id => document.getElementById(id).addEventListener('change', offer));
+// the pull lets go: a view the person has not turned is fitted to the parts where they now are
+document.getElementById('explode').addEventListener('change', () => { if (!moved) { home(); offer(); } });
 document.getElementById('showc').addEventListener('change', offer);
 
 // A: Pièces folds the list under the title; Montage and Affichage each open their block over the row of buttons,
