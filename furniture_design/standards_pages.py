@@ -59,12 +59,13 @@ def _pictured(step: dict, says: str) -> dict:
 
 @_lines
 def _worded(node: Node, words: float = 2) -> list[dict]:
-    """A sentence the drawing set in lines is one case: the lines of a step's sentence on a page, joined."""
+    """A sentence the drawing set in lines is one case: the lines of a step's sentence on a page, joined, and
+    judged whole (its last line alone may be one word)."""
     out: list[dict] = []
     for p in _pages(node):
         n = p.payload.get("number")
         for w in p.payload.get("words") or []:
-            if w.get("role") in _NOT_SENTENCES or len(_WORD.findall(w.get("text", ""))) < words:
+            if w.get("role") in _NOT_SENTENCES:
                 continue
             last = out[-1] if out else None
             if last and "step" in w and last.get("step") == w["step"] and last["page"] == n:
@@ -72,7 +73,8 @@ def _worded(node: Node, words: float = 2) -> list[dict]:
             else:
                 out.append({"document": "instructions", "page": n, "sentence": w["text"],
                             **({"step": w["step"]} if "step" in w else {})})
-    return [{**c, "says": f"page {c['page']}: \"{c['sentence']}\""} for c in out]
+    return [{**c, "says": f"page {c['page']}: \"{c['sentence']}\""} for c in out
+            if len(_WORD.findall(c["sentence"])) >= words]
 
 
 def pages_worded(tree: Quern, piece: str, words: float = 2) -> float:
