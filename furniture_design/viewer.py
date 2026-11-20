@@ -32,12 +32,12 @@ html, body { margin:0; height:100%; background:var(--bg); color:var(--ink);
 #stage { grid-column:1; grid-row:1 / span 2; position:relative; min-width:0; min-height:0; overflow:hidden; }
 canvas { display:block; width:100%; height:100%; touch-action:none; }
 #nav, #tools { grid-column:2; background:var(--panel); border-left:1px solid var(--line); overflow:auto; }
-#nav { grid-row:1; padding:16px 16px 0; max-height:60vh; }
-#tools { grid-row:2; padding:0 16px 16px; border-top:1px solid var(--line); }
+#nav { grid-row:1; padding:8px 16px 0; max-height:60vh; }
+#tools { grid-row:2; padding:4px 16px 12px; border-top:1px solid var(--line); }
 #nav.more { -webkit-mask-image:linear-gradient(to bottom, #000 calc(100% - 40px), transparent);
   mask-image:linear-gradient(to bottom, #000 calc(100% - 40px), transparent); }
 h1 { font-size:18px; margin:0 0 2px; }
-.sub { color:var(--muted); font-size:13px; margin-bottom:14px; }
+.sub { color:var(--muted); font-size:13px; }
 [hidden] { display:none; }
 label { font-size:13px; color:var(--muted); display:block; margin:14px 0 4px; }
 input[type=range] { width:100%; }
@@ -76,9 +76,9 @@ label.opt input { width:18px; height:18px; margin:0; accent-color:var(--ink); }
 #opts[aria-expanded="true"] svg { transform:rotate(180deg); }
 @media (max-width: 720px) {
   #app { display:flex; flex-direction:column; }
-  #nav { max-height:38%; padding:12px 16px 4px; border-left:none; border-bottom:1px solid var(--line); }
+  #nav { max-height:38%; padding:6px 16px 0; border-left:none; border-bottom:1px solid var(--line); }
   #stage { flex:1; min-height:34%; }
-  #tools { max-height:30%; padding:0 16px 12px; border-left:none; border-top:1px solid var(--line); }
+  #tools { max-height:30%; padding:4px 16px 8px; border-left:none; border-top:1px solid var(--line); }
   #tools.sheet { max-height:none; flex:none; }   /* open, the settings take what they need; the tree gives it up */
 }
 /* with a mouse and no touch screen, a row needs no finger's height: the settings fit under the tree on a laptop */
@@ -88,21 +88,22 @@ label.opt input { width:18px; height:18px; margin:0; accent-color:var(--ink); }
 /* with no room for it under the tree (room(): a phone, or a column too short to hold it and the
    sliders), what is drawn opens in the sliders' place from the Display button at the foot of the tools */
 .tight #opts { display:inline-flex; }
-.tight #foot { justify-content:space-between; }
 .tight #display { display:none; padding-top:8px; }
 .tight #display.open { display:block; }
-.tight #tools.sheet > :not(#display):not(#foot) { display:none; }
-.tight #tools.sheet #foot { position:sticky; bottom:-12px; padding-bottom:12px; margin-bottom:-12px; background:var(--panel); }
+.tight #tools.sheet > :not(#display) { display:none; }
+/* a bottom panel with nothing in it takes no height: the controls it used to hold lie over the drawing */
+.tight #tools:not(.sheet):is(.nosliders, .bare) { display:none; }
 
-/* the controls of the foot row are a finger's size where a finger is the pointer */
-@media (any-pointer: coarse) { #foot button { min-height:44px; } }
+/* the row of controls lies over the drawing's foot, each a small chip with no band behind it; its target is
+   a finger's size (44 px) where the chip is smaller, reached by the ::after beyond it */
+#foot { position:absolute; left:8px; right:8px; bottom:8px; margin:0; pointer-events:none; flex-wrap:wrap; }
+#foot button { position:relative; pointer-events:auto; min-height:32px; padding:4px 10px;
+  background:color-mix(in srgb, var(--panel) 90%, transparent); }
+#foot button::after, #foldtop::after { content:""; position:absolute; inset:-6px -2px; }
 #reset { margin-left:auto; }
-.tight #foot { justify-content:flex-start; }
 #tip button { display:block; margin-top:8px; min-height:44px; font-weight:600; }
 /* a control a state hides is hidden whatever display its own rule gives it */
 #app [hidden] { display:none !important; }
-/* the row of buttons stays at the foot of the bottom panel when what is above it scrolls */
-.tight #foot { position:sticky; bottom:-12px; padding-bottom:12px; margin-bottom:-12px; background:var(--panel); }
 /* the bottom panel holds its sliders whole on a small phone (stage one F24); it folds when the drawing needs the room */
 @media (max-width: 720px) { #tools { max-height:40%; } }
 .step:empty { min-height:0; margin:0; }
@@ -110,25 +111,30 @@ label.opt input { width:18px; height:18px; margin:0; accent-color:var(--ink); }
 .fold { display:inline-flex; align-items:center; gap:2px; padding-right:6px; }
 .fold svg { transition:transform .15s; }
 .fold[aria-expanded="true"] svg { transform:rotate(180deg); }
-/* Pièces: a button inside a heading over the list, drawn as the row's buttons are (stage one F21) */
-h2.foldh { margin:0 0 4px; font-size:13px; font-weight:400; }
-h2.foldh + ul { margin-top:0; }
-@media (any-pointer: coarse) { #foldtop { min-height:44px; } }
+/* Pièces: a button on the title's own line, at its right, so no row is spent on it; a chip with a 44 px target */
+#head { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+#head > div { min-width:0; }
+h2.foldh { margin:0; font-size:13px; font-weight:400; flex:none; }
+#foldtop { position:relative; min-height:32px; padding:4px 10px; }
+#nav ul { margin-top:6px; }
+#nav.folded { padding-bottom:6px; }
 #nav.folded #parts { display:none; }
 #nav.folded { -webkit-mask-image:none; mask-image:none; }
 #tools.nosliders #sliders { display:none; }
-#tools.nosliders #foot { margin-top:12px; }
 </style>
 </head>
 <body>
 <div id="app">
   <div id="nav">
-    <h1 id="title">__TITLE__</h1>
-    <div class="sub" id="sub"></div>
-    <h2 class="foldh"><button id="foldtop" class="fold" type="button" aria-expanded="true" aria-controls="parts">__L_PARTS__<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"/></svg></button></h2>
+    <div id="head"><div><h1 id="title">__TITLE__</h1>
+    <div class="sub" id="sub"></div></div>
+    <h2 class="foldh"><button id="foldtop" class="fold" type="button" aria-expanded="true" aria-controls="parts">__L_PARTS__<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"/></svg></button></h2></div>
     <ul id="parts"></ul>
   </div>
-  <div id="stage"><canvas id="marks"></canvas><div id="tip"></div></div>
+  <div id="stage"><canvas id="marks"></canvas><div id="tip"></div>
+    <div class="row end" id="foot"><button id="foldbot" class="fold" type="button" aria-expanded="true" aria-controls="sliders">__L_ASSEMBLY__<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"/></svg></button><button id="opts" type="button" aria-expanded="false" aria-controls="display">__L_DISPLAY__<svg
+      width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"/></svg></button><button id="reset">__L_RESET__</button></div>
+  </div>
   <div id="tools">
     <div id="display">
       <label class="opt" id="fastrow"><input id="showc" type="checkbox" checked>__L_FASTENERS__</label>
@@ -156,8 +162,6 @@ h2.foldh + ul { margin-top:0; }
     <div id="spread"><label for="explode">__L_EXPLODE__</label>
     <input id="explode" type="range" min="0" max="100" value="0"></div>
     </div>
-    <div class="row end" id="foot"><button id="foldbot" class="fold" type="button" aria-expanded="true" aria-controls="sliders">__L_ASSEMBLY__<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"/></svg></button><button id="opts" type="button" aria-expanded="false" aria-controls="display">__L_DISPLAY__<svg
-      width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"/></svg></button><button id="reset">__L_RESET__</button></div>
   </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -194,7 +198,8 @@ function offer() {
   moved = turned();
   const changed = here.length || +stepIn.value || e || moved || selected;
   document.getElementById('reset').style.visibility = changed ? '' : 'hidden';
-  document.getElementById('foldbot').hidden = document.getElementById('assembly').hidden && document.getElementById('spread').hidden;
+  const noSliders = document.getElementById('assembly').hidden && document.getElementById('spread').hidden;
+  document.getElementById('foldbot').hidden = noSliders; tools.classList.toggle('bare', noSliders);
   room();
 }
 // a panel folded or unfolded: the drawing takes or gives the height, and a view the person has not turned is fitted again
