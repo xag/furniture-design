@@ -521,3 +521,29 @@ def test_the_documents_drawn_print_only_what_the_model_says_and_keep_to_the_pape
     assert tree.get(f"plans/{BENCH.rsplit('/', 1)[-1]}", depth=0) is not None
     assert pg.EXPLAINERS["furniture/printed_unsupported"](tree, BENCH) == []
     assert pg.EXPLAINERS["furniture/drawn_off_the_paper"](tree, BENCH) == []
+
+
+def test_a_stored_3d_view_is_drawn_by_todays_interface_from_its_scene_alone(tmp_path):
+    """The interface is the app's, whatever viewer made the document: app_page reads the scene (DATA) of a document
+    made now, of one made before outlines, sizes, titles and assemblies existed, and of one in English."""
+    import json
+    import re
+
+    from furniture_design.viewer import app_page
+    made = drawings.documents(_tree(), BENCH, tmp_path)["viewer"].read_text(encoding="utf-8")
+    data = json.loads(re.search(r"const DATA = (\{.*?\});\n", made).group(1))
+    page = app_page(made)
+    assert "Montrer les fixations" in page and "Connecteurs" not in page and 'id="foldtop"' in page
+    assert json.loads(re.search(r"const DATA = (\{.*?\});\n", page).group(1)) == data   # nothing of the scene changes
+    old = {k: v for k, v in data.items() if k not in ("title", "existing")}
+    old["parts"] = [{k: v for k, v in p.items() if k not in ("profile", "within")} for p in data["parts"]]
+    old["joints"] = [{k: v for k, v in j.items() if k != "size"} for j in data["joints"]]
+    stored = made.replace(json.dumps(data, ensure_ascii=False), json.dumps(old, ensure_ascii=False))
+    drawn = json.loads(re.search(r"const DATA = (\{.*?\});\n", app_page(stored)).group(1))
+    assert drawn["existing"] == [] and drawn["title"] == data["title"]
+    assert all(p["within"] == [] and len(p["profile"]["outline"]) == 4 for p in drawn["parts"])
+    english = drawings.documents(_tree(), BENCH, tmp_path / "en", lang="en")["viewer"].read_text(encoding="utf-8")
+    assert "Show the fixings" in app_page(english) and '<html lang="en">' in app_page(english)
+    import pytest
+    with pytest.raises(ValueError):
+        app_page("<html>not a 3D view</html>")

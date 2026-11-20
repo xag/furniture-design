@@ -65,7 +65,7 @@ LABELS = {
         "slots": "rainures", "grain_along": "fil", "thick": "ép.", "glued_from": "collé de",
         "sheets_of": "feuilles de", "positions_note": "Positions des rainures indicatives, "
         "réparties régulièrement : à confirmer au traçage.",
-        "inbox": "Avant de commencer", "boards": "Pièces", "hardware": "Quincaillerie",
+        "inbox": "Avant de commencer", "boards": "Pièces", "hardware": "Fixations",
         "tools": "Outils", "other_tools": "Autres outils", "prepare": "Préparation", "assemble": "Montage",
         "overall": "Encombrement", "step": "Étape",
         "cutting": "Découpe", "sources": "Sources", "mark_out": "Tracer", "from": "depuis", "to": "à",
@@ -96,7 +96,7 @@ LABELS = {
         "slots": "grooves", "grain_along": "grain", "thick": "thk.", "glued_from": "glued from",
         "sheets_of": "sheets of", "positions_note": "Groove positions indicative, evenly "
         "spread: to be confirmed when marking out.",
-        "inbox": "Before you start", "boards": "Parts", "hardware": "Hardware",
+        "inbox": "Before you start", "boards": "Parts", "hardware": "Fixings",
         "tools": "Tools", "other_tools": "Other tools", "prepare": "Preparation", "assemble": "Assembly",
         "overall": "Overall size", "step": "Step",
         "cutting": "Cutting", "sources": "Sources", "mark_out": "Mark out", "from": "from", "to": "to",

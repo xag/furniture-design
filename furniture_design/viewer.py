@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import html
 import json
+import re
 from pathlib import Path
 
 from .scene import Scene
@@ -92,6 +93,31 @@ label.opt input { width:18px; height:18px; margin:0; accent-color:var(--ink); }
 .tight #display.open { display:block; }
 .tight #tools.sheet > :not(#display):not(#foot) { display:none; }
 .tight #tools.sheet #foot { position:sticky; bottom:-12px; padding-bottom:12px; margin-bottom:-12px; background:var(--panel); }
+
+/* the controls of the foot row are a finger's size where a finger is the pointer */
+@media (any-pointer: coarse) { #foot button { min-height:44px; } }
+#reset { margin-left:auto; }
+.tight #foot { justify-content:flex-start; }
+#tip button { display:block; margin-top:8px; min-height:44px; font-weight:600; }
+/* a control a state hides is hidden whatever display its own rule gives it */
+#app [hidden] { display:none !important; }
+/* the row of buttons stays at the foot of the bottom panel when what is above it scrolls */
+.tight #foot { position:sticky; bottom:-12px; padding-bottom:12px; margin-bottom:-12px; background:var(--panel); }
+/* the bottom panel holds its sliders whole on a small phone (stage one F24); it folds when the drawing needs the room */
+@media (max-width: 720px) { #tools { max-height:40%; } }
+.step:empty { min-height:0; margin:0; }
+
+.fold { display:inline-flex; align-items:center; gap:2px; padding-right:6px; }
+.fold svg { transition:transform .15s; }
+.fold[aria-expanded="true"] svg { transform:rotate(180deg); }
+/* Pièces: a button inside a heading over the list, drawn as the row's buttons are (stage one F21) */
+h2.foldh { margin:0 0 4px; font-size:13px; font-weight:400; }
+h2.foldh + ul { margin-top:0; }
+@media (any-pointer: coarse) { #foldtop { min-height:44px; } }
+#nav.folded #parts { display:none; }
+#nav.folded { -webkit-mask-image:none; mask-image:none; }
+#tools.nosliders #sliders { display:none; }
+#tools.nosliders #foot { margin-top:12px; }
 </style>
 </head>
 <body>
@@ -99,14 +125,14 @@ label.opt input { width:18px; height:18px; margin:0; accent-color:var(--ink); }
   <div id="nav">
     <h1 id="title">__TITLE__</h1>
     <div class="sub" id="sub"></div>
-    <label>__L_PARTS__</label>
+    <h2 class="foldh"><button id="foldtop" class="fold" type="button" aria-expanded="true" aria-controls="parts">__L_PARTS__<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"/></svg></button></h2>
     <ul id="parts"></ul>
   </div>
   <div id="stage"><canvas id="marks"></canvas><div id="tip"></div></div>
   <div id="tools">
     <div id="display">
-      <label class="opt"><input id="showc" type="checkbox" checked>__L_CONNECTORS__</label>
-      <div class="choice"><span id="dimslab">__L_DIMENSIONS__</span>
+      <label class="opt" id="fastrow"><input id="showc" type="checkbox" checked>__L_FASTENERS__</label>
+      <div class="choice" id="dimsrow"><span id="dimslab">__L_DIMENSIONS__</span>
         <div class="seg" role="radiogroup" aria-labelledby="dimslab">
           <label><input type="radio" name="dims" value="none" checked><span>__L_NODIMS__</span></label>
           <label><input type="radio" name="dims" value="chain"><span>__L_CHAIN__</span></label>
@@ -121,14 +147,16 @@ label.opt input { width:18px; height:18px; margin:0; accent-color:var(--ink); }
         </div>
       </div>
     </div>
+    <div id="sliders">
     <div id="assembly">
       <label for="steps">__L_STEPS__ <span id="stepn"></span></label>
       <input id="steps" type="range" min="0" value="0">
       <div class="step" id="steptext"></div>
     </div>
-    <label for="explode">__L_EXPLODE__</label>
-    <input id="explode" type="range" min="0" max="100" value="0">
-    <div class="row end" id="foot"><button id="opts" type="button" aria-expanded="false" aria-controls="display">__L_DISPLAY__<svg
+    <div id="spread"><label for="explode">__L_EXPLODE__</label>
+    <input id="explode" type="range" min="0" max="100" value="0"></div>
+    </div>
+    <div class="row end" id="foot"><button id="foldbot" class="fold" type="button" aria-expanded="true" aria-controls="sliders">__L_ASSEMBLY__<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"/></svg></button><button id="opts" type="button" aria-expanded="false" aria-controls="display">__L_DISPLAY__<svg
       width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"/></svg></button><button id="reset">__L_RESET__</button></div>
   </div>
 </div>
@@ -136,6 +164,54 @@ label.opt input { width:18px; height:18px; margin:0; accent-color:var(--ink); }
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script>
 const DATA = __DATA__;
+// what a control changes, read from the state, so that a control that changes nothing is not shown
+var moved = false, tapped = null, homeAt = null;
+function wholeJoint() {
+  const n = +stepIn.value, k = n ? mine[n-1] : 0;
+  return DATA.joints.some(j => j.parts.every(id => !byId[id] || ((!k || (placedAt[id] || 0) <= k) && under(byId[id]))));
+}
+// the camera turned: where it is, against where the view started (a tap that turns nothing is no turn: F26)
+function turned() {
+  return !!homeAt && (camera.position.distanceTo(homeAt[0]) > 0.5 || controls.target.distanceTo(homeAt[1]) > 0.5);
+}
+// a row the spread swaps keeps its place where the sliders stand under the block (a wide screen: F25), and is
+// removed where the block opens in the sliders' place
+function shown_(el, on) {
+  const keep = !document.getElementById('app').classList.contains('tight');
+  el.hidden = !on && !keep; el.style.visibility = on || !keep ? '' : 'hidden';
+}
+function offer() {
+  const e = +document.getElementById('explode').value;
+  room();
+  document.getElementById('spread').hidden = DATA.parts.filter(under).length < 2;
+  const fast = e > 0 && wholeJoint();
+  shown_(document.getElementById('fastrow'), fast);
+  shown_(document.getElementById('dimsrow'), e === 0);
+  document.getElementById('restrow').hidden = !here.length || e > 0;
+  const any = fast || e === 0;
+  opts.hidden = !any;
+  if (!any && isOpen()) sheet(false);
+  moved = turned();
+  const changed = here.length || +stepIn.value || e || moved || selected;
+  document.getElementById('reset').style.visibility = changed ? '' : 'hidden';
+  document.getElementById('foldbot').hidden = document.getElementById('assembly').hidden && document.getElementById('spread').hidden;
+  room();
+}
+// a panel folded or unfolded: the drawing takes or gives the height, and a view the person has not turned is fitted again
+function refit() { fit(); room(); }
+// the box a tap shows stands exactly while a part is selected; it opens the part alone, down its own groups,
+// when that changes what is shown
+function tipFor(p) {
+  const s = [p.hi[0]-p.lo[0], p.hi[1]-p.lo[1], p.hi[2]-p.lo[2]].sort((a,b)=>b-a);
+  // the part tapped, alone (F30): by its id when its letter has other parts in its assembly, as its row otherwise
+  const twins = DATA.parts.filter(q => q.mark === p.mark && JSON.stringify(q.within) === JSON.stringify(p.within)).length > 1;
+  const to = [...p.within.map(w => w[0]), twins ? {mark: p.mark, name: p.name, id: p.id} : {mark: p.mark, name: p.name}];
+  const same = JSON.stringify(to) === JSON.stringify(here);
+  tip.innerHTML = `<b>${p.mark} — ${p.name}</b><br>${s[0]} × ${s[1]} × ${s[2]} mm<br>${p.material}` +
+    (same ? '' : `<button type="button" id="alone">__L_ALONE__</button>`);
+  if (!same) document.getElementById('alone').onclick = () => go(to);
+}
+
 const stage = document.getElementById('stage');
 const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -211,6 +287,7 @@ DATA.joints.forEach(j => j.positions.forEach(q => {
 function fit() {
   const w = stage.clientWidth, h = stage.clientHeight;
   renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix();
+  if (!moved && typeof view !== 'undefined') home();
 }
 // the group shown: the ids from the piece down to it, none for the whole piece
 // the way down to what is shown: the ids of the groups from the piece, then, when one part is
@@ -218,7 +295,7 @@ function fit() {
 let here = [];
 const groupsOf = () => here.filter(x => typeof x === 'string'), opened = () => here.find(x => typeof x !== 'string');
 const under = p => groupsOf().every((id, i) => p.within[i] && p.within[i][0] === id) &&
-  (!opened() || p.mark === opened().mark);
+  (!opened() || (p.mark === opened().mark && (!opened().id || p.id === opened().id)));
 // the middle and the largest side of what is shown
 function shown() {
   const ps = DATA.parts.filter(under), a = [0, 1, 2].map(i => Math.min(...ps.map(p => p.lo[i]))),
@@ -231,6 +308,7 @@ function shown() {
 }
 let view = shown();
 function home() {
+  moved = false;
   const s = [0, 1, 2].map(i => view.hi[i] - view.lo[i]), long = s.indexOf(Math.max(...s)),
     across = Math.max(...s.filter((_, i) => i !== long));
   if (s[long] > 8 * across) {
@@ -242,11 +320,24 @@ function home() {
     const at = T(end[0], end[1], end[2]);
     camera.position.copy(at).add(T(off[0], off[1], off[2]).setLength(across * 5));
     controls.target.copy(at); controls.update();
+    homeAt = [camera.position.clone(), controls.target.clone()];
     return;
   }
   const d = view.size * 2.4;
   camera.position.set(view.mid.x - d*0.55, view.mid.y + d*0.45, view.mid.z + d*0.75);
   controls.target.copy(view.mid); controls.update();
+  for (let i = 0; i < 3; i++) {
+    camera.updateMatrixWorld();
+    let x0 = 1, x1 = -1, y0 = 1, y1 = -1;
+    for (const a of [view.lo[0], view.hi[0]]) for (const b of [view.lo[1], view.hi[1]]) for (const c of [view.lo[2], view.hi[2]]) {
+      const q = T(a, b, c).project(camera);
+      x0 = Math.min(x0, q.x); x1 = Math.max(x1, q.x); y0 = Math.min(y0, q.y); y1 = Math.max(y1, q.y);
+    }
+    const s = Math.max(x1 - x0, y1 - y0) / 1.5;
+    const off = camera.position.clone().sub(view.mid).multiplyScalar(s);
+    camera.position.copy(view.mid).add(off); controls.update();
+  }
+  homeAt = [camera.position.clone(), controls.target.clone()];
 }
 new ResizeObserver(fit).observe(stage); fit(); home();
 // a list longer than its place fades at its foot until it is drawn to its end
@@ -271,7 +362,7 @@ function follow() {
 function apply() {
   const n = +stepIn.value, k = n ? mine[n-1] : 0, e = +document.getElementById('explode').value / 100;
   document.getElementById('stepn').textContent = n ? `${n} / ${mine.length}` : '';
-  document.getElementById('steptext').textContent = k ? steps[k-1].text : DATA.finished;
+  document.getElementById('steptext').textContent = k ? steps[k-1].text : '';
   const mode = rest();
   around.forEach(m => m.visible = !groupsOf().length && !opened() && !e);
   meshes.forEach(m => {
@@ -356,13 +447,13 @@ function give() {
   display.classList.add('open'); tools.classList.add('sheet');
   const owed = Math.max(0, before - stage.clientHeight) + Math.max(0, tools.scrollHeight - tools.clientHeight);
   if (owed) {
-    const floor = document.getElementById('sub').getBoundingClientRect().bottom - nav.getBoundingClientRect().top + nav.scrollTop + 44;
+    const floor = document.getElementById('sub').getBoundingClientRect().bottom - nav.getBoundingClientRect().top + nav.scrollTop + 100;
     nav.style.maxHeight = Math.max(floor, nav.clientHeight - owed) + 'px';
   }
   more();
 }
-opts.onclick = () => sheet(!isOpen());
-document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && isOpen()) sheet(false); });
+opts.onclick = () => { sheet(!isOpen()); syncFold(); };
+document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && isOpen()) { sheet(false); syncFold(); } });
 // room for what is drawn under the tree: never on a narrow screen; else when the tools, with it in
 // them, fit their place without scrolling
 const narrow = matchMedia('(max-width: 720px)');
@@ -466,12 +557,12 @@ function nested() {
     if (v.length) m.userData.split.add(v.reduce((a, b) => a.add(b), new THREE.Vector3()).divideScalar(v.length)); });
 }
 function go(to) {
-  here = to; view = shown(); selected = null; nested(); follow();
+  document.getElementById('explode').value = 0; here = to; view = shown(); selected = null; nested(); follow();
   document.getElementById('restrow').hidden = !here.length;
   meshes.forEach(m => m.userData.selected = false);
   tip.style.display = 'none';
   listing(); room(); home(); apply();
-  nav.scrollTop = 0; more();
+  nav.scrollTop = 0; more(); offer();
 }
 
 let selected = null;
@@ -479,7 +570,11 @@ function select(mark) {
   selected = selected === mark ? null : mark;
   meshes.forEach(m => m.userData.selected = selected && m.userData.part.mark === selected);
   Object.entries(seen).forEach(([k, v]) => v.li.classList.toggle('on', k === selected));
-  apply();
+  if (selected) {
+    if (!tapped || tapped.mark !== selected) tapped = DATA.parts.find(q => q.mark === selected && under(q));
+    tipFor(tapped); tip.style.display = 'block';
+  } else tip.style.display = 'none';
+  apply(); offer();
 }
 const ray = new THREE.Raycaster(), ptr = new THREE.Vector2();
 const strike = ev => {
@@ -497,7 +592,7 @@ function closer(hit) {
   const from = camera.position.clone().sub(controls.target), d = Math.max(from.length() * 0.3, 25);
   controls.target.copy(hit.point);
   camera.position.copy(hit.point).add(from.setLength(d));
-  controls.update();
+  controls.update(); offer();
 }
 renderer.domElement.addEventListener('pointerdown', ev => down = [ev.clientX, ev.clientY]);
 renderer.domElement.addEventListener('pointerup', ev => {
@@ -507,15 +602,34 @@ renderer.domElement.addEventListener('pointerup', ev => {
     last = null; closer(hit); return;
   }
   last = moved ? null : {t: ev.timeStamp, x: ev.clientX, y: ev.clientY};
-  if (!hit || !under(hit.object.userData.part)) { tip.style.display = 'none'; return; }
+  if (!hit || !under(hit.object.userData.part)) { if (selected) select(selected); return; }
   const p = hit.object.userData.part;
-  const s = [p.hi[0]-p.lo[0], p.hi[1]-p.lo[1], p.hi[2]-p.lo[2]].sort((a,b)=>b-a);
-  tip.innerHTML = `<b>${p.mark} — ${p.name}</b><br>${s[0]} × ${s[1]} × ${s[2]} mm<br>${p.material}`;
-  tip.style.display = 'block';
+  if (selected === p.mark && tapped && tapped.id !== p.id) { tapped = p; tipFor(p); return; }
+  tapped = p;
   select(p.mark);
 });
 nested(); follow(); listing(); more();
 apply();
+controls.addEventListener('end', offer);
+['explode', 'steps'].forEach(id => document.getElementById(id).addEventListener('change', offer));
+document.getElementById('showc').addEventListener('change', offer);
+
+// A: Pièces folds the list under the title; Montage and Affichage each open their block over the row of buttons,
+// one at a time, and with both closed the bottom panel is that row
+const foldtop = document.getElementById('foldtop'), foldbot = document.getElementById('foldbot');
+var slidersOn = true;
+foldtop.onclick = () => {
+  const folded = nav.classList.toggle('folded');
+  foldtop.setAttribute('aria-expanded', String(!folded)); nav.scrollTop = 0; more(); refit();
+};
+function syncFold() {
+  tools.classList.toggle('nosliders', !slidersOn);
+  foldbot.setAttribute('aria-expanded', String(slidersOn && !isOpen()));
+  refit();
+}
+foldbot.onclick = () => { if (isOpen()) { sheet(false); slidersOn = true; } else slidersOn = !slidersOn; syncFold(); };
+
+offer();
 
 // Dimensions on what is shown, off the edge of its box that is nearest the bottom of the screen
 // (the leftmost for the height), as the plans dimension a view. Positions: along each axis the
@@ -751,12 +865,12 @@ function marks() {
 """
 
 WORDS = {
-    "fr": {"steps": "Étape de montage", "explode": "Écarter les pièces", "connectors": "Connecteurs",
+    "fr": {"steps": "Étape de montage", "explode": "Écarter les pièces", "fasteners": "Montrer les fixations", "alone": "Voir seule", "assembly": "Montage",
            "reset": "Réinitialiser", "parts": "Pièces", "finished": "Meuble monté. Glisser pour suivre "
            "le montage étape par étape.", "dimensions": "Cotes", "rest": "Reste du meuble",
            "hidden": "Masqué", "see": "Transparent", "solid": "Plein", "display": "Affichage",
            "nodims": "Masquées", "chain": "Positions", "sizes": "Tailles"},
-    "en": {"steps": "Assembly step", "explode": "Pull the parts apart", "connectors": "Connectors",
+    "en": {"steps": "Assembly step", "explode": "Pull the parts apart", "fasteners": "Show the fixings", "alone": "Show alone", "assembly": "Assembly",
            "reset": "Reset", "parts": "Parts", "finished": "Finished piece. Slide to follow the "
            "assembly step by step.", "dimensions": "Dimensions", "rest": "Rest of the piece",
            "hidden": "Hidden", "see": "Transparent", "solid": "Solid", "display": "Display",
@@ -784,12 +898,43 @@ def viewer_html(sc: Scene, path: Path, lang: str = "fr") -> Path:
                     "positions": j.positions, "size": j.size} for j in sc.joints],
         "steps": [{"text": s.text, "add": s.add, "prepare": s.prepare} for s in sc.steps],
     }
-    page = (PAGE.replace("__DATA__", json.dumps(data, ensure_ascii=False))
-            .replace("__TITLE__", html.escape(sc.title)).replace("__LANG__", lang)
-            .replace("__L_STEPS__", W["steps"]).replace("__L_EXPLODE__", W["explode"])
-            .replace("__L_CONNECTORS__", W["connectors"]).replace("__L_RESET__", W["reset"])
-            .replace("__L_PARTS__", W["parts"]))
-    for key in ("dimensions", "rest", "hidden", "see", "solid", "display", "nodims", "chain", "sizes"):
-        page = page.replace(f"__L_{key.upper()}__", html.escape(W[key]))
-    path.write_text(page, encoding="utf-8")
+    path.write_text(_render(data, lang), encoding="utf-8")
     return path
+
+
+def _render(data: dict, lang: str) -> str:
+    """The page for a scene (the DATA literal every stored 3D view carries) in a language."""
+    W = WORDS[lang]
+    page = (PAGE.replace("__DATA__", json.dumps(data, ensure_ascii=False))
+            .replace("__TITLE__", html.escape(data["title"])).replace("__LANG__", lang)
+            .replace("__L_STEPS__", W["steps"]).replace("__L_EXPLODE__", W["explode"])
+            .replace("__L_RESET__", W["reset"])
+            .replace("__L_PARTS__", W["parts"]))
+    for key in ("fasteners", "alone", "assembly", "dimensions", "rest", "hidden", "see", "solid", "display", "nodims", "chain", "sizes"):
+        page = page.replace(f"__L_{key.upper()}__", html.escape(W[key]))
+    return page
+
+
+def app_page(stored: str) -> str:
+    """The interface of today's viewer drawn on a stored 3D view's scene: the stored document is read for its
+    scene only (its DATA literal), whatever viewer made it, and what an older one lacks is what the viewer that
+    made it drew without: no outline is the part's box, no size a cube (the viewer's own default), no assemblies none, nothing existing
+    around, the title the page's own, the language the page's. ValueError when it holds no scene."""
+    found = re.search(r"const DATA = (\{.*?\});\n", stored)
+    if not found:
+        raise ValueError("no scene in this document")
+    data = json.loads(found.group(1))
+    data.setdefault("existing", [])
+    title = re.search(r"<title>(.*?)</title>", stored, re.S)
+    data.setdefault("title", html.unescape(title.group(1)) if title else "")
+    lang = re.search(r'<html lang="(\w+)"', stored)
+    lang = lang.group(1) if lang and lang.group(1) in WORDS else "fr"
+    for p in data["parts"]:
+        p.setdefault("within", [])
+        if "profile" not in p:
+            lo, hi = p["lo"], p["hi"]
+            t = min(range(3), key=lambda i: hi[i] - lo[i])
+            u, v = [i for i in range(3) if i != t]
+            p["profile"] = {"u": u, "v": v, "t": t, "t0": lo[t], "t1": hi[t],
+                            "outline": [[lo[u], lo[v]], [hi[u], lo[v]], [hi[u], hi[v]], [lo[u], hi[v]]]}
+    return _render(data, lang)
