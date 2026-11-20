@@ -3,6 +3,10 @@ requirement a person cares about (does the top hold a sitter, how much does it g
 the piece take a push from the side, do the joints fit their connectors), each with its
 numbers and a verdict: ok, fail, or open (the rule could not answer, and why).
 
+Each row names the rules whose verdict it reports (rules), so a reader counts a rule that does not
+hold once, with its row; a row about one part names it (part), and the assembly's row the steps a part
+does not come straight at its connectors in (steps).
+
 The numbers come from the same calculations the rules run (furniture/deflection,
 furniture/sideways_margin, the strength rule's M/S); the words are in TEXT.
 """
@@ -100,9 +104,10 @@ TEXT = {
     },
 }
 
-JOINT_RULES = {"a-joined-part-is-thick-enough-for-the-cut", "a-joined-part-is-wide-enough",
+JOINT_RULES = ("a-joined-part-is-thick-enough-for-the-cut", "a-joined-part-is-wide-enough",
                "a-joint-is-cut-with-a-tool-its-connector-takes",
-               "a-joint-is-cut-at-its-connectors-setting"}
+               "a-joint-is-cut-at-its-connectors-setting")
+ASSEMBLY_RULE = "a-step-closes-each-joint-the-way-its-connector-engages"
 MATERIAL_WORDS = {"fr": {"plywood": "contreplaqué", "mdf": "MDF", "particleboard": "aggloméré"},
                   "en": {"plywood": "plywood", "mdf": "MDF", "particleboard": "particleboard"}}
 DECIMAL = {"fr": ",", "en": "."}
@@ -132,6 +137,7 @@ def checks(tree: Quern, piece: str, lang: str = "fr") -> list[dict]:
         stress = _param(tree, case, "km") * w * span * 6 / (b * h * h)
         allowed = _param(tree, path, "design_bending_stress")
         rows.append({"requirement": T["strength"].format(part=name, load=load),
+                     "rules": ["a-beam-is-strong-enough"], "part": path,
                      "result": T["no_strength"] if allowed is None
                      else T["strength_res"].format(s=_fmt(stress), a=_fmt(allowed)),
                      "verdict": "open" if allowed is None else "ok" if stress <= allowed else "fail"})
@@ -149,11 +155,13 @@ def checks(tree: Quern, piece: str, lang: str = "fr") -> list[dict]:
             res = T["no_shear" if "shear modulus" in str(e) else "no_stiffness"]
             verdict = "open" if limits else "info"
         rows.append({"requirement": T["sag"].format(part=name, load=load), "result": res,
+                     "rules": ["a-beam-sags-within-its-limit"], "part": path,
                      "verdict": verdict})
         direction = [r for r in results if r.rule == "a-part-bends-the-way-its-material-was-tested"
                      and r.node == path]
         if direction:
             rows.append({"requirement": T["direction"].format(part=name),
+                         "rules": ["a-part-bends-the-way-its-material-was-tested"], "part": path,
                          "result": T["direction_ok" if direction[0].ok else "direction_fail"],
                          "verdict": "ok" if direction[0].ok else "fail"})
     root = get_node(tree, prefix)
@@ -163,7 +171,8 @@ def checks(tree: Quern, piece: str, lang: str = "fr") -> list[dict]:
         src = ", ".join(t.rsplit("/", 2)[-2].upper().replace("GSA-", "GSA ")
                         for t in (req.links or {}).get("per", [])[:1])
         # `case` names the requirement the row is about, so a reader finds a case's row by it, not by its wording
-        row = {"requirement": T["sideways"].format(f=_fmt(force, 0), src=src), "case": case}
+        row = {"requirement": T["sideways"].format(f=_fmt(force, 0), src=src), "case": case,
+               "rules": ["a-piece-takes-its-sideways-load"]}
         try:
             m = sideways_margin(tree, prefix, case)
             if not (root.links or {}).get("braced_by"):
@@ -188,7 +197,9 @@ def checks(tree: Quern, piece: str, lang: str = "fr") -> list[dict]:
                 if not ok:
                     bad.setdefault((n, p), []).append(j)
             names = {p: (get_node(tree, f"{prefix}/{p}").name or p) for _, _, p, _ in closed}
-            rows.append({"requirement": T["assembly"],
+            rows.append({"requirement": T["assembly"], "rules": [ASSEMBLY_RULE],
+                         # the steps a part does not come straight at its connectors in, for a reader that shows them
+                         **({"steps": sorted({n for n, _ in bad})} if bad else {}),
                          "result": "; ".join(T["assembly_fail"].format(step=n, part=names[p],
                                                                        joints=", ".join(js))
                                              for (n, p), js in bad.items()) if bad
@@ -197,13 +208,14 @@ def checks(tree: Quern, piece: str, lang: str = "fr") -> list[dict]:
     except Absent as e:
         got = re.search(r"connector of '([^']+)'", str(e))
         why = T["no_engagement"].format(joint=got.group(1).rsplit("/", 1)[-1]) if got else str(e)
-        rows.append({"requirement": T["assembly"], "result": T["assembly_open"].format(why=why),
+        rows.append({"requirement": T["assembly"], "rules": [ASSEMBLY_RULE],
+                     "result": T["assembly_open"].format(why=why),
                      "verdict": "open"})
     joint_results = [r for r in results if r.rule in JOINT_RULES]
     if joint_results:
         bad = sorted({r.node.rsplit("/", 1)[-1] for r in joint_results if not r.ok})
         n = len({r.node for r in joint_results})
-        rows.append({"requirement": T["joints"],
+        rows.append({"requirement": T["joints"], "rules": [r for r in JOINT_RULES if r in {x.rule for x in joint_results}],
                      "result": T["joints_fail"].format(which=", ".join(bad)) if bad
                      else T["joints_ok"].format(n=n),
                      "verdict": "fail" if bad else "ok"})

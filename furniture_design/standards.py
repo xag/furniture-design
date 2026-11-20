@@ -262,7 +262,7 @@ def knowledge() -> list[Node]:
         _criterion("piece-parts-fit", "No two parts fill the same space", "consistency",
                    "a-pieces-parts-fill-their-own-space", of="piece"),
         _criterion("piece-steps-build-it", "The assembly steps bring in every part and close every joint, each "
-                   "once its parts are in, and every part reaches its place", "completeness",
+                   "once its parts are in, and no part crosses another on its way in", "completeness",
                    "a-pieces-steps-bring-in-every-part", "a-pieces-steps-close-every-joint",
                    "a-pieces-parts-reach-their-place", of="piece"),
         _criterion("piece-can-be-made", "Every part says what it is cut from and with, and every joint what "
@@ -728,7 +728,7 @@ def _counter_examples() -> list[CounterExample]:
     ]
 
 
-VERSION = "0.16.0"
+VERSION = "0.16.1"
 
 
 SOLVERS = [SolverDef(name=name, native=True, reads=[""], description=(fn.__doc__ or "").strip().split("\n\n")[0])

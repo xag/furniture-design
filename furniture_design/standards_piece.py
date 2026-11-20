@@ -573,12 +573,13 @@ def _answers(decisions: list[Node]) -> list[str]:
     return [_flat(a) for d in decisions for a in (d.payload or {}).get("answers") or [] if len(str(a).split()) >= 3]
 
 
-def _uncovered(tree: Quern, piece: str) -> list[str]:
+def _uncovered(tree: Quern, piece: str) -> list:
     purposes, decisions = _ledger(tree, piece)
     if not purposes:
         return ["the piece's ledger states no purpose"]
     quoted = _answers(decisions)
-    return [f"no decision answers: “{s}”" for p in purposes for s in _sentences(p.name)
+    # each case names the sentence of the purpose it is (purpose), for a reader that shows it in the notes
+    return [{"says": f"no decision answers: “{s}”", "purpose": s} for p in purposes for s in _sentences(p.name)
             if not any(q in _flat(s) for q in quoted)]
 
 
@@ -589,14 +590,14 @@ def purpose_uncovered(tree: Quern, piece: str) -> float:
     return float(len(_uncovered(tree, piece)))
 
 
-def _unrealised(tree: Quern, piece: str) -> list[str]:
+def _unrealised(tree: Quern, piece: str) -> list[dict]:
     _, decisions = _ledger(tree, piece)
     out = []
-    for d in decisions:
+    for d in decisions:   # each case names its decision (decision: its id in the ledger)
         targets = d.links.get("realised_by", [])
         if not targets:
-            out.append(f"{d.id}: it names nothing in the piece that realises it (realised_by)")
-        out += [f"{d.id}: {t} is not in the piece" for t in targets
+            out.append({"says": f"{d.id}: it names nothing in the piece that realises it (realised_by)", "decision": d.id})
+        out += [{"says": f"{d.id}: {t} is not in the piece", "decision": d.id} for t in targets
                 if not _under(t.rstrip("/"), [piece.rstrip("/")]) or get_node(tree, t) is None]
     return out
 
@@ -607,7 +608,7 @@ def unrealised_decisions(tree: Quern, piece: str) -> float:
     return float(len(_unrealised(tree, piece)))
 
 
-def _unchecked(tree: Quern, piece: str) -> list[str]:
+def _unchecked(tree: Quern, piece: str) -> list[dict]:
     purposes, decisions = _ledger(tree, piece)
     texts = [(d.id, a) for d in decisions for a in (d.payload or {}).get("answers") or []]
     texts += [(d.id, d.name) for d in decisions]
@@ -616,13 +617,16 @@ def _unchecked(tree: Quern, piece: str) -> list[str]:
     for did, text in texts:
         for number in re.findall(r"\d+(?:[.,]\d+)?\s*(?:mm|cm|m|kg|°|%)", str(text)):
             if not any(_flat(number) in _flat(f.get("says", "")) for f in figures[did] if isinstance(f, dict)):
-                out.append(f"{did}: “{number}” is stated, and no figure of the decision holds the model to it")
+                out.append({"says": f"{did}: “{number}” is stated, and no figure of the decision holds the model to it",
+                            "decision": did, "figure": number})
     stated = " ".join(_flat(t) for _, t in texts)
     for p in purposes:
         for number in re.findall(r"\d+(?:[.,]\d+)?\s*(?:mm|cm|m|kg|°|%)", p.name):
             if _flat(number) not in stated:
-                out.append(f"the purpose states “{number}”, and no decision takes it up")
-    return sorted(set(out))
+                out.append({"says": f"the purpose states “{number}”, and no decision takes it up", "purpose": p.name,
+                            "figure": number})
+    # each quantity once, where it is stated (decision, or purpose) with its words (figure)
+    return sorted({c["says"]: c for c in out}.values(), key=lambda c: c["says"])
 
 
 def unchecked_numbers(tree: Quern, piece: str) -> float:

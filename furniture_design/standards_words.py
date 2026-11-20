@@ -50,9 +50,9 @@ SAY = {
     "piece-parts-fit": {"en": "No two parts fill the same space",
                         "fr": "Deux pièces n'occupent jamais le même espace"},
     "piece-steps-build-it": {"en": "The assembly steps bring in every part and close every joint, each once its "
-                                   "parts are in, and every part reaches its place",
+                                   "parts are in, and no part crosses another on its way in",
                              "fr": "Les étapes de montage amènent chaque pièce et ferment chaque assemblage, une "
-                                   "fois ses pièces en place, et chaque pièce arrive à sa place"},
+                                   "fois ses pièces en place, et aucune pièce n'en traverse une autre en arrivant"},
     "piece-can-be-made": {"en": "Every part says what it is cut from and with, and every joint what fastens it and "
                                 "how many",
                           "fr": "Chaque pièce dit dans quoi et avec quoi elle est coupée, et chaque assemblage ce "

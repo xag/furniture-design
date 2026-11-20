@@ -106,6 +106,20 @@ def test_a_piece_whose_ledger_says_only_its_purpose_is_not_settled():
     assert reached(c) == [] and "no decision answers: “Two doors slide in one rail, one behind the other.”" in whys(c)
 
 
+def test_a_case_of_the_notes_says_where_it_is_in_them():
+    """Each case of a rule that reads the notes names its place in them, as data: the sentence of the purpose
+    (purpose), the decision (its id), and a quantity with the words it is stated in (figure)."""
+    bare = sp.example_ledger()
+    bare.children[0].children = bare.children[0].children[:1]
+    cases = [k for c in piece_cert(ledger=bare)["criteria"] for r in c["reds"] for k in r.get("cases") or []]
+    assert {"says": "no decision answers: “Two doors slide in one rail, one behind the other.”",
+            "purpose": "Two doors slide in one rail, one behind the other."} in cases
+    stated = sp.example_ledger(realised=False, figure=None)
+    cases = [k for c in piece_cert(ledger=stated)["criteria"] for r in c["reds"] for k in r.get("cases") or []]
+    assert any(k.get("decision") and "realises it" in k["says"] for k in cases)
+    assert any(k.get("decision") and k.get("figure") and k["figure"] in k["says"] for k in cases)
+
+
 def test_a_number_the_ledger_states_is_compared_with_the_model():
     c = piece_cert(piece=sp.example_piece(overlap=47.0))
     assert reached(c) == [] and "“overlap by 50 mm” is 50 in the ledger and 47 in the model (2 * 600 - width)" in whys(c)
