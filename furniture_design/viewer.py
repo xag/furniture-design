@@ -125,17 +125,17 @@ h2.foldh { margin:0; font-size:13px; font-weight:400; flex:none; }
 </head>
 <body>
 <div id="app">
-  <div id="nav">
+  <div id="nav" class="folded">
     <div id="head"><div><h1 id="title">__TITLE__</h1>
     <div class="sub" id="sub"></div></div>
-    <h2 class="foldh"><button id="foldtop" class="fold" type="button" aria-expanded="true" aria-controls="parts">__L_PARTS__<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"/></svg></button></h2></div>
+    <h2 class="foldh"><button id="foldtop" class="fold" type="button" aria-expanded="false" aria-controls="parts">__L_PARTS__<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"/></svg></button></h2></div>
     <ul id="parts"></ul>
   </div>
   <div id="stage"><canvas id="marks"></canvas><div id="tip"></div>
-    <div class="row end" id="foot"><button id="foldbot" class="fold" type="button" aria-expanded="true" aria-controls="sliders">__L_ASSEMBLY__<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"/></svg></button><button id="opts" type="button" aria-expanded="false" aria-controls="display">__L_DISPLAY__<svg
+    <div class="row end" id="foot"><button id="foldbot" class="fold" type="button" aria-expanded="false" aria-controls="sliders">__L_ASSEMBLY__<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"/></svg></button><button id="opts" type="button" aria-expanded="false" aria-controls="display">__L_DISPLAY__<svg
       width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"/></svg></button><button id="reset">__L_RESET__</button></div>
   </div>
-  <div id="tools">
+  <div id="tools" class="nosliders">
     <div id="display">
       <label class="opt" id="fastrow"><input id="showc" type="checkbox" checked>__L_FASTENERS__</label>
       <div class="choice" id="dimsrow"><span id="dimslab">__L_DIMENSIONS__</span>
@@ -629,10 +629,10 @@ controls.addEventListener('end', offer);
 document.getElementById('explode').addEventListener('change', () => { if (!moved) { home(); offer(); } });
 document.getElementById('showc').addEventListener('change', offer);
 
-// A: Pièces folds the list under the title; Montage and Affichage each open their block over the row of buttons,
+// A: every opening starts folded; Pièces folds the list under the title; Montage and Affichage each open their block over the row of buttons,
 // one at a time, and with both closed the bottom panel is that row
 const foldtop = document.getElementById('foldtop'), foldbot = document.getElementById('foldbot');
-var slidersOn = true;
+var slidersOn = false;
 foldtop.onclick = () => {
   const folded = nav.classList.toggle('folded');
   foldtop.setAttribute('aria-expanded', String(!folded)); nav.scrollTop = 0; more(); refit();

@@ -538,9 +538,14 @@ def test_a_stored_3d_view_is_drawn_by_todays_interface_from_its_scene_alone(tmp_
     # no row exists only to hold a fold control: Pièces is on the title's line, the other controls lie over the drawing
     head = page[page.index('<div id="head">'):page.index('<ul id="parts">')]
     assert 'id="title"' in head and 'id="foldtop"' in head
-    stage = page[page.index('<div id="stage">'):page.index('<div id="tools">')]
+    stage = page[page.index('<div id="stage">'):page.index('<div id="tools"')]
     assert all(f'id="{i}"' in stage for i in ("foot", "foldbot", "opts", "reset"))
-    assert 'id="foot"' not in page[page.index('<div id="tools">'):page.index("<script")]
+    assert 'id="foot"' not in page[page.index('<div id="tools"'):page.index("<script")]
+    # every opening starts folded: the list, the sliders and what is drawn, so the drawing has the whole room
+    assert '<div id="nav" class="folded">' in page
+    assert re.search(r'id="foldtop"[^>]*aria-expanded="false"', page) and re.search(r'id="foldbot"[^>]*aria-expanded="false"', page)
+    assert re.search(r'id="opts"[^>]*aria-expanded="false"', page) and '<div id="tools" class="nosliders">' in page
+    assert "var slidersOn = false;" in page
     old = {k: v for k, v in data.items() if k not in ("title", "existing")}
     old["parts"] = [{k: v for k, v in p.items() if k not in ("profile", "within")} for p in data["parts"]]
     old["joints"] = [{k: v for k, v in j.items() if k != "size"} for j in data["joints"]]
