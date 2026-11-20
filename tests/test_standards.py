@@ -180,8 +180,12 @@ def test_the_pages_drawn_are_the_pages_judged(tmp_path):
     t.root.children = WORLD
     out = documents(t, "pieces/bench", tmp_path)
     t.root.children = t.root.children + [Node.model_validate(json.loads(out["pages"].read_text(encoding="utf-8")))]
-    lines = _worded(t, "pieces/bench")
+    cases = _worded(t, "pieces/bench")
+    lines = [c["says"] for c in cases]
     assert any("Push the back onto the left side." in line for line in lines), lines
+    # each case says where it is: the sentence of step 1, on its page of the instructions
+    assert {"document": "instructions", "step": 1, "sentence": "Push the back onto the left side."}.items() \
+        <= next(c for c in cases if c["sentence"] == "Push the back onto the left side.").items(), cases
     assert not any('"bench"' in line or "450 × 300" in line for line in lines), lines
 
 

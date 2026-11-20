@@ -109,7 +109,8 @@ def screens_of(sc: Scene, regions: list[dict], cut, lang: str) -> list[dict]:
                             "tools_title": L["tools"], "tools": tools})
             p = next(p for p in sc.parts if p.mark == r["mark"])
             dims = sorted(p.size, reverse=True)
-            out[-1]["boards"].append({"mark": p.mark, "count": sum(q.sheets for q in sc.parts if q.mark == p.mark),
+            out[-1]["boards"].append({"mark": p.mark, "parts": [q.path for q in sc.parts if q.mark == p.mark],
+                                      "count": sum(q.sheets for q in sc.parts if q.mark == p.mark),
                                       "size": f"{_fmt(dims[0])} × {_fmt(dims[1])} × {_fmt(dims[2] / p.sheets)}",
                                       "image": cut(r, 1)})
             block = None

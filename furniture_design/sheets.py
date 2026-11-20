@@ -183,7 +183,7 @@ class Pen:
     def rect(self, x, y, w, h, fill=None, stroke=INK, lw_=0.35):
         self.poly([(x, y), (x + w, y), (x + w, y + h), (x, y + h)], fill, stroke, lw_)
 
-    def text(self, x, y, s, size=3.0, color=INK, anchor="start", bold=False, angle=0, role="", says=None):
+    def text(self, x, y, s, size=3.0, color=INK, anchor="start", bold=False, angle=0, role="", says=None, step=None):
         """Set a text. When words are kept, note it with its page; `role` says what it is where that
         is not a thing to read as a sentence: "name", the piece's own name; "heading", a heading the
         drawing sets; "label", the name of a thing (a tool, the hardware) or a size; "note", the
@@ -191,12 +191,14 @@ class Pen:
         set beyond the paper is noted so (off). `says` is what in the model the text states, for a standard
         to hold it to (standards_pages.printed_unsupported): {"size": the paths of the parts it measures
         across}, {"material": the parts whose materials it names}, {"name": the node whose name it is},
-        {"connector": the joints whose connectors it names}."""
+        {"connector": the joints whose connectors it names}. `step` is the number of the step whose sentence
+        it is (a line of it), so a reader can show a case of it on that step."""
         c = self.c
         on = self._seen((x, y))
         if self.words is not None and str(s).strip():
             self.words.append({"page": c.getPageNumber() - 1, "text": str(s), **({"role": role} if role else {}),
-                               **({} if on else {"off": True}), **({"says": says} if says else {})})
+                               **({} if on else {"off": True}), **({"says": says} if says else {}),
+                               **({"step": step} if step is not None else {})})
         c.saveState()
         c.setFillColor(color)
         c.setFont("Helvetica-Bold" if bold else "Helvetica", size * mm / 0.3528 * 0.3528)
@@ -1254,7 +1256,7 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list
             pen.note("step", pic, step=step.number, **shown)
         drawn = step.add or step.joints or step.cuts or step.prepare
         for k, s in enumerate(_wrap(step.text, 95)[:3]):
-            pen.text(x + 2, y + 8 - 4.6 * k, s, 3.6, INK, role="" if drawn else "note")
+            pen.text(x + 2, y + 8 - 4.6 * k, s, 3.6, INK, role="" if drawn else "note", step=step.number)
         slot += 1
         for p, qty in cut:
             if slot % 2 == 0:

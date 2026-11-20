@@ -43,17 +43,36 @@ def _steps(node: Node) -> list[dict]:
 
 
 def _lines(fn):
-    def lines(tree: Quern, piece: str, *args) -> list[str]:
+    """An explainer of the drawn instructions: each case as data, {"says": its line} and where it is (a step's
+    sentence: step and sentence; a step's picture: step and picture; a page of a document: document and page),
+    for a reader that shows each case where it is."""
+    def lines(tree: Quern, piece: str, *args) -> list:
         node = _drawn(tree, piece)
         return [_NOT_DRAWN] if node is None else fn(node, *args)
     return lines
 
 
+def _pictured(step: dict, says: str) -> dict:
+    """A case of a step's picture."""
+    return {"says": says, "step": step.get("step"), "picture": True}
+
+
 @_lines
-def _worded(node: Node, words: float = 2) -> list[str]:
-    return [f"page {p.payload.get('number')}: \"{w['text']}\"" for p in _pages(node)
-            for w in p.payload.get("words") or []
-            if w.get("role") not in _NOT_SENTENCES and len(_WORD.findall(w.get("text", ""))) >= words]
+def _worded(node: Node, words: float = 2) -> list[dict]:
+    """A sentence the drawing set in lines is one case: the lines of a step's sentence on a page, joined."""
+    out: list[dict] = []
+    for p in _pages(node):
+        n = p.payload.get("number")
+        for w in p.payload.get("words") or []:
+            if w.get("role") in _NOT_SENTENCES or len(_WORD.findall(w.get("text", ""))) < words:
+                continue
+            last = out[-1] if out else None
+            if last and "step" in w and last.get("step") == w["step"] and last["page"] == n:
+                last["sentence"] += " " + w["text"]
+            else:
+                out.append({"document": "instructions", "page": n, "sentence": w["text"],
+                            **({"step": w["step"]} if "step" in w else {})})
+    return [{**c, "says": f"page {c['page']}: \"{c['sentence']}\""} for c in out]
 
 
 def pages_worded(tree: Quern, piece: str, words: float = 2) -> float:
@@ -64,8 +83,8 @@ def pages_worded(tree: Quern, piece: str, words: float = 2) -> float:
 
 
 @_lines
-def _mixed(node: Node) -> list[str]:
-    return [f"step {s.get('step')} brings in parts of {len(s['kinds'])} kinds ({', '.join(s['kinds'])})"
+def _mixed(node: Node) -> list[dict]:
+    return [_pictured(s, f"step {s.get('step')} brings in parts of {len(s['kinds'])} kinds ({', '.join(s['kinds'])})")
             for s in _steps(node) if len(s.get("kinds") or []) > 1]
 
 
@@ -76,9 +95,9 @@ def steps_mixing_kinds(tree: Quern, piece: str) -> float:
 
 
 @_lines
-def _unguided(node: Node) -> list[str]:
-    return [f"step {s.get('step')}: {part} has no line to where it goes" for s in _steps(node) if s.get("shows")
-            for part in s.get("brings") or [] if part not in (s.get("guided") or [])]
+def _unguided(node: Node) -> list[dict]:
+    return [_pictured(s, f"step {s.get('step')}: {part} has no line to where it goes") for s in _steps(node)
+            if s.get("shows") for part in s.get("brings") or [] if part not in (s.get("guided") or [])]
 
 
 def parts_without_a_line(tree: Quern, piece: str) -> float:
@@ -88,9 +107,9 @@ def parts_without_a_line(tree: Quern, piece: str) -> float:
 
 
 @_lines
-def _hidden(node: Node, share: float) -> list[str]:
-    return [f"step {s.get('step')}: {part} shows {seen:.0%} of itself, under {share:.0%}" for s in _steps(node)
-            for part, seen in (s.get("visible") or {}).items() if seen < share]
+def _hidden(node: Node, share: float) -> list[dict]:
+    return [_pictured(s, f"step {s.get('step')}: {part} shows {seen:.0%} of itself, under {share:.0%}")
+            for s in _steps(node) for part, seen in (s.get("visible") or {}).items() if seen < share]
 
 
 def parts_hidden(tree: Quern, piece: str, share: float) -> float:
@@ -99,9 +118,10 @@ def parts_hidden(tree: Quern, piece: str, share: float) -> float:
 
 
 @_lines
-def _no_context(node: Node, share: float) -> list[str]:
-    return [f"step {s.get('step')}: the parts already there show {s.get('context', 0):.0%} of themselves, under "
-            f"{share:.0%}" for s in _steps(node) if s.get("shows") and s.get("context", 0) < share]
+def _no_context(node: Node, share: float) -> list[dict]:
+    return [_pictured(s, f"step {s.get('step')}: the parts already there show {s.get('context', 0):.0%} of "
+                         f"themselves, under {share:.0%}")
+            for s in _steps(node) if s.get("shows") and s.get("context", 0) < share]
 
 
 def steps_without_context(tree: Quern, piece: str, share: float) -> float:
@@ -110,8 +130,8 @@ def steps_without_context(tree: Quern, piece: str, share: float) -> float:
 
 
 @_lines
-def _unfastened(node: Node) -> list[str]:
-    return [f"step {s.get('step')} closes {j} and draws nothing of what fastens it" for s in _steps(node)
+def _unfastened(node: Node) -> list[dict]:
+    return [_pictured(s, f"step {s.get('step')} closes {j} and draws nothing of what fastens it") for s in _steps(node)
             for j in s.get("closes") or [] if j not in (s.get("fastened") or [])]
 
 
@@ -121,9 +141,9 @@ def fastenings_not_shown(tree: Quern, piece: str) -> float:
 
 
 @_lines
-def _unlettered(node: Node) -> list[str]:
-    return [f"step {s.get('step')}: nothing letters the part {k} it brings in" for s in _steps(node) if "lettered" in s
-            for k in s.get("kinds") or [] if k not in s["lettered"] and k not in (s.get("wholes") or [])]
+def _unlettered(node: Node) -> list[dict]:
+    return [_pictured(s, f"step {s.get('step')}: nothing letters the part {k} it brings in") for s in _steps(node)
+            if "lettered" in s for k in s.get("kinds") or [] if k not in s["lettered"] and k not in (s.get("wholes") or [])]
 
 
 def steps_unlettered(tree: Quern, piece: str) -> float:
@@ -135,20 +155,22 @@ def steps_unlettered(tree: Quern, piece: str) -> float:
 
 
 @_lines
-def _off_the_paper_node(node: Node, tree: Quern, piece: str) -> list[str]:
+def _off_the_paper_node(node: Node, tree: Quern, piece: str) -> list[dict]:
     out = []
     for branch, doc in _DOCUMENTS:
         drawn = node if branch == INSTRUCTIONS else get_node(tree, f"{branch}/{piece.rpartition('/')[2]}")
         for p in _pages(drawn) if drawn is not None else []:
-            where = f"page {p.payload.get('number')}" if branch == INSTRUCTIONS else f"{doc}, page {p.payload.get('number')}"
+            n = p.payload.get("number")
+            where = f"page {n}" if branch == INSTRUCTIONS else f"{doc}, page {n}"
             if any(f.kind == "frame" and f.payload.get("kind") == "spill" for f in p.children):
-                out.append(f"{where}: something is drawn beyond the edge of the paper")
-            out += [f"{where}: \"{w['text']}\" is set beyond the edge of the paper"
-                    for w in p.payload.get("words") or [] if w.get("off")]
+                out.append({"says": f"{where}: something is drawn beyond the edge of the paper", "document": branch,
+                            "page": n})
+            out += [{"says": f"{where}: \"{w['text']}\" is set beyond the edge of the paper", "document": branch,
+                     "page": n} for w in p.payload.get("words") or [] if w.get("off")]
     return out
 
 
-def _off_the_paper(tree: Quern, piece: str) -> list[str]:
+def _off_the_paper(tree: Quern, piece: str) -> list:
     return _off_the_paper_node(tree, piece, tree, piece)
 
 
@@ -183,16 +205,17 @@ def _things(tree: Quern, piece: str) -> tuple[set, dict, list[str]]:
 
 
 @_lines
-def _unsupported_node(node: Node, tree: Quern, piece: str) -> list[str]:
+def _unsupported_node(node: Node, tree: Quern, piece: str) -> list[dict]:
     from .scene import connector_size, material_label
 
     pid = piece.rpartition("/")[2]
     parts, thing, names = _things(tree, piece)
-    out: list[str] = []
+    out: list = []
     for branch, doc in _DOCUMENTS:
         drawn = node if branch == INSTRUCTIONS else get_node(tree, f"{branch}/{pid}")
         for page in _pages(drawn) if drawn is not None else []:
             where = f"{doc}, page {page.payload.get('number')}"
+            seen = len(out)
             for w in page.payload.get("words") or []:
                 text, says = w.get("text", ""), w.get("says") or {}
                 if not says:
@@ -255,10 +278,11 @@ def _unsupported_node(node: Node, tree: Quern, piece: str) -> list[str]:
                             if abs(drawn_as[1] / drawn_as[0] - want) > slack:
                                 out.append(f"{where}: what fastens {j} is drawn {drawn_as[0]:g} by {drawn_as[1]:g}, "
                                            f"and the model gives it {size[0]:g} × {size[1]:g}")
+            out[seen:] = [{"says": line, "document": branch, "page": page.payload.get("number")} for line in out[seen:]]
     return out
 
 
-def _unsupported(tree: Quern, piece: str) -> list[str]:
+def _unsupported(tree: Quern, piece: str) -> list:
     return _unsupported_node(tree, piece, tree, piece)
 
 

@@ -489,8 +489,8 @@ def _parts(tree: Quern, piece: str) -> list[tuple[str, Node]]:
     return [(b.path, get_node(tree, b.path)) for b in natives.bodies(tree, piece)]
 
 
-def _unsourced(tree: Quern, piece: str) -> list[str]:
-    return [f"{path}: it does not say what it is cut from (uses)"
+def _unsourced(tree: Quern, piece: str) -> list[dict]:
+    return [{"says": f"{path}: it does not say what it is cut from (uses)", "part": path}
             for path, node in _parts(tree, piece) if not node.links.get("uses")]
 
 
@@ -499,8 +499,9 @@ def parts_unsourced(tree: Quern, piece: str) -> float:
     return float(len(_unsourced(tree, piece)))
 
 
-def _unsawn(tree: Quern, piece: str) -> list[str]:
-    return [f"{path}: it does not say what cuts it out (sawn_with), or who sells it cut to its size (bought_to_size)"
+def _unsawn(tree: Quern, piece: str) -> list[dict]:
+    return [{"says": f"{path}: it does not say what cuts it out (sawn_with), or who sells it cut to its size "
+                     "(bought_to_size)", "part": path}
             for path, node in _parts(tree, piece)
             if not node.links.get("sawn_with") and not (node.payload or {}).get("bought_to_size")]
 
