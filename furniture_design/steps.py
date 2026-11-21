@@ -111,7 +111,8 @@ def screens_of(sc: Scene, regions: list[dict], cut, lang: str, places: dict | No
                     tools += [t for t in j.tools if t not in tools]
                 out.append({"kind": "needed", "title": L["inbox"], "boards_title": L["boards"], "boards": [],
                             "hardware_title": L["hardware"],
-                            "hardware": [{"name": n, "count": sum(j.count for j in sc.joints if j.connector == n)}
+                            "hardware": [{"name": n or L["unstated"],
+                                          "count": sum(j.count for j in sc.joints if j.connector == n)}
                                          for n in sorted({j.connector for j in sc.joints})],
                             "tools_title": L["tools"], "tools": tools})
                 groups = tool_groups(sc, tools, places)
@@ -128,7 +129,8 @@ def screens_of(sc: Scene, regions: list[dict], cut, lang: str, places: dict | No
             block = None
         elif kind == "step":
             s = next(s for s in sc.steps if s.number == r["step"])
-            out.append({"kind": "step", "step": s.number, "head": _head(sc, s.number, places), "image": cut(r), "text": s.text})
+            out.append({"kind": "step", "step": s.number, "head": _head(sc, s.number, places),
+                        "image": cut(r) if r.get("picture", True) else None, "text": s.text})
             block = None
         elif kind == "block":
             block = {"kind": "block", "step": r["step"], "images": [], "_region": r}

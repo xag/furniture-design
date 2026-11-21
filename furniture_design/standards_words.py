@@ -192,6 +192,9 @@ RED = {
     "a-pieces-steps-letter-their-parts": {
         "en": "A step draws a part with no letter saying which of the listed parts it is.",
         "fr": "Une étape dessine une pièce sans lettre qui dise laquelle des pièces listées c'est."},
+    "a-pieces-step-pictures-each-bring-something": {
+        "en": "A step's picture brings in nothing and closes nothing: it draws the one before again.",
+        "fr": "L'image d'une étape n'amène rien et ne ferme rien : elle redessine celle d'avant."},
     "a-pieces-pages-keep-to-the-paper": {
         "en": "Something of the instructions is drawn beyond the edge of its page.",
         "fr": "Une partie de la notice est dessinée hors de sa page."},

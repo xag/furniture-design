@@ -558,3 +558,34 @@ def test_a_stored_3d_view_is_drawn_by_todays_interface_from_its_scene_alone(tmp_
     import pytest
     with pytest.raises(ValueError):
         app_page("<html>not a 3D view</html>")
+
+
+def test_a_step_that_brings_in_nothing_has_no_picture_and_every_count_of_hardware_has_a_name(tmp_path):
+    """Found on an espalier's instructions (feedback NRMRIMeJ2gJ7qVH7LHDi): five steps that bring in, close and
+    cut nothing (drill the plates, mark the wall, drill it, set the plugs) each drew the piece as the step before
+    left it, standing, the same picture five times, under a sentence that laid the piece on the floor; and the
+    page of what is needed counted 8 of what fastens four joints that name nothing, with no name beside the count.
+    Drawn from the bench with two such steps and a joint that names nothing, the standards find no repeated
+    picture and no nameless count, and each of those steps' sentences is set with no picture of its own."""
+    import json
+
+    from quern.tree import Node
+
+    from furniture_design import standards_pages as pg
+    tree = _tree()
+    bench = get_node(tree, BENCH)
+    bench.payload["steps"] = list(bench.payload["steps"]) + [{"text": "Lay the bench on its back."},
+                                                             {"text": "Oil every face twice."}]
+    get_node(tree, f"{BENCH}/back-left").links.pop("uses")
+    made = drawings.document(tree, BENCH, tmp_path, "assembly")
+    drawn = Node.model_validate(json.loads(made["pages"].read_text(encoding="utf-8")))
+    tree.root.children = tree.root.children + [drawn]
+    assert pg.EXPLAINERS["furniture/steps_repeating"](tree, BENCH) == []
+    assert pg.EXPLAINERS["furniture/printed_unsupported"](tree, BENCH) == []
+    pages = [p for p in drawn.children[0].children if p.kind == "page"]
+    frames = {f.payload["step"]: f.payload for p in pages for f in p.children if f.payload.get("kind") == "step"}
+    n = len(bench.payload["steps"])
+    assert [frames[k].get("picture", True) for k in (n - 1, n)] == [False, False]
+    words = [w for p in pages for w in p.payload["words"]]
+    assert [w.get("role") for w in words if w.get("step") in (n - 1, n)] == ["note", "note"]
+    assert any(w["text"] == "Fixation non précisée" and f"{BENCH}/back-left" in w["says"]["connector"] for w in words)

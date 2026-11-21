@@ -66,6 +66,7 @@ LABELS = {
         "sheets_of": "feuilles de", "positions_note": "Positions des rainures indicatives, "
         "réparties régulièrement : à confirmer au traçage.",
         "inbox": "Avant de commencer", "boards": "Pièces", "hardware": "Fixations",
+        "unstated": "Fixation non précisée",
         "tools": "Outils", "other_tools": "Autres outils", "prepare": "Préparation", "assemble": "Montage",
         "overall": "Encombrement", "step": "Étape",
         "cutting": "Découpe", "sources": "Sources", "mark_out": "Tracer", "from": "depuis", "to": "à",
@@ -97,6 +98,7 @@ LABELS = {
         "sheets_of": "sheets of", "positions_note": "Groove positions indicative, evenly "
         "spread: to be confirmed when marking out.",
         "inbox": "Before you start", "boards": "Parts", "hardware": "Fixings",
+        "unstated": "Fastening not stated",
         "tools": "Tools", "other_tools": "Other tools", "prepare": "Preparation", "assemble": "Assembly",
         "overall": "Overall size", "step": "Step",
         "cutting": "Cutting", "sources": "Sources", "mark_out": "Mark out", "from": "from", "to": "to",
@@ -1211,7 +1213,7 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list
     for name in sorted(fastenings):
         yy -= 14
         _fastening(pen, 18, yy, fastenings[name][0], fastenings[name][1], 1.2, joints=fastenings[name][2])
-        pen.text(65, yy + 3, name, 3.4, INK, role="label", says={"connector": fastenings[name][2]})
+        pen.text(65, yy + 3, name or L["unstated"], 3.4, INK, role="label", says={"connector": fastenings[name][2]})
     yy -= 14
     tools = []
     for s in sc.steps:
@@ -1257,9 +1259,42 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list
     built: dict[str, list[str]] = {}   # assembly id -> its parts put together aside so far
     slots = [(15, 158, W - 30, 118), (15, 22, W - 30, 118)]
     slot = 0   # the next free half page, counted from the first page of steps
+    band = None   # the top of the next band free in the half page of steps said in a sentence alone, if one is open
+    BAND = 23     # mm: a step said in a sentence alone, its number and up to four lines
     for done, step in enumerate(sc.steps):
         if progress:
             progress(done, len(sc.steps))
+        if not (step.add or step.joints or step.cuts or step.prepare):
+            # it brings in, closes and cuts nothing: no picture says it (it would draw the one before again),
+            # so its number and its sentence, in a band; such steps one after the other share a half page
+            x, y, w, h = slots[slot % 2] if band is None else slots[(slot - 1) % 2]
+            if band is None or band - BAND < y:
+                x, y, w, h = slots[slot % 2]
+                if slot % 2 == 0 and slot:
+                    c.showPage()
+                if slot % 2 == 0:
+                    pen.text(15, H - 12, L["assemble"], 3.4, THIN, role="heading")
+                else:
+                    pen.line(15, 148, W - 15, 148, 0.2, THIN, [1.5, 1.5])
+                band = y + h
+                slot += 1
+            top = band
+            pen.rect(x, top - 12, 12, 12, fill=INK, stroke=None)
+            pen.text(x + 6, top - 9, str(step.number), 7, white, "middle", bold=True)
+            tx = x + 17
+            for t in step.tools:
+                tx += _tool_badge(pen, tx, top - 10, t) + 3
+            place = place_of(step.keys, places)
+            if place and tx + 6 + len(place) * 1.9 <= x + w:
+                _place_mark(pen, tx + 1, top - 10, place)
+            lines = _wrap(step.text, 88)[:4]
+            for k, line in enumerate(lines):
+                pen.text(x + 17, top - (17 if step.tools or place else 4.5) - 4.6 * k, line, 3.6, INK, role="note",
+                         step=step.number)
+            pen.note("step", (x, top - BAND, w, BAND), step=step.number, picture=False)
+            band = top - BAND
+            continue
+        band = None
         cut = []   # one board per letter among the parts the step cuts, with how many
         for p in sc.parts:
             if p.id in step.cuts and p.cuts and p.mark not in [q.mark for q, _ in cut]:

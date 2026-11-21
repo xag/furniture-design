@@ -282,7 +282,7 @@ def knowledge() -> list[Node]:
         _criterion("steps-show-their-parts", "Each step's picture shows the parts it brings in, each kind "
                    "with its letter, and enough of those already there to place them", "presentation",
                    "a-pieces-new-parts-are-visible", "a-pieces-steps-keep-their-context",
-                   "a-pieces-steps-letter-their-parts", of="piece",
+                   "a-pieces-steps-letter-their-parts", "a-pieces-step-pictures-each-bring-something", of="piece",
                    per=("sources/agrawala-2003/visibility", "sources/agrawala-2003/visibility-scores")),
         _criterion("pages-hold-what-they-draw", "Everything the instructions draw is on a page", "completeness",
                    "a-pieces-pages-keep-to-the-paper", of="piece"),
@@ -571,6 +571,11 @@ RULES = [
          description="A step's picture draws a part with no letter beside it, so nothing says which of the "
                      "parts listed it is: draw the instructions again with this version, which letters each "
                      "kind of part a step brings in."),
+    Rule(name="a-pieces-step-pictures-each-bring-something", kind="piece",
+         expr="solve('furniture/steps_repeating', self) == 0",
+         description="A step's picture brings in no part and closes no joint, so it draws the picture before it "
+                     "again, and not what its sentence says: draw the instructions again with this version, which "
+                     "draws a step that brings in, closes and cuts nothing as its sentence alone."),
     Rule(name="a-pieces-pages-keep-to-the-paper", kind="piece", expr="solve('furniture/drawn_off_the_paper', self) == 0",
          description="Something of the instructions is drawn or set beyond the edge of its page, and never "
                      "reaches whoever builds: draw the instructions again with this version, which carries the "
@@ -579,7 +584,8 @@ RULES = [
          expr="solve('furniture/printed_unsupported', self) == 0",
          description="A document prints or draws something the model does not say: a size across things "
                      "that stand apart, a name or material cut short, a colour, a fastening in proportions its "
-                     "connector does not have, or a size that says nothing of what it measures. The drawing is "
+                     "connector does not have, a size that says nothing of what it measures, or a count of hardware "
+                     "with no name. The drawing is "
                      "at fault, not the piece: generate the documents again once furniture-design draws them "
                      "from the model."),
     Rule(name="a-saw-states-its-depth", kind="tool",
@@ -674,6 +680,10 @@ def _counter_examples() -> list[CounterExample]:
                        nodes=_piece_case(pages={"overall": ("spare",)}, piece=piece.example_piece(beside=300)),
                        because="two wardrobes' doors drawn side by side, and one overall width printed across the "
                                "gap the drawing put between them"),
+        CounterExample(rule="a-pieces-step-pictures-each-bring-something", nodes=_piece_case(pages={"after": "picture"}),
+                       because="a step that oils the doors drawn with the picture of the step that hung them"),
+        CounterExample(rule="a-pieces-documents-print-only-its-model", nodes=_piece_case(pages={"nameless": True}),
+                       because="eight of something counted on the page of what is needed, and nothing saying what"),
         CounterExample(rule="a-pieces-documents-print-only-its-model", nodes=_piece_case(pages={"coloured": True}),
                        because="aluminium and polycarbonate drawn in a wood's colour"),
         CounterExample(rule="a-pieces-documents-print-only-its-model", nodes=_piece_case(pages={"bar": (16, 6)}),

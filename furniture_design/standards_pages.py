@@ -5,7 +5,7 @@ with their words, their pictures with what each shows). The contracts here count
 of that record a rule may refuse: the texts that read as sentences, the steps that bring in parts of
 several kinds, the parts brought in with no line to where they go, the parts and the context too
 hidden to see, the joints closed with nothing drawn of what fastens them, the kinds of part a step
-brings in with no letter beside them, and what is drawn or set beyond the edge of the paper. How many
+brings in with no letter beside them, the pictures that bring in and close nothing, and what is drawn or set beyond the edge of the paper. How many
 words make a
 sentence and how much of a part must show are arguments the rules give, read from the knowledge.
 
@@ -37,9 +37,11 @@ def _pages(node: Node) -> list[Node]:
 
 
 def _steps(node: Node) -> list[dict]:
-    """The pictures of the steps that assemble (a step that prepares parts attaches nothing)."""
+    """The pictures of the steps that assemble (a step that prepares parts attaches nothing; a step noted with
+    no picture, one that brings in, closes and cuts nothing, has none to judge)."""
     return [f.payload for p in _pages(node) for f in p.children
-            if f.kind == "frame" and f.payload.get("kind") == "step" and not f.payload.get("prepare")]
+            if f.kind == "frame" and f.payload.get("kind") == "step" and not f.payload.get("prepare")
+            and f.payload.get("picture", True)]
 
 
 def _lines(fn):
@@ -148,6 +150,26 @@ def _unlettered(node: Node) -> list[dict]:
             if "lettered" in s for k in s.get("kinds") or [] if k not in s["lettered"] and k not in (s.get("wholes") or [])]
 
 
+@_lines
+def _repeating(node: Node) -> list[dict]:
+    out, before = [], None
+    for s in _steps(node):
+        if "brings" in s and not s.get("brings") and not s.get("closes"):
+            again = f"step {before}" if before is not None else "the step before"
+            out.append(_pictured(s, f"step {s.get('step')}: its picture brings in nothing and closes nothing, so it "
+                                    f"draws again what {again} drew"))
+        before = s.get("step")
+    return out
+
+
+def steps_repeating(tree: Quern, piece: str) -> float:
+    """How many steps' pictures bring in no part and close no joint: such a picture draws the piece as the step
+    before left it, the same picture again, and whatever the step's sentence says (the piece laid down, a hole
+    drilled) it does not draw. A step that brings in, closes and cuts nothing is drawn with no picture: only
+    its sentence, which no picture says yet."""
+    return float(len(_repeating(tree, piece)))
+
+
 def steps_unlettered(tree: Quern, piece: str) -> float:
     """How many kinds of part a step brings in carry no letter in its picture: the letter the page of what
     is needed gives that kind. An assembly brought in whole carries none: its parts carried theirs when it
@@ -254,6 +276,13 @@ def _unsupported_node(node: Node, tree: Quern, piece: str) -> list[dict]:
                 left = [f for f in dict.fromkeys(fasteners) if f not in text]
                 if left:
                     out.append(f"{where}: \"{text}\" leaves out what the model fastens with: {'; '.join(left)}")
+            named = {j for w in page.payload.get("words") or [] for j in (w.get("says") or {}).get("connector") or []}
+            stepped = any((f.payload or {}).get("kind") == "step" for f in page.children)
+            for f in page.children:     # the page of what is needed names what each of its counts counts
+                facts = f.payload or {}
+                if not stepped and facts.get("kind") == "fastening" and not set(facts.get("joints") or []) & named:
+                    out.append(f"{where}: a line of the hardware counts what fastens "
+                               f"{', '.join(facts.get('joints') or []) or 'nothing'} and names nothing")
             coloured = [f.payload for f in page.children if (f.payload or {}).get("kind") == "colour"]
             if coloured:
                 made_of = "; ".join(dict.fromkeys(material_label(tree, piece, c.get("part", "")) or "nothing"
@@ -294,7 +323,8 @@ def printed_unsupported(tree: Quern, piece: str) -> float:
     things that stand apart, or of something that is no part of it; a text that cuts short the name or
     the material it stands for, or leaves out what fastens a joint it names; a part drawn in a colour,
     which says a material; a fastening drawn in proportions its connector does not have; and a size
-    printed that says nothing of what it measures."""
+    printed that says nothing of what it measures; and a line of the hardware that counts a fastening and names
+    nothing."""
     return float(len(_unsupported(tree, piece)))
 
 
@@ -308,6 +338,7 @@ def drawn_off_the_paper(tree: Quern, piece: str) -> float:
 NATIVES = {
     "furniture/printed_unsupported": printed_unsupported,
     "furniture/steps_unlettered": steps_unlettered,
+    "furniture/steps_repeating": steps_repeating,
     "furniture/drawn_off_the_paper": drawn_off_the_paper,
     "furniture/pages_worded": pages_worded,
     "furniture/steps_mixing_kinds": steps_mixing_kinds,
@@ -320,6 +351,7 @@ NATIVES = {
 EXPLAINERS = {
     "furniture/printed_unsupported": _unsupported,
     "furniture/steps_unlettered": _unlettered,
+    "furniture/steps_repeating": _repeating,
     "furniture/drawn_off_the_paper": _off_the_paper,
     "furniture/pages_worded": _worded,
     "furniture/steps_mixing_kinds": _mixed,
@@ -352,21 +384,24 @@ def example_pages(*, sentence: str | None = None, role: str = "", rail_kinds: tu
                   door_shows: float = 0.9, context: float = 0.8, fastened: tuple = ("angle-to-lintel", "channel-to-angle"),
                   drawn: bool = True, lettered: bool | None = True, spilled: bool = False, off: str = "",
                   overall: tuple = (), material: str = "Aluminium profile", unsaid: bool = False,
-                  coloured: bool = False, bar: tuple = (16, 3)) -> Node:
+                  coloured: bool = False, bar: tuple = (16, 3), nameless: bool = False, after: str = "") -> Node:
     """The instructions of the two doors as their drawing would note them: a cover with the piece's
     name and its overall size, a page of what is needed with counts, sizes, the material and the screws,
     then the rail, then the doors hung in it. Not `lettered`: the doors' step draws no letter beside them.
     `spilled`: the page of what is needed draws a part beyond the paper's foot; `off`: a text it sets there.
     What the pages say of the model: `overall`, more parts the overall size measures across; `material`,
     the material as printed; `unsaid`: a size printed with nothing said of what it measures; `coloured`: the
-    front panel drawn in a wood's colour; `bar`: the screws' mark as drawn, length and thickness."""
+    front panel drawn in a wood's colour; `bar`: the screws' mark as drawn, length and thickness; `nameless`: the
+    screws counted on the page of what is needed with no name beside them. `after`: a third step that brings in,
+    closes and cuts nothing (oiling the doors), "picture" drawn with the doors' picture again, "sentence" noted with
+    its sentence alone."""
     if not drawn:
         return Node(id=INSTRUCTIONS, kind="")
     lintel = f"{_PIECE}/angle-to-lintel"
     needed = [{"text": "A"}, {"text": "2 ×"},
               {"text": "600 × 8 × 1190", **({} if unsaid else {"says": {"size": [_DOORS[2]]}})},
               {"text": material, "role": "label", "says": {"material": [_DOORS[2]]}},
-              {"text": "Screw 3 x 16", "role": "label", "says": {"connector": [lintel]}}]
+              *([] if nameless else [{"text": "Screw 3 x 16", "role": "label", "says": {"connector": [lintel]}}])]
     step = lambda **kw: Node(id=f"frame-{kw['step'] + 2}", kind="frame", payload={"kind": "step", **kw})  # noqa: E731
     return Node(id=INSTRUCTIONS, kind="", children=[Node(id="doors", kind="instructions", children=[
         Node(id="page-1", kind="page", payload={"number": 1, "words": [
@@ -392,7 +427,10 @@ def example_pages(*, sentence: str | None = None, role: str = "", rail_kinds: tu
                  step(step=2, shows=["angle", "channel"], brings=["back-panel", "front-panel"], kinds=["A"],
                       **({} if lettered is None else {"lettered": ["A"] if lettered else []}),
                       guided=list(doors_guided), closes=[], fastened=[],
-                      visible={"back-panel": door_shows, "front-panel": 1.0}, context=context)]),
+                      visible={"back-panel": door_shows, "front-panel": 1.0}, context=context)]
+             + ([step(step=3, shows=["angle", "channel", "back-panel", "front-panel"], brings=[], kinds=[], guided=[],
+                      lettered=[], closes=[], fastened=[], visible={}, context=1.0)] if after == "picture" else [])
+             + ([step(step=3, picture=False)] if after == "sentence" else [])),
     ])])
 
 
@@ -424,6 +462,8 @@ SPEC = {
         _demo("furniture/printed_unsupported", 1, "the front panel drawn in a wood's colour", coloured=True),
         _demo("furniture/printed_unsupported", 1, "the screws marked with a biscuit's fixed proportions",
               bar=(16, 6)),
+        _demo("furniture/printed_unsupported", 1, "the screws counted on the page of what is needed, and no name "
+              "beside the count", nameless=True),
         _demo("furniture/printed_unsupported", 1, "instructions that were not drawn have no page to judge",
               drawn=False),
     ],
@@ -435,6 +475,14 @@ SPEC = {
         _demo("furniture/steps_unlettered", 1, "instructions that were not drawn have no page to judge", drawn=False),
         _demo("furniture/steps_unlettered", 0, "steps drawn before the drawing noted letters are judged as before",
               lettered=None),
+    ],
+    "furniture/steps_repeating": [
+        _demo("furniture/steps_repeating", 0, "the rail comes in, then the doors: each picture brings something in"),
+        _demo("furniture/steps_repeating", 1, "a third step, oiling the doors, drawn with the doors' picture again",
+              after="picture"),
+        _demo("furniture/steps_repeating", 0, "the same third step noted with its sentence and no picture",
+              after="sentence"),
+        _demo("furniture/steps_repeating", 1, "instructions that were not drawn have no page to judge", drawn=False),
     ],
     "furniture/drawn_off_the_paper": [
         _demo("furniture/drawn_off_the_paper", 0, "every picture and every text is on its page"),
