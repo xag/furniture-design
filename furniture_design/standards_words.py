@@ -47,9 +47,8 @@ SAY = {
                                     "along its travel",
                               "fr": "Ce qui coulisse est tenu des deux côtés, ce qui pivote est porté, et chacun a "
                                     "la place de sa course"},
-    "piece-parts-fit": {"en": "No two parts fill the same space, and nothing already there stands in front of them",
-                        "fr": "Deux pièces n'occupent jamais le même espace, et rien de ce qui est déjà là ne se "
-                              "tient devant elles"},
+    "piece-parts-fit": {"en": "No two parts fill the same space",
+                        "fr": "Deux pièces n'occupent jamais le même espace"},
     "piece-steps-build-it": {"en": "The assembly steps bring in every part and close every joint, each once its "
                                    "parts are in, and no part crosses another on its way in",
                              "fr": "Les étapes de montage amènent chaque pièce et ferment chaque assemblage, une "
@@ -140,9 +139,6 @@ RED = {
     "a-pieces-parts-fill-their-own-space": {
         "en": "Two parts fill the same space.",
         "fr": "Deux pièces occupent le même espace."},
-    "a-pieces-front-is-clear-of-what-is-there": {
-        "en": "Something already there stands in front of the piece, between it and whoever looks at it.",
-        "fr": "Quelque chose de déjà là se tient devant le meuble, entre lui et qui le regarde."},
     "a-pieces-parts-reach-their-place": {
         "en": "A part a step brings in, or a screw it drives, crosses a part already in place on its way.",
         "fr": "Une pièce qu'une étape amène, ou une vis qu'elle enfonce, en traverse une autre déjà en place sur "

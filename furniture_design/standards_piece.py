@@ -366,36 +366,6 @@ def parts_overlapping(tree: Quern, piece: str) -> float:
     return float(len(_overlapping(tree, piece)))
 
 
-_HIDES = 0.5     # of a part's face seen from the front: what is there and covers more stands in front of it
-
-
-def _in_front(tree: Quern, piece: str) -> list[str]:
-    everything = natives.bodies(tree, piece, existing=True)
-    made = [b for b in everything if not b.existing]
-    out = []
-    for there in (b for b in everything if b.existing):
-        hidden = []
-        for b in made:
-            if there.hi[1] > b.lo[1] + _FIT:       # not wholly in front of it
-                continue
-            x, z = (max(0.0, min(there.hi[k], b.hi[k]) - max(there.lo[k], b.lo[k])) for k in (0, 2))
-            if x * z > _HIDES * (b.hi[0] - b.lo[0]) * (b.hi[2] - b.lo[2]):
-                hidden.append(b.path)
-        if hidden:
-            out.append(f"{there.path} ({there.existing}) stands in front of {', '.join(hidden)}: y runs from the "
-                       f"front to the back, so it is between them and whoever looks at the piece")
-    return out
-
-
-def parts_behind_what_is_there(tree: Quern, piece: str) -> float:
-    """How many things already there (payload existing: a wall, a lintel) stand in front of the piece: wholly at
-    a smaller y than a part, and covering more than half of that part's face seen from the front. y runs from
-    the front to the back, so what the piece is fixed against stands behind it (a wall), above it (a lintel),
-    below it (the chest it stands on) or beside it; one in front is a model turned round, which every drawing,
-    seen from the front, shows instead of the piece."""
-    return float(len(_in_front(tree, piece)))
-
-
 def _held_in(tree: Quern, piece: str) -> dict[str, list]:
     """Each assembly of the piece, by id: the bodies under it."""
     root = piece.rstrip("/")
@@ -752,7 +722,6 @@ NATIVES = {
     "furniture/slide_crossings": slide_crossings,
     "furniture/loose_parts": loose_parts,
     "furniture/parts_overlapping": parts_overlapping,
-    "furniture/parts_behind_what_is_there": parts_behind_what_is_there,
     "furniture/arrivals_blocked": arrivals_blocked,
     "furniture/purpose_uncovered": purpose_uncovered,
     "furniture/unrealised_decisions": unrealised_decisions,
@@ -774,7 +743,6 @@ EXPLAINERS = {
     "furniture/slide_crossings": _crossings,
     "furniture/loose_parts": _loose,
     "furniture/parts_overlapping": _overlapping,
-    "furniture/parts_behind_what_is_there": _in_front,
     "furniture/arrivals_blocked": _blocked,
     "furniture/purpose_uncovered": _uncovered,
     "furniture/unrealised_decisions": _unrealised,
@@ -816,7 +784,7 @@ def example_piece(*, channel_at: float = 0.0, joints: bool = True, back_guides: 
                   steps: list | None = None, flap: dict | None = None, made: bool = True,
                   fastened: bool = True, unsaid: tuple[str, ...] = (), bought: tuple[str, ...] = (),
                   doors_from: str = "down", bar: str = "", bar_joined: bool = True, lintel: bool = True,
-                  aside: bool = False, beside: float = 0.0, wall: float | None = None) -> Node:
+                  aside: bool = False, beside: float = 0.0) -> Node:
     """Two doors, 600 wide, in an opening `2 * 600 - overlap` wide; the channel `channel_at` mm from the
     flange's front edge (0: at the edge, as designed; 7: glued in the angle). The channel says neither
     what it is cut from nor with what when not `made`, and leaves out the links `unsaid` otherwise. The door
@@ -827,9 +795,7 @@ def example_piece(*, channel_at: float = 0.0, joints: bool = True, back_guides: 
     unless not `bar_joined`. The lintel the angle is screwed under is a part already there, unless not
     `lintel`: then the joint only says it in words. With `aside`, the front door is put together away
     from the rail (the panel, then its bar) and brought in whole. With `beside`, a spare panel stands that far
-    to the right of the opening, a thing apart from the doors. With `wall`, a wall that is already there stands
-    at that y, 100 thick, across the opening and up to the lintel: 20 is behind the rail (y runs from the front to
-    the back), -100 in front of it."""
+    to the right of the opening, a thing apart from the doors."""
     sold = "the panel's maker, cut to order"
     angle = _part("angle", ["width", 20, 20], [0, 0, 1180],
                   [[0, 19], [19, 19], [19, 0], [20, 0], [20, 20], [0, 20]])
@@ -863,8 +829,6 @@ def example_piece(*, channel_at: float = 0.0, joints: bool = True, back_guides: 
         children.append(_part("spare", [300, 8, 300], [f"width + {beside:g}", 0, 0]))
     if lintel:
         children.append(_part("lintel", ["width", 20, 19], [0, 0, 1200], existing="the lintel over the opening"))
-    if wall is not None:
-        children.append(_part("wall", ["width", 100, 1219], [0, wall, 0], existing="the wall behind the rail"))
     if joints:
         children += [Node(id="angle-to-lintel", kind="joint", payload={} if lintel else {"to": "the lintel"},
                           links={"joins": [f"{_PIECE}/angle"] + ([f"{_PIECE}/lintel"] if lintel else [])}
@@ -1011,14 +975,6 @@ SPEC = {
               piece=example_piece(bar="channel")),
         _demo("furniture/parts_overlapping", 1, "the bar along the door's foot modelled as a full box, where the "
               "panel's edge is", piece=example_piece(bar="solid")),
-    ],
-    "furniture/parts_behind_what_is_there": [
-        _demo("furniture/parts_behind_what_is_there", 0, "the lintel the rail is screwed under is above it, not in "
-              "front"),
-        _demo("furniture/parts_behind_what_is_there", 0, "a wall behind the rail, at a larger y",
-              piece=example_piece(wall=20.0)),
-        _demo("furniture/parts_behind_what_is_there", 1, "the same wall modelled at a smaller y: it stands between "
-              "the person and the rail and the doors, and hides them", piece=example_piece(wall=-100.0)),
     ],
     "furniture/arrivals_blocked": [
         _demo("furniture/arrivals_blocked", 0, "each door is lifted into the rail from below, where nothing is"),

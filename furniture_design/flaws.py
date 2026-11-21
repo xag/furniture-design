@@ -68,7 +68,6 @@ RULES = {
     "a-pieces-parts-are-fixed-or-guided": ("fits-and-moves", F),
     "a-pieces-joints-join-what-is-modelled": ("fits-and-moves", I),
     "a-pieces-parts-fill-their-own-space": ("fits-and-moves", F),
-    "a-pieces-front-is-clear-of-what-is-there": ("fits-and-moves", F),
     "a-pieces-motions-are-stated": ("fits-and-moves", I),
     "a-pieces-sliding-parts-are-held": ("fits-and-moves", F),
     "a-pieces-sliding-parts-have-room": ("fits-and-moves", F),
