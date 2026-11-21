@@ -271,11 +271,16 @@ def _unsupported_node(node: Node, tree: Quern, piece: str) -> list[dict]:
                 for j in says.get("connector") or []:
                     joint = get_node(tree, j)
                     for c in ((joint.links or {}).get("uses") or []) if joint is not None else []:
+                        if says.get("fastener") and c != says["fastener"]:
+                            continue     # a line of the hardware names one of what the joint uses
                         known = get_node(tree, c)
                         fasteners.append((known.name if known is not None else "") or c.rsplit("/", 1)[-1])
                 left = [f for f in dict.fromkeys(fasteners) if f not in text]
                 if left:
                     out.append(f"{where}: \"{text}\" leaves out what the model fastens with: {'; '.join(left)}")
+                if role_hardware(page, w) and not says.get("fastener") and len(dict.fromkeys(fasteners)) > 1:
+                    out.append(f"{where}: \"{text}\" counts {len(dict.fromkeys(fasteners))} things that fasten under "
+                               "one count")
             named = {j for w in page.payload.get("words") or [] for j in (w.get("says") or {}).get("connector") or []}
             stepped = any((f.payload or {}).get("kind") == "step" for f in page.children)
             for f in page.children:     # the page of what is needed names what each of its counts counts
@@ -296,7 +301,8 @@ def _unsupported_node(node: Node, tree: Quern, piece: str) -> list[dict]:
                     drawn_as = facts.get("drawn")
                     for j in facts.get("joints") or []:
                         joint = get_node(tree, j)
-                        size = connector_size(tree, joint.links or {}) if joint is not None else None
+                        links = {"uses": [facts["fastener"]]} if facts.get("fastener") else (joint.links or {}) if joint else {}
+                        size = connector_size(tree, links) if joint is not None else None
                         if drawn_as and size is None:
                             out.append(f"{where}: what fastens {j} is drawn as a bar of a size the model does "
                                        "not give it")
@@ -311,6 +317,13 @@ def _unsupported_node(node: Node, tree: Quern, piece: str) -> list[dict]:
                                            f"and the model gives it {size[0]:g} × {size[1]:g}")
             out[seen:] = [{"says": line, "document": branch, "page": page.payload.get("number")} for line in out[seen:]]
     return out
+
+
+def role_hardware(page: Node, word: dict) -> bool:
+    """Whether a text is a line of the hardware on the page of what is needed: a name of what fastens joints, on a
+    page that draws no step."""
+    return "connector" in (word.get("says") or {}) and not any(
+        (f.payload or {}).get("kind") == "step" for f in page.children)
 
 
 def _unsupported(tree: Quern, piece: str) -> list:

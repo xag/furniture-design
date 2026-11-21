@@ -112,8 +112,9 @@ def screens_of(sc: Scene, regions: list[dict], cut, lang: str, places: dict | No
                 out.append({"kind": "needed", "title": L["inbox"], "boards_title": L["boards"], "boards": [],
                             "hardware_title": L["hardware"],
                             "hardware": [{"name": n or L["unstated"],
-                                          "count": sum(j.count for j in sc.joints if j.connector == n)}
-                                         for n in sorted({j.connector for j in sc.joints})],
+                                          "count": sum(j.count for j in sc.joints
+                                                       if n in [f[1] for f in j.fasteners or [("", "", None)]])}
+                                         for n in sorted({f[1] for j in sc.joints for f in j.fasteners or [("", "", None)]})],
                             "tools_title": L["tools"], "tools": tools})
                 groups = tool_groups(sc, tools, places)
                 if groups[0][0] is not None:     # the tools by place, the others last: a reader that knows no place shows `tools`

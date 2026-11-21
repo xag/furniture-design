@@ -126,6 +126,12 @@ def guidance() -> Node:
             settings drawn on it, then per kind of joint the two parts marked across the joint from their
             reference face, the machine on each part drawn from its model, and the jig drilling the access
             holes. List there every joint whose grooves the step cuts."""),
+        say("holes-are-drawn", "A step that drills or marks for a joint", """
+            A step that brings in no part, closes no joint and cuts nothing has no picture: the instructions set
+            its sentence alone. A step that drills, marks or plugs the holes of a joint before it is closed (the
+            holes through a fixing plate, the plugs in a wall) is a preparation step (prepare: true) that lists
+            that joint in joints and the parts it works on in add: its picture draws those parts with a mark where
+            each of the joint's connectors goes (its positions). The step that closes the joint lists it again."""),
         say("one-language", "The language a piece is made in", """
             A piece is made in one language. Write its ledger's entries, and the text in the piece (names,
             steps, notes), in that language, whatever language the person writes in; the notes' headings, the

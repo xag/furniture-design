@@ -196,7 +196,10 @@ class Pen:
         {"connector": the joints whose connectors it names}. `step` is the number of the step whose sentence
         it is (a line of it), so a reader can show a case of it on that step."""
         c = self.c
-        on = self._seen((x, y))
+        from reportlab.pdfbase.pdfmetrics import stringWidth
+        long = stringWidth(str(s), "Helvetica-Bold" if bold else "Helvetica", size * mm) / mm if not angle else 0
+        start = {"start": 0, "middle": -long / 2, "end": -long}[anchor]
+        on = self._seen((x + start, y), (x + start + long, y))
         if self.words is not None and str(s).strip():
             self.words.append({"page": c.getPageNumber() - 1, "text": str(s), **({"role": role} if role else {}),
                                **({} if on else {"off": True}), **({"says": says} if says else {}),
@@ -905,12 +908,13 @@ def design_document(sc: Scene, path: Path, checks: list[dict], lang: str = "fr",
 
 # --- the assembly instructions ----------------------------------------------------------
 
-def _fastening(pen: Pen, x, y, n: int | None = None, size=None, scale=1.0, joints: list[str] = ()):
+def _fastening(pen: Pen, x, y, n: int | None = None, size=None, scale=1.0, joints: list[str] = (), fastener: str = ""):
     """What fastens a joint, as the steps' pictures mark it where it goes (draw_slots): a bar of the
     connector's own proportions when its node states its size (length, thickness), else the dot; and how
     many. It claims no kind of connector the model does not state. When regions are kept it notes what it
     drew and for which `joints` (a region of kind fastening: drawn, the bar's length and thickness, or
-    none for the dot), for a standard to hold the drawing to their connectors."""
+    none for the dot), for a standard to hold the drawing to their connectors, or to `fastener` (a path) when it
+    marks that one of the things they use."""
     if size and size[0] > 0:
         w = 16 * scale
         h = max(1.2 * scale, min(6 * scale, w * size[1] / size[0]))
@@ -921,7 +925,7 @@ def _fastening(pen: Pen, x, y, n: int | None = None, size=None, scale=1.0, joint
         drawn = None
     if pen.regions is not None:
         pen.regions.append({"kind": "fastening", "page": pen.c.getPageNumber() - 1, "box": [0, 0, 0, 0],
-                            "joints": list(joints), "drawn": drawn})
+                            "joints": list(joints), "drawn": drawn, **({"fastener": fastener} if fastener else {})})
     if n is not None:
         pen.text(x + 19 * scale, y + 1.2 * scale, f"{n} ×", 5 * scale, INK, bold=True)
 
@@ -1200,11 +1204,12 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list
         pen.text(x + cw / 2, y - 2, f"{_fmt(dims[0])} × {_fmt(dims[1])} × {_fmt(dims[2] / p.sheets)}",
                  2.8, THIN, "middle", says={"size": [p.path]})
     yy = top - ((len(distinct) + 2) // 3 - first) * ch - 16
-    fastenings: dict[str, list] = {}     # each kind of connector: how many, its size when it states one, its joints
-    for j in sc.joints:
-        kind = fastenings.setdefault(j.connector, [0, j.size, []])
-        kind[0] += j.count
-        kind[2].append(j.path)
+    fastenings: dict[str, list] = {}     # each thing that fastens: how many, its size when it states one, its joints,
+    for j in sc.joints:                  # its path; a joint that uses two (plugs and screws) counts each
+        for used, name, size in j.fasteners or [("", "", None)]:
+            kind = fastenings.setdefault(name, [0, size, [], used])
+            kind[0] += j.count
+            kind[2].append(j.path)
     if fastenings and yy - 14 * len(fastenings) - 4 < FOOT:
         c.showPage()
         yy = H - 20
@@ -1212,8 +1217,11 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list
         pen.text(15, yy, L["hardware"], 4.5, INK, bold=True, role="heading")
     for name in sorted(fastenings):
         yy -= 14
-        _fastening(pen, 18, yy, fastenings[name][0], fastenings[name][1], 1.2, joints=fastenings[name][2])
-        pen.text(65, yy + 3, name or L["unstated"], 3.4, INK, role="label", says={"connector": fastenings[name][2]})
+        _fastening(pen, 18, yy, fastenings[name][0], fastenings[name][1], 1.2, joints=fastenings[name][2],
+                   fastener=fastenings[name][3])
+        label = name or L["unstated"]
+        pen.text(65, yy + 3, label, _fitted(label, 3.4, W - 15 - 65), INK, role="label",
+                 says={"connector": fastenings[name][2], **({"fastener": fastenings[name][3]} if name else {})})
     yy -= 14
     tools = []
     for s in sc.steps:

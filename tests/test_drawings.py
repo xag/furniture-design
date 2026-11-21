@@ -589,3 +589,30 @@ def test_a_step_that_brings_in_nothing_has_no_picture_and_every_count_of_hardwar
     words = [w for p in pages for w in p.payload["words"]]
     assert [w.get("role") for w in words if w.get("step") in (n - 1, n)] == ["note", "note"]
     assert any(w["text"] == "Fixation non précisée" and f"{BENCH}/back-left" in w["says"]["connector"] for w in words)
+
+
+def test_each_fastening_a_joint_uses_has_its_own_line_and_every_text_stays_on_the_paper(tmp_path):
+    """Found on an espalier's instructions (feedback byUnTYiO3M4vUIdA93xS): a joint fixed to the wall with plugs and
+    80 mm screws was listed as one line, "8 ×" over both names, and the line ran off the page and cut the screw's
+    name. Drawn from the bench with a joint that uses two things of long names, the page of what is needed gives
+    each its own line and count, and the standards find nothing printed the model does not say and nothing set
+    beyond the paper."""
+    import json
+
+    from quern.tree import Node
+
+    from furniture_design import standards_pages as pg
+    tree = _tree()
+    screw = Node(id="example-long-screw", kind="connector",
+                 name="Vis à bois tête fraisée Torx 6 × 80 mm, acier zingué, fournie avec la pièce par son fabricant")
+    next(b for b in tree.root.children if b.id == "connectors").children.append(screw)
+    get_node(tree, f"{BENCH}/back-left").links["uses"] = ["connectors/example-connector", "connectors/example-long-screw"]
+    made = drawings.document(tree, BENCH, tmp_path, "assembly")
+    drawn = Node.model_validate(json.loads(made["pages"].read_text(encoding="utf-8")))
+    tree.root.children = tree.root.children + [drawn]
+    assert pg.EXPLAINERS["furniture/printed_unsupported"](tree, BENCH) == []
+    assert pg.EXPLAINERS["furniture/drawn_off_the_paper"](tree, BENCH) == []
+    words = [w for p in drawn.children[0].children for w in p.payload["words"]]
+    lines = [w for w in words if (w.get("says") or {}).get("fastener")]
+    assert {w["says"]["fastener"] for w in lines} == {"connectors/example-connector", "connectors/example-long-screw"}
+    assert any(w["text"] == screw.name for w in lines)
