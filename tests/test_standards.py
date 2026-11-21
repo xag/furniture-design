@@ -303,6 +303,18 @@ def test_what_a_piece_is_fixed_to_is_a_part_already_there():
     assert "crosses pieces/doors/lintel" in whys(through)
 
 
+def test_what_the_piece_is_fixed_to_stands_behind_it_not_in_front():
+    """y runs from the front to the back: a wall the rail is fixed against has a larger y than the rail. A wall
+    modelled at a smaller y stands between the person and the piece, and every drawing, seen from the front,
+    shows the wall and not the piece (the owner, 2026-11-21: an espalier whose 3D view and instructions were
+    "completely broken": its wall was modelled in front of it). The design is refused before it is drawn."""
+    behind = piece_cert(piece=sp.example_piece(wall=20.0))
+    assert reached(behind) == ["piece-settled", "piece-works", "piece-buildable", "piece-instructions"]
+    front = piece_cert(piece=sp.example_piece(wall=-100.0))
+    assert "piece-works" not in reached(front)
+    assert "pieces/doors/wall (the wall behind the rail) stands in front of pieces/doors/angle" in whys(front)
+
+
 def test_a_door_is_built_aside_and_judged_as_it_enters_whole():
     """A step that says it builds an assembly aside is judged against that assembly's parts only, and the
     step that brings the assembly in whole is judged as one arrival: lifted from below the door reaches
