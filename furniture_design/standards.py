@@ -259,8 +259,9 @@ def knowledge() -> list[Node]:
                    "has room along its travel", "consistency", "a-pieces-motions-are-stated",
                    "a-pieces-sliding-parts-are-held", "a-pieces-sliding-parts-have-room",
                    "a-pieces-turning-parts-are-carried", "a-pieces-turning-parts-have-room", of="piece"),
-        _criterion("piece-parts-fit", "No two parts fill the same space", "consistency",
-                   "a-pieces-parts-fill-their-own-space", of="piece"),
+        _criterion("piece-parts-fit", "No two parts fill the same space, and nothing already there stands in front "
+                   "of them", "consistency", "a-pieces-parts-fill-their-own-space",
+                   "a-pieces-front-is-clear-of-what-is-there", of="piece"),
         _criterion("piece-steps-build-it", "The assembly steps bring in every part and close every joint, each "
                    "once its parts are in, and no part crosses another on its way in", "completeness",
                    "a-pieces-steps-bring-in-every-part", "a-pieces-steps-close-every-joint",
@@ -495,6 +496,12 @@ RULES = [
          description="Two parts fill the same space: move one, or model each as what it is. A profile states its "
                      "section (payload section), so what sits in its hollow is not in its material; a notch is a "
                      "cut (payload cuts)."),
+    Rule(name="a-pieces-front-is-clear-of-what-is-there", kind="piece",
+         expr="solve('furniture/parts_behind_what_is_there', self) == 0",
+         description="Something already there (a wall) stands in front of the piece's parts, so every drawing, seen "
+                     "from the front, shows it and not them: y runs from the front (smallest y) to the back, and a "
+                     "wall the piece is fixed against has a larger y than the parts against it. Place it behind "
+                     "them, or turn the model round so that its front faces the room."),
     Rule(name="a-pieces-motions-are-stated", kind="piece", expr="solve('furniture/motions_unstated', self) == 0",
          description="State each motion whole: type slide or turn, its axis, its travel [from, to], for a turn "
                      "its pivot, what moves and what it is guided by."),
@@ -715,6 +722,10 @@ def _counter_examples() -> list[CounterExample]:
         CounterExample(rule="a-pieces-parts-fill-their-own-space", nodes=_piece_case(piece=piece.example_piece(bar="solid")),
                        because="a bar along a door's foot modelled as a full box, in the place of the panel's edge "
                                "it holds"),
+        CounterExample(rule="a-pieces-front-is-clear-of-what-is-there",
+                       nodes=_piece_case(piece=piece.example_piece(wall=-100.0)),
+                       because="the wall behind a rail modelled at a smaller y than the rail: in front of it, so "
+                               "that every drawing shows the wall and not the rail"),
         CounterExample(rule="a-pieces-parts-reach-their-place", nodes=_piece_case(piece=piece.example_piece(doors_from="up")),
                        because="doors said to come down into a rail that is already screwed up, through it"),
         CounterExample(rule="a-pieces-motions-are-stated", nodes=_piece_case(piece=piece.example_piece(travel=[600])),
