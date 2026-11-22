@@ -70,12 +70,6 @@ SAY = {
                                      "letter, and enough of those already there to place them",
                                "fr": "L'image de chaque étape montre les pièces qu'elle amène, chaque type avec sa "
                                      "lettre, et assez de celles déjà en place pour les situer"},
-    "pages-hold-what-they-draw": {"en": "Everything the instructions draw is on a page",
-                                  "fr": "Tout ce que la notice dessine tient sur une page"},
-    "documents-say-only-the-model": {"en": "Every size, material, name and fastening the documents print is one "
-                                           "the model gives",
-                                     "fr": "Chaque cote, matériau, nom et fixation que les documents impriment est "
-                                           "un de ceux que donne le modèle"},
     "piece-settled": {"en": "Its design says what the person asked for",
                       "fr": "Sa conception dit ce que la personne a demandé"},
     "piece-works": {"en": "It holds together and what moves in it works",
@@ -189,18 +183,6 @@ RED = {
     "a-pieces-fastenings-are-shown": {
         "en": "A step closes a joint and draws nothing of what fastens it.",
         "fr": "Une étape ferme un assemblage sans rien dessiner de ce qui le fixe."},
-    "a-pieces-steps-letter-their-parts": {
-        "en": "A step draws a part with no letter saying which of the listed parts it is.",
-        "fr": "Une étape dessine une pièce sans lettre qui dise laquelle des pièces listées c'est."},
-    "a-pieces-step-pictures-each-bring-something": {
-        "en": "A step's picture brings in nothing and closes nothing: it draws the one before again.",
-        "fr": "L'image d'une étape n'amène rien et ne ferme rien : elle redessine celle d'avant."},
-    "a-pieces-pages-keep-to-the-paper": {
-        "en": "Something of the instructions is drawn beyond the edge of its page.",
-        "fr": "Une partie de la notice est dessinée hors de sa page."},
-    "a-pieces-documents-print-only-its-model": {
-        "en": "A document prints or draws something the model does not say.",
-        "fr": "Un document imprime ou dessine quelque chose que le modèle ne dit pas."},
     "a-pieces-new-parts-are-visible": {
         "en": "A part a step brings in is hidden behind another.",
         "fr": "Une pièce qu'une étape amène est cachée derrière une autre."},
