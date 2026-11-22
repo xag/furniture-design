@@ -2193,6 +2193,17 @@ def entries() -> list[Node]:
                      "print, not what it printed."),
             ],
         ),
+        Node(
+            id="the-code-helps-whoever-designs-and-never-limits-them", kind="decision",
+            name="Our code is there to help whoever designs with it, an assistant among them, never to limit them: "
+                 "what they can make is never capped at what the code can make",
+            payload={"category": "purpose", "decided_on": "2026-11-22",
+                     "the_owner": "Our code should only be there to help AI, not to limit it."},
+            children=[
+                _alt("only-the-code-makes", "Only the code makes the result, and whoever designs adjusts until the "
+                     "code's result passes", "The code is then the ceiling of what is possible."),
+            ],
+        ),
     ]
 
 
