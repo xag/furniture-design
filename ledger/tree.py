@@ -1472,6 +1472,9 @@ def entries() -> list[Node]:
                      "not_yet": "The standards for a buildable piece and for assembly instructions; the rules' "
                                 "sentences per language (messages)."},
             links={"rests_on": ["the-rules-read-the-knowledge", "makers-products-are-in-packages-outside-furniture-design"]},
+            meta={"amended": "e2466260eabe the not-yet list lost the item done when certification@ was "
+                              "published (the kinds and rules of criterion and level moved there, "
+                              "furniture-standards-requires-certification); the claim is unchanged"},
             children=[
                 _alt("rules-of-furniture-design", "Add the grading rules to furniture-design@",
                      "Every tool of the knowledge would be judged by them in every check, and the package's own "

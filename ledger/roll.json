@@ -10,6 +10,16 @@
     "digest": "e26a562a7d8e"
   },
   {
+    "path": "a-caller-names-the-tools-drawn-at-work",
+    "kind": "decision",
+    "digest": "5d2e91256548"
+  },
+  {
+    "path": "a-caller-names-the-tools-drawn-at-work/payload-per-tool",
+    "kind": "alternative",
+    "digest": "cfb252c57555"
+  },
+  {
     "path": "a-check-reads-its-requirement-over-its-own-link",
     "kind": "decision",
     "digest": "a8201c3f75bb"
@@ -18,6 +28,21 @@
     "path": "a-check-reads-its-requirement-over-its-own-link/one-held-to-link",
     "kind": "alternative",
     "digest": "d5db7f755821"
+  },
+  {
+    "path": "a-connectors-rules-judge-only-the-joints-it-fastens",
+    "kind": "decision",
+    "digest": "9e83645a9672"
+  },
+  {
+    "path": "a-connectors-rules-judge-only-the-joints-it-fastens/guard-in-or",
+    "kind": "alternative",
+    "digest": "9ce9f0af7d94"
+  },
+  {
+    "path": "a-connectors-rules-judge-only-the-joints-it-fastens/screws-as-connectors",
+    "kind": "alternative",
+    "digest": "c72b9d5f9229"
   },
   {
     "path": "a-copyrighted-source-is-cited-by-locator-and-values",
@@ -160,6 +185,21 @@
     "digest": "2eb1e9b201e3"
   },
   {
+    "path": "a-document-prints-only-what-the-model-says",
+    "kind": "decision",
+    "digest": "cf077250e2b0"
+  },
+  {
+    "path": "a-document-prints-only-what-the-model-says/fix-each-statement-in-the-drawing",
+    "kind": "alternative",
+    "digest": "13c076594c72"
+  },
+  {
+    "path": "a-document-prints-only-what-the-model-says/list-the-facts-on-the-server",
+    "kind": "alternative",
+    "digest": "010d2997cf29"
+  },
+  {
     "path": "a-european-species-is-read-from-tropix",
     "kind": "decision",
     "digest": "441e2122ff04"
@@ -260,6 +300,26 @@
     "digest": "563e4f03a2e3"
   },
   {
+    "path": "a-notice-is-certified-by-what-agrees",
+    "kind": "decision",
+    "digest": "06d39461df15"
+  },
+  {
+    "path": "a-notice-is-certified-by-what-agrees/guess-the-surroundings",
+    "kind": "alternative",
+    "digest": "eefe33c764a5"
+  },
+  {
+    "path": "a-notice-is-certified-by-what-agrees/judge-every-step-state",
+    "kind": "alternative",
+    "digest": "c8511b292d59"
+  },
+  {
+    "path": "a-notice-is-certified-by-what-agrees/read-the-pages",
+    "kind": "alternative",
+    "digest": "b66098a6d6d6"
+  },
+  {
     "path": "a-package-module-makes-its-examples-when-asked",
     "kind": "decision",
     "digest": "0e28d92ad411"
@@ -273,6 +333,21 @@
     "path": "a-package-module-makes-its-examples-when-asked/examples-shared-between-counter-examples",
     "kind": "alternative",
     "digest": "6e286470d792"
+  },
+  {
+    "path": "a-page-names-things-and-says-what-it-cannot-draw",
+    "kind": "decision",
+    "digest": "20f2f15c9f1e"
+  },
+  {
+    "path": "a-page-names-things-and-says-what-it-cannot-draw/any-short-text",
+    "kind": "alternative",
+    "digest": "ba57d04d5266"
+  },
+  {
+    "path": "a-page-names-things-and-says-what-it-cannot-draw/print-it-in-the-plans",
+    "kind": "alternative",
+    "digest": "df2763940ffd"
   },
   {
     "path": "a-panel-bent-two-ways-is-two-materials",
@@ -298,6 +373,16 @@
     "path": "a-panels-tested-modulus-takes-no-shear-term/two-sag-rules",
     "kind": "alternative",
     "digest": "57319dbe036f"
+  },
+  {
+    "path": "a-part-bought-cut-to-its-size-names-who-sells-it",
+    "kind": "decision",
+    "digest": "bac476f085d2"
+  },
+  {
+    "path": "a-part-bought-cut-to-its-size-names-who-sells-it/the-maker-as-a-cutting-service",
+    "kind": "alternative",
+    "digest": "ef8e787c8e95"
   },
   {
     "path": "a-part-names-the-saw-that-cuts-it-out",
@@ -480,6 +565,36 @@
     "digest": "b3354d1c4b6b"
   },
   {
+    "path": "a-question-to-the-person-asks-one-thing-and-names-its-answers",
+    "kind": "decision",
+    "digest": "f8b028c04915"
+  },
+  {
+    "path": "a-question-to-the-person-asks-one-thing-and-names-its-answers/no-tools-offered",
+    "kind": "alternative",
+    "digest": "694c2b715a89"
+  },
+  {
+    "path": "a-question-to-the-person-asks-one-thing-and-names-its-answers/one-rule-two-questions",
+    "kind": "alternative",
+    "digest": "b38d7cbbdbb1"
+  },
+  {
+    "path": "a-question-to-the-person-asks-one-thing-and-names-its-answers/reader-filters-by-rule",
+    "kind": "alternative",
+    "digest": "69e3c63ae742"
+  },
+  {
+    "path": "a-rule-says-where-it-is-written",
+    "kind": "decision",
+    "digest": "01848fcfb623"
+  },
+  {
+    "path": "a-rule-says-where-it-is-written/the-connector-says-it",
+    "kind": "alternative",
+    "digest": "b9bda726aaae"
+  },
+  {
     "path": "a-screen-takes-its-drawing-from-the-instructions-and-its-words-from-the-piece",
     "kind": "decision",
     "digest": "da0fcf309132"
@@ -570,6 +685,16 @@
     "digest": "e984e4619467"
   },
   {
+    "path": "a-step-builds-an-assembly-aside-or-brings-one-in-whole",
+    "kind": "decision",
+    "digest": "57eaf7fa99bb"
+  },
+  {
+    "path": "a-step-builds-an-assembly-aside-or-brings-one-in-whole/what-moves-must-come-in-whole",
+    "kind": "alternative",
+    "digest": "0a962fed9f05"
+  },
+  {
     "path": "a-step-closes-a-joint-the-way-its-connector-engages",
     "kind": "decision",
     "digest": "0cc13a876308"
@@ -617,7 +742,7 @@
   {
     "path": "a-tool-is-certified-by-a-standard-that-is-a-package",
     "kind": "decision",
-    "digest": "5704443f0651"
+    "digest": "e2466260eabe"
   },
   {
     "path": "a-tool-is-certified-by-a-standard-that-is-a-package/in-the-apps-code",
@@ -638,6 +763,16 @@
     "path": "a-tool-is-drawn-as-the-lamello-is/steps-as-data",
     "kind": "alternative",
     "digest": "c2f80791fd58"
+  },
+  {
+    "path": "a-tools-pages-are-the-blocks-that-show-it-at-work",
+    "kind": "decision",
+    "digest": "8cf6fb2d6995"
+  },
+  {
+    "path": "a-tools-pages-are-the-blocks-that-show-it-at-work/draw-all-again",
+    "kind": "alternative",
+    "digest": "9990846a83d6"
   },
   {
     "path": "a-tools-steps-are-drawn-from-its-node",
@@ -715,6 +850,26 @@
     "digest": "a418ab48314d"
   },
   {
+    "path": "furniture-standards-requires-certification",
+    "kind": "decision",
+    "digest": "67c303fcd834"
+  },
+  {
+    "path": "furniture-standards-requires-certification/a-copy-in-the-wheel",
+    "kind": "alternative",
+    "digest": "fa655c2e059a"
+  },
+  {
+    "path": "furniture-standards-requires-certification/keep-the-copy",
+    "kind": "alternative",
+    "digest": "b522a061a4eb"
+  },
+  {
+    "path": "furniture-standards-requires-certification/taken-from-quern",
+    "kind": "alternative",
+    "digest": "363afe43be78"
+  },
+  {
     "path": "makers-products-are-in-packages-outside-furniture-design",
     "kind": "decision",
     "digest": "ca83521e11af"
@@ -760,6 +915,36 @@
     "digest": "49012351dba9"
   },
   {
+    "path": "the-3d-views-dimensions-are-positions-or-sizes",
+    "kind": "decision",
+    "digest": "f34fde54f66a"
+  },
+  {
+    "path": "the-3d-views-dimensions-are-positions-or-sizes/each-part-on-its-own-edges",
+    "kind": "alternative",
+    "digest": "ffae587de572"
+  },
+  {
+    "path": "the-3d-views-dimensions-are-positions-or-sizes/positions-from-one-end",
+    "kind": "alternative",
+    "digest": "cb6c5796f4f4"
+  },
+  {
+    "path": "the-3d-views-settings-stand-under-the-tree-or-behind-display",
+    "kind": "decision",
+    "digest": "d8dd68acc52e"
+  },
+  {
+    "path": "the-3d-views-settings-stand-under-the-tree-or-behind-display/a-settings-button-over-the-model",
+    "kind": "alternative",
+    "digest": "7f06f6e89b9a"
+  },
+  {
+    "path": "the-3d-views-settings-stand-under-the-tree-or-behind-display/the-sheet-pushes-a-history-step",
+    "kind": "alternative",
+    "digest": "c068d6e404d1"
+  },
+  {
     "path": "the-birch-laminate-borrows-plywoods-kdef",
     "kind": "decision",
     "digest": "23e98f989e43"
@@ -773,6 +958,16 @@
     "path": "the-birch-laminate-borrows-plywoods-kdef/no-creep",
     "kind": "alternative",
     "digest": "8874bf03ff56"
+  },
+  {
+    "path": "the-code-helps-whoever-designs-and-never-limits-them",
+    "kind": "decision",
+    "digest": "4a01e176e116"
+  },
+  {
+    "path": "the-code-helps-whoever-designs-and-never-limits-them/only-the-code-makes",
+    "kind": "alternative",
+    "digest": "113bdea9dd7c"
   },
   {
     "path": "the-code-is-agpl-and-the-knowledge-odbl",
@@ -883,6 +1078,21 @@
     "path": "the-grooving-step-is-drawn-to-ikeas-rules/sentences-per-part",
     "kind": "alternative",
     "digest": "18e0aa69a555"
+  },
+  {
+    "path": "the-instructions-state-only-what-the-model-says-and-all-of-it",
+    "kind": "decision",
+    "digest": "2bfa2858f58d"
+  },
+  {
+    "path": "the-instructions-state-only-what-the-model-says-and-all-of-it/a-colour-per-material",
+    "kind": "alternative",
+    "digest": "e1b272c2eaa5"
+  },
+  {
+    "path": "the-instructions-state-only-what-the-model-says-and-all-of-it/a-rule-per-claim",
+    "kind": "alternative",
+    "digest": "c46788e57c44"
   },
   {
     "path": "the-knowledge-is-shared-unchanged-and-improved-only-here",
@@ -998,6 +1208,46 @@
     "path": "this-repos-own-work-is-agpl/source-available",
     "kind": "alternative",
     "digest": "c5e095d1daa6"
+  },
+  {
+    "path": "two-parts-touch-where-their-material-meets",
+    "kind": "decision",
+    "digest": "d690922c545b"
+  },
+  {
+    "path": "two-parts-touch-where-their-material-meets/polygons-in-shapely",
+    "kind": "alternative",
+    "digest": "7e7355d2921b"
+  },
+  {
+    "path": "what-a-piece-is-fixed-to-is-a-part-already-there",
+    "kind": "decision",
+    "digest": "41d1fab5d2c3"
+  },
+  {
+    "path": "what-a-piece-is-fixed-to-is-a-part-already-there/a-kind-of-its-own",
+    "kind": "alternative",
+    "digest": "bd5d86c7cc06"
+  },
+  {
+    "path": "what-a-piece-is-fixed-to-is-a-part-already-there/read-it-from-the-words",
+    "kind": "alternative",
+    "digest": "5bf86675a783"
+  },
+  {
+    "path": "what-a-step-drives-and-what-a-document-sizes-are-the-models",
+    "kind": "decision",
+    "digest": "432edae44e7d"
+  },
+  {
+    "path": "what-a-step-drives-and-what-a-document-sizes-are-the-models/a-gap-param",
+    "kind": "alternative",
+    "digest": "4054e6f5db5b"
+  },
+  {
+    "path": "what-a-step-drives-and-what-a-document-sizes-are-the-models/a-screw-is-a-part",
+    "kind": "alternative",
+    "digest": "d93f735c8885"
   },
   {
     "path": "what-an-assistant-is-told-is-guidance-in-the-packages",
