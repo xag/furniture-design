@@ -1159,10 +1159,11 @@ def tool_groups(sc: Scene, tools: list[str], places: dict[str, str] | None) -> l
 
 def _cut_block(pen: Pen, box, step, p, qty: int, brief) -> None:
     """A part's cut drawn in `box` as its own block of the step (sawing.sawing_frames), noted with the part, how
-    many when more than one, and the saw it shows at work when there is one."""
+    many when more than one (a screen says "1 ×" of nothing), and the saw it shows at work when there is one."""
     from .sawing import SAW, sawing_frames
     saw = next((t for t in p.tools if t.model and SAW in t.follows), None)
-    pen.note("block", box, step=step.number, part=p.id, count=qty, **({"tool": saw.path} if saw else {}))
+    pen.note("block", box, step=step.number, part=p.id, **({"count": qty} if qty > 1 else {}),
+             **({"tool": saw.path} if saw else {}))
     sawing_frames(pen, box, p, qty, brief(saw))
 
 

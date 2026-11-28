@@ -732,7 +732,7 @@ def sections(p: Part) -> list[dict]:
 def _section_panel(pen, box, sec, spot) -> float:
     """A section of the board's end in `box` (x, y, w, h on paper), drawn from its top down: the board across, the
     face its cuts are open on up, the cuts hatched, each step of the profile with its depth from that face; a
-    line from it to `spot`, the end on the board. Returns the height it took."""
+    line from it to `spot`, the end on the board. Returns the height it takes; with no pen, draws nothing."""
     x, y, w, h = box
     T, A = sec["T"], sec["A"]
     a_lo = min(s_[0] for s_ in sec["steps"])
@@ -757,6 +757,8 @@ def _section_panel(pen, box, sec, spot) -> float:
         labels.append((cx, cx + shift, ty, label, depth))
     top = min(bx[1] for bx in texts) - 1.5                 # the open face, under the lowest text
     bottom = top - T * k
+    if pen is None:                                         # only how much room it takes
+        return y + h - bottom + 2
 
     def Y(tt):                                              # a point of the thickness, the open face up
         return top - (T - tt if up == T else tt) * k
@@ -1028,13 +1030,30 @@ def f_end(pen, b, p: Part, model):
     pen.c.restoreState()
 
 
+def marks_size(p: Part, box) -> tuple[float, float]:
+    """The width and height of a frame of marks alone (f_marks, no close-ups) within `box`: the board scaled as
+    it would be in all of it, and only the room it, its marks and its sections take, so that a tall board does
+    not stand in a wide frame of white, nor a long low one in a tall one."""
+    x, y, w, h = box
+    face = standing(p)
+    sb = scene_box(box)
+    W, k, fit, (ox, oy), marks = _fit_marks(face, _region3(face, share=0.6, least=60, room=0),
+                                            (sb[0] + 3, sb[1] + 3, sb[2] - 4, sb[3] - 9))
+    bb = marks["bbox"]
+    x0, y0 = min(bb[0], ox), min(bb[1], oy)
+    x1, y1 = max(bb[2], ox + (fit[2] - fit[0]) * k), max(bb[3], oy + (fit[3] - fit[1]) * k)
+    secs = sum(_section_panel(None, (0, 0, SIDE - 2, h - 9), sec, (0, 0)) + 2 for sec in sections(p))
+    return min(w, max(x1 - x0 + 5 + SIDE, 60.0)), min(h, max(y1 - y0 + 12, secs + 11, 40.0))
+
+
 def sawing_frames(pen, box, p: Part, qty: int, short: bool = False):
-    """A part's cut in a slot of the instructions: four frames, two by two, or, short, the marks alone over
-    the whole slot."""
+    """A part's cut in a slot of the instructions: four frames, two by two, or, short, the marks alone in a frame
+    as wide and as tall as they need within the slot (marks_size), at its top, across its middle."""
     x, y, w, h = box
     model = next((t.model for t in p.tools if t.model and SAW in t.follows), None)
     if short or not model:
-        bx = (x, y, w, h)
+        fw, fh = marks_size(p, box)
+        bx = (x + (w - fw) / 2, y + h - fh, fw, fh)
         f_marks(pen, bx, p, qty, sides=False)
         frame(pen, bx, 1)
         return

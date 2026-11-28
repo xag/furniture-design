@@ -163,3 +163,13 @@ def test_no_two_letters_of_a_step_are_set_over_each_other(monkeypatch, tmp_path)
     for i, a in enumerate(letters):
         for b in letters[i + 1:]:
             assert math.dist(a["at"], b["at"]) >= a["r"] + b["r"] + 0.5
+
+
+def test_a_cuts_frame_is_as_wide_and_as_tall_as_what_it_shows(monkeypatch, tmp_path):
+    """A frame holding a tall board is narrow, one holding a long low board is low: its picture fills it, and a
+    screen cut from it is not a sliver of board in white. A block of one board says no count."""
+    d = Drawn(monkeypatch, tmp_path)
+    [(x0, y0, x1, y1)], [(a0, b0, a1, b1)] = d.block("left")[1], d.block("top")[1]
+    assert (x1 - x0) < 0.6 * 180 and (x1 - x0) < (y1 - y0)
+    assert (b1 - b0) < 0.75 * 118 and (b1 - b0) < (a1 - a0)
+    assert not [r for r in d.regions if r["kind"] == "block" and "count" in r]
