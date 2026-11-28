@@ -162,20 +162,16 @@ def strip(width: float, saws: dict[str, float | None]) -> list[Node]:
     return [Node(id="tools", kind="", children=tools), Node(id="bench", kind="piece", children=[rail])]
 
 
-def thick_strip(t: float) -> list[Node]:
-    """The rail of strip() with no saw, stating a thickness param of `t` mm."""
-    nodes = strip(75, {})
-    nodes[1].children[0].params["thickness"] = Quantity(value=t, unit="mm", provenance="design-target",
-                                                        grounded=False)
-    return nodes
-
-
-def shim(stock: float | None, sheets: int = 1) -> list[Node]:
-    """A shim 18 x 22 x 35 cut from stock `stock` mm thick (None: it states none), of `sheets` sheets."""
+def shim(stock: float | str | None, sheets: int = 1, board: float | None = None) -> list[Node]:
+    """A shim 18 x 22 x 35 cut from stock `stock` mm thick (None: it states none; a name: the bench's param
+    of that name, `board` mm), of `sheets` sheets."""
     payload = {"shape": {"op": "box", "size": [18, 22, 35]}, "sheets": sheets}
     if stock is not None:
         payload["stock_thickness"] = stock
-    return [Node(id="bench", kind="piece", children=[Node(id="shim", kind="part", payload=payload)])]
+    params = {} if board is None else {"board": Quantity(value=board, unit="mm", provenance="design-target",
+                                                         grounded=False)}
+    return [Node(id="bench", kind="piece", params=params,
+                 children=[Node(id="shim", kind="part", payload=payload)])]
 
 
 def shelf_between(steps: list[dict], engages: str | None = "square") -> list[Node]:
@@ -243,15 +239,23 @@ SPEC = {
         d("narrow_margin", strip(120, {"a": 100, "b": 110}), ["bench/rail"], expect=10,
           because="cut with two saws, it is held to the stricter, 110"),
     ],
-    "furniture/thickness": [
-        d("thickness", strip(75, {}), ["bench/rail"], expect=18,
-          because="a rail 744 x 18 x 75 that states no thickness: its box's smallest side"),
-        d("thickness", shim(22), ["bench/shim"], expect=22,
-          because="a shim 18 x 22 x 35 cut from 22 mm stock: the stock, not its smallest side"),
-        d("thickness", shim(11, sheets=2), ["bench/shim"], expect=22,
-          because="two sheets of 11 mm stock glued: 22"),
-        d("thickness", thick_strip(19), ["bench/rail"], expect=19,
-          because="a thickness param stated is read as it is, whatever its box"),
+    "furniture/side": [
+        d("side", strip(75, {}), ["bench/rail", 0], expect=744,
+          because="a rail 744 x 18 x 75: its box along x"),
+        d("side", strip(75, {}), ["bench/rail", 2], expect=75,
+          because="the same rail along z"),
+        d("side", beam(), ["shelf/board", 2], expect=10,
+          because="a board whose size names its params (span, depth, thickness): its thickness param, 10"),
+        d("side", [Node(id="bench", kind="piece", children=[Node(id="rail", kind="part")])], ["bench/rail", 0],
+          expect_error="no box shape", because="a part with no box has no side to give"),
+    ],
+    "furniture/number": [
+        d("number", shim(22), ["bench/shim", "stock_thickness"], expect=22,
+          because="a shim that writes its stock as 22"),
+        d("number", shim("board + 3", board=19), ["bench/shim", "stock_thickness"], expect=22,
+          because="a stock written over the bench's param board, 19: 19 + 3"),
+        d("number", shim(None), ["bench/shim", "stock_thickness"], expect_error="writes no stock_thickness",
+          because="a shim that writes no stock is refused, never given 0"),
     ],
     "furniture/off_stock": [
         d("off_stock", shim(22), ["bench/shim"], expect=0,
@@ -260,6 +264,9 @@ SPEC = {
           because="it states no stock: its smallest side, 18, is its thickness"),
         d("off_stock", shim(25), ["bench/shim"], expect=3,
           because="25 mm stock, and its nearest side is 22: 3 mm off"),
+        d("off_stock", shim(22.5), ["bench/shim"], expect=0.5,
+          because="22.5 mm stock, its nearest side 22: half a millimetre off, which the calculation says "
+                  "and the rule judges"),
         d("off_stock", shim(11, sheets=2), ["bench/shim"], expect=0,
           because="two sheets of 11 mm stock glued make its 22 side"),
     ],

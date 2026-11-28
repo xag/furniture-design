@@ -78,7 +78,7 @@ class Part:
 
     def board(self) -> tuple[float, float, float]:
         """Its face's two sides, longest first, and the thickness of one of its sheets (natives.board)."""
-        return board(self.size, self.sheets, self.stock, self.path)
+        return board(self.size, self.sheets, self.stock)
 
     @property
     def size(self) -> tuple[float, float, float]:

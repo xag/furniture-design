@@ -31,7 +31,6 @@ from quern.tree import Node, Quern, _segs, get_node, register_native, resolve_pa
 
 from .units import STANDARD_GRAVITY
 
-STOCK_MM = 0.05  # a side this near a part's stock thickness is that thickness: the documents print tenths
 TOUCH_MM = 0.5  # a part whose bottom is this close to the lowest bottom stands on the floor
 # The side an assembly step brings a part in from (a step's `direction`): "up", lowered from
 # above, moves it down; "front", slid in from the front, moves it towards the back.
@@ -281,27 +280,25 @@ def stock_thickness(tree, path: str, node) -> float | None:
     return None if v is None else number(tree, path, v, "stock thickness")
 
 
-def board(size, sheets: int = 1, stock: float | None = None, path: str = "") -> tuple[float, float, float]:
+def board(size, sheets: int = 1, stock: float | None = None) -> tuple[float, float, float]:
     """A part as the board it is cut from: the two sides of its face, longest first, then the thickness of
     one of its sheets. Its thickness is its box's smallest side over its sheets, unless it states the stock
-    it is cut from (stock_thickness): then it is that, and its face is its two other sides, so a shim
-    18 x 22 x 35 cut from 22 mm stock is 35 by 18 by 22. Refused when no side is its sheets times its stock."""
+    it is cut from (stock_thickness): then it is that, and its face is its two other sides, the one nearest
+    its sheets times its stock being the side it is cut through, so a shim 18 x 22 x 35 cut from 22 mm stock
+    is 35 by 18 by 22. Whether that side is that thick is the rule a-parts-stock-is-as-thick-as-one-of-its-sides's
+    to judge."""
     dims = sorted(size, reverse=True)
     if stock is None:
         return dims[0], dims[1], dims[2] / sheets
     i = min(range(3), key=lambda k: abs(dims[k] - stock * sheets))
-    if abs(dims[i] - stock * sheets) > STOCK_MM:
-        raise ValueError(f"part '{path}' is cut from stock {stock:g} mm thick"
-                         + (f", {sheets} sheets glued" if sheets > 1 else "")
-                         + f", and none of its sides ({' x '.join(f'{d:g}' for d in dims)}) is {stock * sheets:g}")
     face = [d for k, d in enumerate(dims) if k != i]
     return face[0], face[1], stock
 
 
 def off_stock(tree: Quern, part: str) -> float:
     """mm: how far the nearest of a part's box sides is from the thickness of the stock it says it is cut
-    from (payload stock_thickness) times its sheets; 0 when one is within STOCK_MM of it, or when it states
-    no stock."""
+    from (payload stock_thickness) times its sheets; 0 when it states no stock. How near is near enough is
+    the rule's to say."""
     node = get_node(tree, part)
     if node is None:
         raise ValueError(f"no part at '{part}'")
@@ -309,23 +306,28 @@ def off_stock(tree: Quern, part: str) -> float:
     if stock is None:
         return 0.0
     t = stock * int((node.payload or {}).get("sheets", 1))
-    gap = min(abs(d - t) for d in _size(tree, part, node))
-    return 0.0 if gap <= STOCK_MM else gap
+    return min(abs(d - t) for d in _size(tree, part, node))
 
 
-def thickness(tree: Quern, part: str) -> float:
-    """mm: how thick a part is, all its sheets together: its param thickness when it states one; else the
-    stock it is cut from (payload stock_thickness) times its sheets; else its box's smallest side."""
+def side(tree: Quern, part: str, axis: int) -> float:
+    """mm: a part's box along `axis` (0 x, 1 y, 2 z), its payload shape's size entry evaluated (a number or
+    an expression over params). Which of its sides is its thickness is the rules' to say."""
     node = get_node(tree, part)
     if node is None:
         raise ValueError(f"no part at '{part}'")
-    stated = _param(tree, part, "thickness")
-    if stated is not None:
-        return stated
-    stock = stock_thickness(tree, part, node)
-    if stock is not None:
-        return stock * int((node.payload or {}).get("sheets", 1))
-    return min(_size(tree, part, node))
+    return _size(tree, part, node)[int(axis)]
+
+
+def payload_number(tree: Quern, path: str, key: str) -> float:
+    """A number a node's payload writes under `key`, a number or an expression over the params in scope (as
+    a part's size is), evaluated; refused when it writes none."""
+    node = get_node(tree, path)
+    if node is None:
+        raise ValueError(f"no node at '{path}'")
+    v = (node.payload or {}).get(key)
+    if v is None:
+        raise ValueError(f"'{path}' writes no {key}")
+    return number(tree, path, v, key)
 
 
 def _share(tree, path: str, node, size) -> float:
@@ -855,7 +857,8 @@ NATIVES = {
     "furniture/unheld": unheld,
     "furniture/narrow_margin": narrow_margin,
     "furniture/off_stock": off_stock,
-    "furniture/thickness": thickness,
+    "furniture/side": side,
+    "furniture/number": payload_number,
     "furniture/misfit_closings": misfit_closings,
 }
 

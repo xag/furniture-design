@@ -179,15 +179,17 @@ def test_a_part_cut_from_thicker_stock_is_laid_on_that_stock():
     assert (plain.length, plain.width, plain.thickness) == (35, 20, 18)
 
 
-def test_a_part_whose_stock_is_none_of_its_sides_is_refused():
-    import pytest
+def test_a_part_whose_stock_is_none_of_its_sides_is_refused_by_the_rule():
+    """The rule refuses a stock no side is within 0.05 mm of, the number written in its expression; the
+    documents lay the part on its stock all the same, through its nearest side, and print the rule's red."""
     from quern import run_rules
-    tree = _shim(22)
-    with pytest.raises(ValueError, match="22"):
-        cuts(scene(tree, BENCH))
-    red = [r for r in run_rules(tree) if not r.ok and r.node == f"{BENCH}/shim"]
-    assert [r.rule for r in red] == ["a-parts-stock-is-as-thick-as-one-of-its-sides"]
-    assert not [r for r in run_rules(_shim(20)) if not r.ok and r.node == f"{BENCH}/shim"]
+
+    def red(stock):
+        return [r.rule for r in run_rules(_shim(stock)) if not r.ok and r.node == f"{BENCH}/shim"]
+    assert red(22) == red(20.1) == ["a-parts-stock-is-as-thick-as-one-of-its-sides"]
+    assert red(20) == red(20.04) == []
+    shim = next(c for c in cuts(scene(_shim(22), BENCH)) if c.name == "shim")
+    assert (shim.length, shim.width, shim.thickness) == (35, 18, 22)
 
 
 def _notched_side(steps):

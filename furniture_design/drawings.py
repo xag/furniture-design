@@ -80,8 +80,7 @@ def cut_list(tree: Quern, piece: str) -> list[Row]:
     for b in bodies(tree, piece):
         node = get_node(tree, b.path)
         sheets = int((node.payload or {}).get("sheets", 1))
-        dims = list(board([h - lo for lo, h in zip(b.lo, b.hi)], sheets, stock_thickness(tree, b.path, node),
-                          b.path))
+        dims = list(board([h - lo for lo, h in zip(b.lo, b.hi)], sheets, stock_thickness(tree, b.path, node)))
         uses = (node.links or {}).get("uses", [])
         material = uses[0].rsplit("/", 1)[-1] if uses else ""
         grain = (node.payload or {}).get("span_along", "")

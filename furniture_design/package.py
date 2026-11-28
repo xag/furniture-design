@@ -294,13 +294,22 @@ RULES = [
               "every(c, linked(self, 'per'), kind(c) == 'clause')",
          description="A connector links `per` to the clauses its limits come from."),
     Rule(name="a-joined-part-is-thick-enough-for-the-cut", kind="joint",
-         expr="every(c, where(c, linked(self, 'uses'), kind(c) == 'connector'), every(p, linked(self, 'joins'), "
-              "solve('furniture/thickness', p) >= param(c, 'min_thickness_' + payload(self, 'cut'))))",
+         expr="every(c, where(c, linked(self, 'uses'), kind(c) == 'connector'), "
+              "every(p, where(p, linked(self, 'joins'), states(p, 'thickness')), "
+              "param(p, 'thickness') >= param(c, 'min_thickness_' + payload(self, 'cut'))) "
+              "and every(p, where(p, linked(self, 'joins'), not states(p, 'thickness') "
+              "and payload(p, 'stock_thickness', '') != ''), "
+              "solve('furniture/number', p, 'stock_thickness') * payload(p, 'sheets', 1) "
+              ">= param(c, 'min_thickness_' + payload(self, 'cut'))) "
+              "and every(p, where(p, linked(self, 'joins'), not states(p, 'thickness') "
+              "and payload(p, 'stock_thickness', '') == ''), "
+              "min(solve('furniture/side', p, 0), solve('furniture/side', p, 1), solve('furniture/side', p, 2)) "
+              ">= param(c, 'min_thickness_' + payload(self, 'cut'))))",
          description="Every part a joint fastened by a connector joins is at least as thick as "
                      "its connector allows for the kind of cut the joint is (the connector's "
-                     "min_thickness_<cut>). A part's thickness is its param thickness, else the stock "
-                     "it is cut from, else its box's smallest side (furniture/thickness). A joint "
-                     "fastened otherwise (screws, a glue) is not judged by it."),
+                     "min_thickness_<cut>). A part's thickness is its param thickness; else the stock "
+                     "it is cut from (payload stock_thickness) times its sheets; else its box's smallest "
+                     "side. A joint fastened otherwise (screws, a glue) is not judged by it."),
     Rule(name="a-joined-part-is-wide-enough", kind="joint",
          expr="every(c, where(c, linked(self, 'uses'), kind(c) == 'connector'), "
               "every(p, linked(self, 'joins'), param(p, 'width') >= param(c, 'min_width')))",
@@ -331,23 +340,30 @@ RULES = [
                      "removes and not a guess. A saw whose maker prints neither is measured, "
                      "and the measure stated on a saw of the design's own."),
     Rule(name="a-part-is-no-thicker-than-its-saw-cuts", kind="part",
-         expr="every(t, linked(self, 'sawn_with'), "
-              "solve('furniture/thickness', self) / payload(self, 'sheets', 1) <= param(t, 'max_cut_depth'))",
-         description="Each sheet of a part (its thickness over the sheets glued into it; its "
-                     "thickness its param, else its stock, else its box's smallest side: "
-                     "furniture/thickness) is no "
-                     "thicker than every saw it is cut out with cuts through at 90°, as that "
-                     "saw's maker states it; a saw whose maker states no depth leaves the check "
-                     "absent, not passed."),
+         expr="every(t, where(t, linked(self, 'sawn_with'), states(self, 'thickness')), "
+              "param(self, 'thickness') / payload(self, 'sheets', 1) <= param(t, 'max_cut_depth')) "
+              "and every(t, where(t, linked(self, 'sawn_with'), not states(self, 'thickness') "
+              "and payload(self, 'stock_thickness', '') != ''), "
+              "solve('furniture/number', self, 'stock_thickness') <= param(t, 'max_cut_depth')) "
+              "and every(t, where(t, linked(self, 'sawn_with'), not states(self, 'thickness') "
+              "and payload(self, 'stock_thickness', '') == ''), "
+              "min(solve('furniture/side', self, 0), solve('furniture/side', self, 1), "
+              "solve('furniture/side', self, 2)) / payload(self, 'sheets', 1) <= param(t, 'max_cut_depth'))",
+         description="Each sheet of a part is no thicker than every saw it is cut out with cuts "
+                     "through at 90°, as that saw's maker states it. A sheet is the part's param "
+                     "thickness over the sheets glued into it; else the stock it is cut from (payload "
+                     "stock_thickness); else its box's smallest side over its sheets. A saw whose maker "
+                     "states no depth leaves the check absent, not passed."),
     Rule(name="a-part-is-no-narrower-than-its-saw-cuts", kind="part",
          expr="solve('furniture/narrow_margin', self) >= 0",
          description="A part is no narrower than the narrowest part every saw it is cut out with "
                      "cuts (a shop's cutting service's min_part_width; furniture/narrow_margin)."),
     Rule(name="a-parts-stock-is-as-thick-as-one-of-its-sides", kind="part",
-         expr="solve('furniture/off_stock', self) == 0",
+         expr="solve('furniture/off_stock', self) <= 0.05",
          description="A part that states the stock it is cut from (payload stock_thickness) has a side "
-                     "that thick, its sheets times it when glued up (furniture/off_stock): the cutting "
-                     "sheet lays it on that stock, its face its two other sides."),
+                     "that thick, its sheets times it when glued up, within 0.05 mm, half the tenth of a "
+                     "millimetre the documents print a size to (furniture/off_stock: how far its nearest "
+                     "side is): the cutting sheet lays it on that stock, its face its two other sides."),
     Rule(name="a-part-is-cut-by-a-saw-that-cuts-its-material", kind="part",
          expr="every(t, linked(self, 'sawn_with'), every(m, linked(t, 'refuses'), "
               "every(u, linked(self, 'uses'), m != u)))",
@@ -816,7 +832,7 @@ def written_at(name: str) -> str:
     return ""
 
 
-VERSION = "0.38.0"
+VERSION = "0.39.0"
 
 
 def make_package() -> Package:
