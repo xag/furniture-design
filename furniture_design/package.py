@@ -236,8 +236,8 @@ VOCABULARY = [
         "documents alike); gap (mm, a number or an expression over params), when its parts stand "
         "that far apart along one axis with shims or packing between them (a board screwed to a wall "
         "across shims): it joins them on the plane midway, and its connectors cross the gap; "
-        "param count (connectors in it). A joined part states its width "
-        "and thickness."),
+        "param count (connectors in it). A joined part states its width; its thickness is its param "
+        "thickness, else the stock it is cut from, else its box's smallest side."),
         params={"count": "connectors in the joint"},
         links={"joins": "the parts it joins", "uses": "its connector",
                "made_with": "the tools it is cut with"}),
