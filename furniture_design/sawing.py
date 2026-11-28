@@ -27,7 +27,7 @@ from reportlab.lib.colors import Color, white
 from reportlab.lib.units import mm
 
 from . import lineart as la
-from .grooving import VIEW, WOOD, clip, closeup, frame, letter, proj, scene_box, side_spot
+from .grooving import SIDE, VIEW, WOOD, clip, closeup, frame, letter, proj, scene_box, side_spot
 from .scene import Part, cut_plan
 from .sheets import DIM, INK, MARK, _fmt
 
@@ -636,6 +636,125 @@ def _about(pen, x, y, value, size):
 
 # --- the frames ----------------------------------------------------------------------------------
 
+def _covers(box, other, axis, lo, hi) -> bool:
+    """Whether `other` (a 3D box) takes away all of `box` between lo and hi along `axis`, over box's extent on
+    the other two axes."""
+    return all(other[0][i] <= box[0][i] + 0.05 and other[1][i] >= box[1][i] - 0.05 for i in range(3) if i != axis) \
+        and other[0][axis] <= lo + 0.05 and other[1][axis] >= hi - 0.05
+
+
+def sections(p: Part) -> list[dict]:
+    """The board's end in section where cuts that do not go through it reach that end, one section per end
+    whose profile differs: `along` the face axis (0 h, 1 v) the cuts run along, `ends` the ends of that axis (0
+    its low end, 1 its high end) that show this profile, `A` the board across, `T` its thickness, `rects` each cut seen there (a0, a1, t0, t1), and
+    `steps`: the profile, each stretch across (a0, a1) with the face it is open on (0 or T) and its depth from
+    that face, the depth a pass is set to. A cut whose side away from a face opens onto an earlier cut is as
+    deep as both."""
+    plan, h, v, t, size, seen, boxes = _local(p)
+    T = size[t]
+    deep = [(lo, hi) for lo, hi, _ in boxes if not (lo[t] <= 0.05 and hi[t] >= T - 0.05)]
+    if not deep:
+        return []
+    every = [(lo, hi) for lo, hi, _ in boxes]
+    spans = [sum(1 for lo, hi in deep if lo[ax] <= 0.05 and hi[ax] >= size[ax] - 0.05) for ax in (h, v)]
+    out = []
+    for along in ((1, 0) if spans[1] >= spans[0] else (0, 1)):   # first along the axis most of them run the length of
+        A_ax, L_ax = (h, v)[1 - along], (h, v)[along]
+        for end in (0, 1):
+            at = 0.0 if end == 0 else size[L_ax]
+            here = [(lo, hi) for lo, hi in deep if (lo[L_ax] <= 0.05 if end == 0 else hi[L_ax] >= size[L_ax] - 0.05)]
+            if not here:
+                continue
+            cuts = [(lo[A_ax], hi[A_ax], lo[t], hi[t]) for lo, hi in here]
+            edges = sorted({0.0, size[A_ax], *[c[0] for c in cuts], *[c[1] for c in cuts]})
+            steps = []
+            for a0, a1 in zip(edges, edges[1:]):
+                if a1 - a0 < 0.05:
+                    continue
+                over = [c for c in cuts if c[0] <= (a0 + a1) / 2 <= c[1]]
+                if not over:
+                    continue
+                t0, t1 = min(c[2] for c in over), max(c[3] for c in over)
+                lo_b, hi_b = [0.0] * 3, [0.0] * 3
+                lo_b[A_ax], hi_b[A_ax] = a0, a1
+                lo_b[L_ax] = hi_b[L_ax] = at
+                lo_b[t], hi_b[t] = t0, t1
+                box = (tuple(lo_b), tuple(hi_b))
+                if t1 >= T - 0.05 or any(_covers(box, c, t, t1, T) for c in every):
+                    side, depth = T, T - t0
+                elif t0 <= 0.05 or any(_covers(box, c, t, 0.0, t0) for c in every):
+                    side, depth = 0.0, t1
+                else:
+                    side, depth = T, t1 - t0
+                if steps and abs(steps[-1][1] - a0) < 0.05 and steps[-1][2] == side and abs(steps[-1][3] - depth) < 0.05:
+                    steps[-1] = (steps[-1][0], a1, side, depth)
+                else:
+                    steps.append((a0, a1, side, depth))
+            same = next((o for o in out if o["steps"] == steps), None)
+            if same:
+                same["ends"].append(end)
+            elif steps:
+                out.append({"along": along, "ends": [end], "A": size[A_ax], "T": T, "rects": cuts, "steps": steps})
+        if out:
+            return out
+    return out
+
+
+def _section_panel(pen, box, sec, spot) -> float:
+    """A section of the board's end in `box` (x, y, w, h on paper), drawn from its top down: the board across, the
+    face its cuts are open on up, the cuts hatched, each step of the profile with its depth from that face; a
+    line from it to `spot`, the end on the board. Returns the height it took."""
+    x, y, w, h = box
+    T, A = sec["T"], sec["A"]
+    a_lo = min(s_[0] for s_ in sec["steps"])
+    a_hi = max(s_[1] for s_ in sec["steps"])
+    m = max(6.0, 0.3 * (a_hi - a_lo))
+    w0, w1 = max(0.0, a_lo - m), min(A, a_hi + m)
+    k = min((w - 2) / ((w1 - w0) or 1), 12.0 / T)
+    up = sec["steps"][0][2]                                 # the face the cuts are open on, drawn up
+    texts: list = []
+    labels = []
+    for a0, a1, side, depth in sec["steps"]:
+        cx = x + 1 + ((a0 + a1) / 2 - w0) * k
+        label = f"{_fmt(depth)} mm"
+        for r in range(6):
+            ty = y + h - 3.0 - r * 3.6
+            bx = _text_box(cx, ty, label, 2.6, "middle")
+            shift = max(0.0, x - bx[0]) - max(0.0, bx[2] - (x + w))
+            bx = (bx[0] + shift, bx[1], bx[2] + shift, bx[3])
+            if not any(_meets(bx, o, 0.5) for o in texts):
+                break
+        texts.append(bx)
+        labels.append((cx, cx + shift, ty, label, depth))
+    top = min(bx[1] for bx in texts) - 1.5                 # the open face, under the lowest text
+    bottom = top - T * k
+
+    def Y(tt):                                              # a point of the thickness, the open face up
+        return top - (T - tt if up == T else tt) * k
+    pen.rect(x + 1, bottom, (w1 - w0) * k, T * k, fill=Color(*WOOD), stroke=INK, lw_=0.3)
+    for a0, a1, t0, t1 in sec["rects"]:
+        c0, c1 = max(a0, w0), min(a1, w1)
+        if c1 <= c0:
+            continue
+        ya, yb = Y(t0), Y(t1)
+        _poly_fill(pen, [(x + 1 + (c0 - w0) * k, ya), (x + 1 + (c1 - w0) * k, ya), (x + 1 + (c1 - w0) * k, yb),
+                         (x + 1 + (c0 - w0) * k, yb)], fill=white, stroke=INK, w=0.25, hatch=MARK, step=0.8)
+    for end, at in ((w0, x + 1), (w1, x + 1 + (w1 - w0) * k)):     # the board goes on past the section
+        if 0.05 < end < A - 0.05:
+            pen.line(at, bottom - 0.8, at, top + 0.8, 0.5, white)
+            pen.line(at, bottom - 0.8, at, top + 0.8, 0.2, INK, [0.8, 0.6])
+    for cx, tx, ty, label, depth in labels:
+        y1 = top - depth * k
+        pen.line(cx, y1, cx, ty + 2.0, 0.18, DIM)
+        pen.arrowhead(cx, y1, 0, -1, 1.2, DIM)
+        pen.arrowhead(cx, top, 0, 1, 1.2, DIM)
+        pen.text(tx, ty, label, 2.6, DIM, "middle", bold=True)
+    mid = (x + 1, (top + bottom) / 2)
+    pen.line(mid[0], mid[1], spot[0], spot[1], 0.15, INK, [1.0, 0.8])
+    pen.circle(spot[0], spot[1], 0.7, fill=INK, stroke=INK, w=0.1)
+    return y + h - bottom + 2
+
+
 def _marks_layout(W, face: Face) -> dict:
     """The numbers, the letter and the distances of the marks frame on paper, each text clear of the others,
     and the box they take together with the board's region drawn."""
@@ -706,6 +825,18 @@ def f_marks(pen, b, p: Part, qty: int, box=None, sides=True):
     _draw_numbers(pen, marks["nums"])
     letter(pen, marks["letter"], p.mark)
     pen.c.restoreState()
+    top = b[1] + b[3] - (36 if sides else 9)
+    ends = []
+    for sec in sections(p):   # an end that shows it, the one nearest the side column
+        spots = []
+        for end in sec["ends"]:
+            pt = [0.0, 0.0]
+            pt[sec["along"]] = 0.0 if end == 0 else face.size2[sec["along"]]
+            pt[1 - sec["along"]] = (sec["steps"][0][0] + sec["steps"][-1][1]) / 2
+            spots.append(W(face.P(*pt)))
+        ends.append((max(spots, key=lambda q: q[0]), sec))
+    for spot, sec in sorted(ends, key=lambda e: -e[0][1]):   # down the side column, the higher end first
+        top -= _section_panel(pen, (b[0] + b[2] - SIDE + 1, b[1], SIDE - 2, top - b[1]), sec, spot) + 2
     if sides:
         p0, p1, u, n = face.lines[0]
         ux, uy = _paper_dir(W, face, p0, u)
@@ -713,7 +844,7 @@ def f_marks(pen, b, p: Part, qty: int, box=None, sides=True):
         ang = math.degrees(math.atan2(uy, ux))
         waste_up = (-uy * nx + ux * ny) > 0          # the waste on the left of the line's direction on paper
         mid = W(face.P(p0[0] + (p1[0] - p0[0]) * 0.5, p0[1] + (p1[1] - p0[1]) * 0.5))
-        for k, right in ((0, True), (1, False)):
+        for k, right in ((0, True),) + (() if sections(p) else ((1, False),)):   # the sections take the second's place
             closeup(pen, side_spot(b, k), 10.0, mid,
                     lambda cx, cy, r, right=right: _side_inside(pen, cx, cy, r, ang, waste_up, right))
     elif qty > 1:

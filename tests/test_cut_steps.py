@@ -128,3 +128,12 @@ def test_a_cuts_measures_are_all_printed_inside_its_frame_and_none_over_another(
             for c in circles:
                 (cx, cy), r = c["at"], c["r"]
                 assert not _overlap(a["box"], (cx - r, cy - r, cx + r, cy + r)), (part, a["s"])
+
+
+def test_each_pass_says_how_deep_it_goes(monkeypatch, tmp_path):
+    """A cut that does not go through the board is a pass of a given depth, the setting that makes a rebate:
+    each one's depth is printed in its frame, 7.5 then 19 mm for the rebate."""
+    d = Drawn(monkeypatch, tmp_path)
+    for part, depths in (("left", ["7.5 mm", "19 mm"]), ("top", ["7.5 mm", "19 mm"])):
+        said = [t["s"] for t in d.block(part)[2]]
+        assert all(x in said for x in depths), (part, said)
