@@ -34,6 +34,7 @@ from pathlib import Path
 from reportlab.lib.colors import HexColor, white
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
+from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.pdfgen.canvas import Canvas
 from reportlab import rl_config
 
@@ -238,16 +239,26 @@ def _panel(pg: _Page, y: float, i: int, sheet: dict, placed, q0: Cut) -> float:
     c, L, M = pg.c, pg.L, pg.M
     s = mm / pg.scale
     w, h = sheet["length"] * s, sheet["width"] * s
-    y = pg.room(y, h + 22 * mm)
+    title = L["panel"].format(i=i, material=q0.material_name, t=_f(q0.thickness),
+                              L=_f(sheet["length"]), W=_f(sheet["width"]))
+    ref = L["ref"].format(ref=sheet["ref"]) if sheet.get("ref") else ""
+    room = pg.W - 2 * M
+    # The reference stands at the right of the title when both fit with a gap between, else on a line of
+    # its own under it, set smaller when even the whole width is too short for it: never over the title.
+    beside = stringWidth(title, "Helvetica-Bold", 10.5) + 6 * mm + stringWidth(ref, "Helvetica", 8.5) <= room
+    y = pg.room(y, h + (22 if beside or not ref else 26.5) * mm)
     c.setFillColor(INK)
     c.setFont("Helvetica-Bold", 10.5)
-    pg.say(M, y, L["panel"].format(i=i, material=q0.material_name, t=_f(q0.thickness),
-                                   L=_f(sheet["length"]), W=_f(sheet["width"])),
-           {"material": [q.path for q, _, _ in placed] or [q0.path], "sold": True})
-    if sheet.get("ref"):
-        c.setFont("Helvetica", 8.5)
+    pg.say(M, y, title, {"material": [q.path for q, _, _ in placed] or [q0.path], "sold": True})
+    if ref:
+        size = min(8.5, 8.5 * room / stringWidth(ref, "Helvetica", 8.5))
+        c.setFont("Helvetica", size)
         c.setFillColor(MUTED)
-        c.drawRightString(pg.W - M, y, L["ref"].format(ref=sheet["ref"]))
+        if beside:
+            c.drawRightString(pg.W - M, y, ref)
+        else:
+            y -= 4.5 * mm
+            c.drawString(M, y, ref)
     top = y - 6 * mm
     c.setFillColor(PANEL)
     c.setStrokeColor(MUTED)

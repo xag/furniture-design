@@ -127,3 +127,27 @@ def test_a_part_bought_cut_to_its_size_is_not_on_the_sheet():
     tree.get(f"{BENCH}/top").payload["bought_to_size"] = "the panel's maker, cut to order"
     got = sorted((c.length, c.width, c.thickness) for c in cuts(scene(tree, BENCH)))
     assert got == [(450, 300, 20), (450, 300, 20), (960, 350, 20)]
+
+
+def _spans(pdf):
+    import pymupdf
+    with pymupdf.open(pdf) as doc:
+        return [(s["text"], pymupdf.Rect(s["bbox"])) for page in doc for b in page.get_text("dict")["blocks"]
+                for ln in b.get("lines", []) for s in ln["spans"]]
+
+
+def test_a_panels_title_and_its_reference_never_overlap(tmp_path):
+    """A reference as a shop prints it, a whole product name, is long: it goes under the title when the two
+    do not fit side by side, and every span of the sheet stands clear of every other."""
+    tree = _tree()
+    m = tree.get(next(n for n in tree.get(f"{BENCH}/top").links["uses"]))
+    m.payload = {**(m.payload or {}), "label": "contreplaqué bouleau qualité ébénisterie"}
+    sc = scene(tree, BENCH)
+    ref = "Panneau contreplaqué bouleau ép. 20 mm L. 250 x l. 122 cm 81234567"
+    stock = {sc.parts[0].material: [{"length": 2500, "width": 1220, "ref": ref}]}
+    for lang in ("fr", "en"):
+        spans = _spans(cutting_sheet(sc, tmp_path / f"{lang}.pdf", lang, stock))
+        title = next(r for t, r in spans if t.startswith(("Panneau 1", "Board 1")))
+        refs = [r for t, r in spans if ref in t]
+        assert refs and not any(r.intersects(title) for r in refs)
+        assert all(r.x1 <= 210 / 25.4 * 72 for r in refs)
