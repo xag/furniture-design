@@ -152,3 +152,14 @@ def test_the_lines_are_numbered_from_one_each_number_seen(monkeypatch, tmp_path)
         for i, a in enumerate(circles):
             for b in circles[i + 1:]:
                 assert math.dist(a["at"], b["at"]) >= a["r"] + b["r"], part
+
+
+def test_no_two_letters_of_a_step_are_set_over_each_other(monkeypatch, tmp_path):
+    """Two parts brought in together, their middles close on paper, carry their letters side by side."""
+    d = Drawn(monkeypatch, tmp_path)
+    step = next(r for r in d.regions if r["kind"] == "step" and r["step"] == 5)
+    letters = [c for c in d.circles if c["page"] == step["page"] and c["r"] == 3.2]
+    assert len(letters) >= 2
+    for i, a in enumerate(letters):
+        for b in letters[i + 1:]:
+            assert math.dist(a["at"], b["at"]) >= a["r"] + b["r"] + 0.5

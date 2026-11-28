@@ -17,6 +17,7 @@ French by default (`lang`), since the people building read French; the words are
 from __future__ import annotations
 
 import datetime as dt
+import math
 from pathlib import Path
 
 from reportlab.lib.colors import Color, HexColor, black, white
@@ -1041,13 +1042,15 @@ def _assembly_picture(pen: Pen, sc: Scene, placed_ids: list[str], new_ids: list[
         pen.arrowhead(b[0] + (a[0] - b[0]) * 0.25, b[1] + (a[1] - b[1]) * 0.25,
                       b[0] - a[0], b[1] - a[1], 3.2)
         guided.append(p.id)
-    lettered = []
+    lettered, spots = [], []
     for p in new:      # each kind of part brought in carries its letter, as on the page of what is needed
         if p.id in wholes or not p.mark or p.mark in lettered:
             continue
         u, v = placed(tuple(c + k for c, k in zip(p.centre, offsets[p.id])))
-        u += 5 + 7.5 * sum(1 for q in new if q.mark in lettered and abs(placed(tuple(
-            c + k for c, k in zip(q.centre, offsets[q.id])))[0] - u) < 7.5)   # beside a letter already there
+        u += 5
+        while any(math.dist((u, v), q) < 2 * 3.2 + 0.8 for q in spots):
+            u += 2 * 3.2 + 1.0                             # beside a letter already there, clear of it
+        spots.append((u, v))
         pen.circle(u, v + 5, 3.2, fill=white, w=0.35)
         pen.text(u, v + 3.8, p.mark, 3.6, INK, "middle", bold=True)
         lettered.append(p.mark)
