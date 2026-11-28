@@ -1154,6 +1154,15 @@ def tool_groups(sc: Scene, tools: list[str], places: dict[str, str] | None) -> l
     return [(p, [t for t in tools if at.get(t) == p]) for p in named] + ([(None, rest)] if rest else [])
 
 
+def _cut_block(pen: Pen, box, step, p, qty: int, brief) -> None:
+    """A part's cut drawn in `box` as its own block of the step (sawing.sawing_frames), noted with the part, how
+    many when more than one, and the saw it shows at work when there is one."""
+    from .sawing import SAW, sawing_frames
+    saw = next((t for t in p.tools if t.model and SAW in t.follows), None)
+    pen.note("block", box, step=step.number, part=p.id, count=qty, **({"tool": saw.path} if saw else {}))
+    sawing_frames(pen, box, p, qty, brief(saw))
+
+
 def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list | None = None,
                           words: list | None = None, at_work: set[str] | None = None, progress=None,
                           places: dict[str, str] | None = None) -> Path:
@@ -1339,7 +1348,8 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list
                 cut.append((p, sum(1 for q in sc.parts
                                    if q.mark == p.mark and q.id in step.cuts)))
         grooved = step.prepare and any(j.id in step.joints and j.groove_offset is not None for j in sc.joints)
-        if (cut or grooved) and slot % 2:
+        only_cuts = bool(cut) and not (step.add or step.joints or step.prepare)
+        if (cut or grooved) and slot % 2 and not only_cuts:
             slot += 1    # a step with cuts starts a page: its picture, then its cards
         x, y, w, h = slots[slot % 2]
         if slot % 2 == 0 and slot:
@@ -1362,6 +1372,26 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list
         if place and tx + 6 + len(place) * 1.9 <= x + w - (46 if n and not step.prepare else 0):
             _place_mark(pen, tx + 1, y + h - 13, place)   # where the person has every tool the step names
         pic = (x, y + 14, w, h - 32)
+        if only_cuts:
+            # it only cuts: a picture of the piece would show it as the step before left it, and say nothing of
+            # the cut; its number heads the half page its first cut is drawn in, and its screen has no picture
+            lines = _wrap(step.text, 95)[:3]
+            for k, s in enumerate(lines):
+                pen.text(x + 2, y + h - 22 - 4.6 * k, s, 3.6, INK, step=step.number)
+            under = 18 + 4.6 * len(lines)
+            pen.note("step", (x, y + h - under, w, under), step=step.number, picture=False)
+            first = (x, y, w, h - under - 2)
+            for p, qty in cut:
+                if first is None:
+                    if slot % 2 == 0:
+                        c.showPage()
+                    else:
+                        pen.line(15, 148, W - 15, 148, 0.2, THIN, [1.5, 1.5])
+                box = first or slots[slot % 2]
+                _cut_block(pen, box, step, p, qty, brief)
+                first = None
+                slot += 1
+            continue
         if step.prepare:
             pen.note("step", pic, step=step.number, prepare=True)
             _prepare_picture(pen, sc, step, pic)
@@ -1384,11 +1414,7 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list
                 c.showPage()
             else:
                 pen.line(15, 148, W - 15, 148, 0.2, THIN, [1.5, 1.5])
-            from .sawing import SAW, sawing_frames
-            saw = next((t for t in p.tools if t.model and SAW in t.follows), None)
-            pen.note("block", slots[slot % 2], step=step.number, part=p.id, count=qty,
-                     **({"tool": saw.path} if saw else {}))
-            sawing_frames(pen, slots[slot % 2], p, qty, brief(saw))
+            _cut_block(pen, slots[slot % 2], step, p, qty, brief)
             slot += 1
         if grooved:            # the grooving step's pages, drawn to IKEA's rules, after its picture
             from .grooving import grooving_pages
