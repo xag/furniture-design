@@ -233,7 +233,10 @@ VOCABULARY = [
         "min_thickness_<cut> applies), setting (the machine setting it is cut at) and, when "
         "the design places its connectors, positions (mm along the longer side of the face "
         "the parts meet on; otherwise they are spread evenly, for the checks and the "
-        "documents alike); param count (connectors in it). A joined part states its width "
+        "documents alike); gap (mm, a number or an expression over params), when its parts stand "
+        "that far apart along one axis with shims or packing between them (a board screwed to a wall "
+        "across shims): it joins them on the plane midway, and its connectors cross the gap; "
+        "param count (connectors in it). A joined part states its width "
         "and thickness."),
         params={"count": "connectors in the joint"},
         links={"joins": "the parts it joins", "uses": "its connector",

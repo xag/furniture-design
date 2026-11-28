@@ -94,19 +94,23 @@ class Layout:
     stated: bool
 
 
-def _face(alo, ahi, blo, bhi):
+def _face(alo, ahi, blo, bhi, gap: float = 0.0):
     """The face where boxes (alo, ahi) and (blo, bhi) touch: (lo, hi, normal); None when they are
-    apart, and "inside" when one runs into the other."""
-    lo, hi, normal = [], [], None
+    apart, and "inside" when one runs into the other. Boxes up to `gap` mm apart along one axis touch on
+    the plane midway between them (a joint across shims, payload gap); apart along two, they do not."""
+    lo, hi, normal, apart = [], [], None, 0
     for i in range(3):
         low, high = max(alo[i], blo[i]), min(ahi[i], bhi[i])
-        if high < low - TOUCH_MM:
+        if high < low - TOUCH_MM - gap:
             return None
+        apart += high < low - TOUCH_MM
         if high - low <= TOUCH_MM:
             normal = i
             low = high = (low + high) / 2
         lo.append(low)
         hi.append(high)
+    if apart > 1:
+        return None
     return (tuple(lo), tuple(hi), normal) if normal is not None else "inside"
 
 
@@ -142,16 +146,17 @@ def cells(x) -> list[tuple[list[float], list[float]]]:
     return out
 
 
-def contact(a, b):
+def contact(a, b, gap: float = 0.0):
     """The face where parts a and b (each with lo and hi, and a profile's section) touch:
     (lo, hi, normal), or None when they are apart or one runs into the other. Each part is what
     `cells` makes it, so a channel laid on an angle's flange, inside the angle's box, touches the
     angle where their walls meet. Where they meet on several faces, the largest: the faces in one
-    plane are taken together."""
+    plane are taken together. Parts up to `gap` mm apart along one axis touch on the plane midway
+    (a joint's payload gap: what shims fill)."""
     faces = []
     for alo, ahi in cells(a):
         for blo, bhi in cells(b):
-            f = _face(alo, ahi, blo, bhi)
+            f = _face(alo, ahi, blo, bhi, gap)
             if f == "inside":
                 return None
             if f is not None:
@@ -174,6 +179,13 @@ def contact(a, b):
     return max(planes.values(), key=area)
 
 
+def joint_gap(tree: Quern, jpath: str, node: Node) -> float:
+    """mm a joint's parts may stand apart (payload gap, a number or an expression over params: what shims or
+    packing fill between them); 0 when it says none."""
+    v = (node.payload or {}).get("gap")
+    return 0.0 if v is None else number(tree, jpath, v, "gap")
+
+
 def joint_layout(tree: Quern, jpath: str, node: Node, boxes: dict) -> Layout | None:
     """The one place a joint's connectors are placed, for the checks and the documents alike:
     along the longer side of the face its parts meet on, at the middle across it, at the
@@ -184,9 +196,11 @@ def joint_layout(tree: Quern, jpath: str, node: Node, boxes: dict) -> Layout | N
     ends = [boxes.get("/".join(_segs(t))) for t in (node.links or {}).get("joins", [])][:2]
     if len(ends) != 2 or None in ends:
         return None
-    touch = contact(*ends)
+    touch = contact(*ends, gap=joint_gap(tree, jpath, node))
     if touch is None:
-        raise ValueError(f"joint '{jpath}' joins parts that do not touch")
+        raise ValueError(f"joint '{jpath}' joins parts that do not touch"
+                         + ("" if (node.payload or {}).get("gap") else
+                            " (a joint across shims or packing says how far apart its parts stand: payload gap)"))
     lo, hi, normal = touch
     in_plane = [i for i in range(3) if i != normal]
     along = max(in_plane, key=lambda i: hi[i] - lo[i])
@@ -623,14 +637,15 @@ def closings(tree: Quern, piece: str) -> list[tuple[int, str, str, bool]]:
                 continue
             if len(ends) != 2 or any(e not in boxes for e in ends):
                 raise ValueError(f"joint '{jpath}' does not join two parts of '{base}'")
-            touch = contact(boxes[ends[0]], boxes[ends[1]])
+            gap = joint_gap(tree, jpath, joint)
+            touch = contact(boxes[ends[0]], boxes[ends[1]], gap=gap)
             if touch is None:
                 raise ValueError(f"joint '{jpath}' joins parts that do not touch")
             axis = touch[2]
             for m in movers:
                 mine, other = boxes[m], boxes[ends[1] if m == ends[0] else ends[0]]
                 want = [0, 0, 0]
-                want[axis] = 1 if mine.lo[axis] >= other.hi[axis] - TOUCH_MM else -1
+                want[axis] = 1 if mine.lo[axis] >= other.hi[axis] - TOUCH_MM - gap else -1
                 key = m[len(base) + 1:]
                 out.append((n, jid, key, DIRECTIONS[moving[key]] == tuple(want)))
     return out

@@ -49,3 +49,30 @@ def test_the_standards_door_rail_places_its_screws():
     lay = natives.joint_layout(tree, "pieces/doors/channel-to-angle", joint, boxes)
     assert lay.normal == 2 and lay.lo[2] == 1199
     assert all(p[2] == 1199 for p in lay.positions) and len(lay.positions) == 4
+
+
+def test_a_joint_across_a_gap_it_declares_joins_parts_that_stand_that_far_apart():
+    """Shims behind a board: the board is screwed to the wall across them, so the joint's two parts stand the shims'
+    thickness apart. A joint that says so (payload gap) joins them on the plane midway; one that does not, or two
+    parts further apart, or apart along two axes, does not touch."""
+    a = SimpleNamespace(lo=[0, 0, 0], hi=[18, 400, 450])
+    b = SimpleNamespace(lo=[23, 0, 100], hi=[600, 400, 118])
+    assert natives.contact(a, b) is None
+    assert natives.contact(a, b, gap=5) == ((20.5, 0, 100), (20.5, 400, 118), 0)
+    assert natives.contact(a, b, gap=4) is None
+    corner = SimpleNamespace(lo=[23, 405, 100], hi=[600, 800, 118])
+    assert natives.contact(a, corner, gap=5) is None
+
+
+def test_the_angle_is_screwed_to_the_lintel_across_shims():
+    import pytest
+    tree = Quern()
+    tree.root.children = piece_world()
+    tree.get("pieces/doors/lintel").payload["transform"]["translate"][2] = 1205
+    boxes = {b.path: b for b in natives.bodies(tree, "pieces/doors", existing=True)}
+    joint = natives.get_node(tree, "pieces/doors/angle-to-lintel")
+    with pytest.raises(ValueError, match="do not touch"):
+        natives.joint_layout(tree, "pieces/doors/angle-to-lintel", joint, boxes)
+    joint.payload["gap"] = 5
+    lay = natives.joint_layout(tree, "pieces/doors/angle-to-lintel", joint, boxes)
+    assert lay.normal == 2 and lay.lo[2] == 1202.5
