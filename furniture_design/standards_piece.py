@@ -41,7 +41,7 @@ import re
 
 from quern.grounding import agree
 from quern.provenance import Quantity
-from quern.tree import Node, Quern, get_node
+from quern.tree import Demonstration, Node, Quern, get_node
 
 from . import natives
 
@@ -738,7 +738,27 @@ def joints_misclosed(tree: Quern, piece: str) -> float:
     return float(len(_misclosed(tree, piece)))
 
 
+# --- what a rule's own expression found ---------------------------------------------------------
+
+def _found(tree: Quern, paths) -> list[dict]:
+    """Each node found as a case: its path as its line, and its path again under its kind (a part: part), for
+    a reader that shows it where it is."""
+    out = []
+    for path in paths or []:
+        node = get_node(tree, str(path))
+        out.append({"says": str(path), **({node.kind: str(path)} if node is not None and node.kind else {})})
+    return out
+
+
+def found(tree: Quern, paths) -> float:
+    """How many nodes a rule's expression found (the list of their paths it hands over, where() over the
+    nodes it judges), so that its red names each of them. It judges nothing: why they were found is the
+    expression's."""
+    return float(len(paths or []))
+
+
 NATIVES = {
+    "furniture/found": found,
     "furniture/parts_unsourced": parts_unsourced,
     "furniture/parts_unsawn": parts_unsawn,
     "furniture/joints_unfastened": joints_unfastened,
@@ -761,6 +781,7 @@ NATIVES = {
 }
 
 EXPLAINERS = {
+    "furniture/found": _found,
     "furniture/parts_unsourced": _unsourced,
     "furniture/parts_unsawn": _unsawn,
     "furniture/joints_unfastened": _unfastened,
@@ -932,6 +953,13 @@ def _demo(contract: str, expect: float, because: str, **kw):
 
 
 SPEC = {
+    "furniture/found": [
+        Demonstration(contract="furniture/found", nodes=piece_world(), args=[[]], expect=0,
+                      because="an expression that found nothing"),
+        Demonstration(contract="furniture/found", nodes=piece_world(),
+                      args=[[f"{_PIECE}/angle", f"{_PIECE}/channel"]], expect=2,
+                      because="an expression that found the angle and the channel"),
+    ],
     "furniture/parts_unsourced": [
         _demo("furniture/parts_unsourced", 0, "each part names the profile or board it is cut from"),
         _demo("furniture/parts_unsourced", 1, "a channel that says what saw cuts it, and not what it is cut from",

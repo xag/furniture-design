@@ -515,9 +515,9 @@ RULES = [
          description="Bring every part in by an assembly step (payload steps, a step's add: the part's id, or "
                      "the id of an assembly that comes in whole)."),
     Rule(name="a-pieces-steps-make-every-cut", kind="piece",
-         expr="every(p, where(p, nodes('part', self), len(payload(p, 'cuts', '')) > 0 "
-              "and payload(p, 'existing', '') == ''), "
-              "some(s, payload(self, 'steps'), some(c, field(s, 'cuts'), parent(p) + '/' + c == p)))",
+         expr="solve('furniture/found', where(p, nodes('part', self), len(payload(p, 'cuts', '')) > 0 "
+              "and payload(p, 'existing', '') == '' "
+              "and not some(s, payload(self, 'steps'), some(c, field(s, 'cuts'), parent(p) + '/' + c == p)))) == 0",
          description="List every part that has cuts (payload cuts) in the cuts of the assembly step that makes "
                      "them (a step's cuts: the part's id): that step's picture draws the cuts, and the cutting "
                      "sheet sends the reader to it. A cut made before the part goes in is a preparation step "
@@ -716,7 +716,7 @@ def _counter_examples() -> list[CounterExample]:
     ]
 
 
-VERSION = "0.17.0"
+VERSION = "0.18.0"
 
 
 SOLVERS = [SolverDef(name=name, native=True, reads=[""], description=(fn.__doc__ or "").strip().split("\n\n")[0])

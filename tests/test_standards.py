@@ -154,6 +154,19 @@ def test_a_parts_cuts_are_made_in_the_step_that_lists_them():
     assert all("ask" not in m for m in red["messages"].values())
 
 
+def test_the_red_names_each_part_whose_cuts_no_step_makes():
+    """Two parts with cuts, the angle and the channel, and one step that lists the angle in its cuts: the red
+    has one case, the channel, as a part (part: its path), so a reader shows it where it is."""
+    doors = sp.example_piece(notch="listed")
+    [channel] = [p for p in doors.children if p.id == "channel"]
+    channel.payload["cuts"] = [{"at": [0, 0, 11], "size": [10, 12, 1]}]
+    [steps] = [k for k in piece_cert(piece=doors)["criteria"] if k["criterion"] == "standards/piece-steps-build-it"]
+    [red] = steps["reds"]
+    assert red["rule"].endswith("a-pieces-steps-make-every-cut")
+    assert red["cases"] == [{"says": "pieces/doors/channel", "part": "pieces/doors/channel"}]
+    assert red["why"] == ["pieces/doors/channel"]
+
+
 def test_a_piece_with_cuts_and_no_steps_is_told_to_list_them():
     """A piece that says no steps at all, or steps given as bare sentences, does not hold the rule, and the rule
     still judges it rather than failing to run."""
