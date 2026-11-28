@@ -50,16 +50,41 @@ def guidance() -> Node:
             as before. A link to a part under one names it through its assemblies
             ("pieces/<id>/<assembly>/<part>"); a step's add names the part's id as before. The 3D view lists the
             piece by its assemblies: the person opens one to see it alone, a long thin one from its end."""),
+        say("assemblies-built-aside", "Parts put together before they are fitted", """
+            Parts put together on the bench before they go in (a strip glued to the back of a board, a door's
+            bar clipped under its panel) are an assembly, and the steps say so, with no sentence: a step with
+            builds, the assembly's id, puts it together away from the piece, its add naming parts of that
+            assembly and its joints the joints between them, one such step per part or group of parts; a later
+            step brings it in whole, its add naming the assembly's id and its direction, keyed by that id, the
+            side it comes from, and its joints the joints that fix it in place. A step that builds aside is
+            judged and drawn against that assembly's parts only; the assembly brought in whole comes as one,
+            against everything already in place."""),
         say("profiles", "A profile is one part", """
             A profile (an angle, a channel, a tube) is one part, never one part per face: its box is the whole
             it fits in, and its payload section is the outline of what it is across its length, points [a, b]
             in mm from its minimum corner along the two shorter sides of its box in the order of the axes (a
             profile lying along x gives [y, z]). A 12 x 12 x 1 channel open upwards along x:
             [[0,0],[12,0],[12,12],[11,12],[11,1],[1,1],[1,12],[0,12]]."""),
+        say("a-section-already-there-and-the-cut-that-fits-it", "A shape already there and the part that fits it", """
+            What is already there and is not a box (a window frame with a rebate, a moulding) is one part with
+            payload existing and payload section, its outline across its length as for a profile, not several
+            boxes. The part made to fit it takes its shape in its payload cuts: the box of a rebate or notch
+            taken out where the frame's nose goes. State the measures they share once, as params of the piece
+            (the rebate's depth and height), and write both the section's points and the cut's at and size as
+            expressions over those params, so a measure taken again moves the frame and the cut that fits it
+            together. A cut is a box: a side that runs at a slant is not drawn yet, so say so rather than
+            write it in a sentence."""),
         say("numbers-carry-their-source", "Where a number comes from", """
             Numbers carry their source: a size somebody chose is a design target, a measured one is "measured"
             with its tolerance, and a published one names where it is published. Never invent a source; say
             what is missing instead."""),
+        say("surveying-what-is-there", "Measuring what is already there", """
+            Before modelling what is already there (a window frame, a wall, a ceiling), ask the person for a
+            sketch of it by hand, photographed, seen from one side they name: one dimension per arrow, each
+            arrow saying where it starts and ends (from the plaster to the frame's inner edge, from the floor
+            to the underside of the lintel). A dimension whose ends are not said is asked again, not guessed.
+            Each one goes in as a param of the node it measures, "measured" with its tolerance, and the shapes
+            are written over those params, so a measure taken again changes one number."""),
         say("lengths-taken-where-they-go", "A part that fits between two surfaces", """
             A part that fits between two surfaces of the room (a rail from wall to wall, a door from rail to
             rail) has its length taken where it goes, not measured: link it made_with tools/pinch-sticks, whose
