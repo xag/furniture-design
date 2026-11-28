@@ -152,6 +152,13 @@ h2.foldh { margin:0; font-size:13px; font-weight:400; flex:none; }
           <label><input type="radio" name="rest" value="solid"><span>__L_SOLID__</span></label>
         </div>
       </div>
+      <div id="thererow" class="choice" hidden><span id="therelab">__L_THERE__</span>
+        <div class="seg" role="radiogroup" aria-labelledby="therelab">
+          <label><input type="radio" name="there" value="hidden"><span>__L_HIDDEN__</span></label>
+          <label><input type="radio" name="there" value="see" checked><span>__L_SEE__</span></label>
+          <label><input type="radio" name="there" value="solid"><span>__L_SOLID__</span></label>
+        </div>
+      </div>
     </div>
     <div id="sliders">
     <div id="assembly">
@@ -192,6 +199,7 @@ function offer() {
   shown_(document.getElementById('fastrow'), fast);
   shown_(document.getElementById('dimsrow'), e === 0);
   document.getElementById('restrow').hidden = !here.length || e > 0;
+  document.getElementById('thererow').hidden = !DATA.existing.length || here.length > 0 || e > 0;
   const any = fast || e === 0;
   opts.hidden = !any;
   if (!any && isOpen()) sheet(false);
@@ -262,8 +270,9 @@ DATA.parts.forEach((p, i) => {
   m.add(edges);
   scene.add(m); meshes.push(m);
 });
-// what the piece is fixed to or must clear (a lintel, a wall): drawn where it is, light and
-// see-through, in the whole piece only; never listed, picked, pulled apart or brought in by a step
+// what the piece is fixed to or must clear (a lintel, a wall): drawn where it is, in the whole piece only,
+// see-through, solid or not at all as the reader sets it (Existant); never listed, picked, pulled apart or
+// brought in by a step
 const around = DATA.existing.map(p => {
   const f = p.profile, shape = new THREE.Shape();
   f.outline.forEach(([a, b], k) => k ? shape.lineTo(a, b) : shape.moveTo(a, b));
@@ -377,7 +386,11 @@ function apply() {
   document.getElementById('stepn').textContent = n ? `${n} / ${mine.length}` : '';
   document.getElementById('steptext').textContent = k ? steps[k-1].text : '';
   const mode = rest();
-  around.forEach(m => m.visible = !groupsOf().length && !opened() && !e);
+  const seen = document.querySelector('input[name=there]:checked').value;
+  around.forEach(m => {
+    m.visible = !groupsOf().length && !opened() && !e && seen !== 'hidden';
+    look(m, seen === 'solid' ? 1 : 0.35, 0.6);
+  });
   meshes.forEach(m => {
     const p = m.userData.part, at = placedAt[p.id] || 0;
     if (!under(p)) {
@@ -410,14 +423,14 @@ function apply() {
   });
 }
 ['steps', 'explode', 'showc'].forEach(id => document.getElementById(id).addEventListener('input', apply));
-document.querySelectorAll('input[name=rest]').forEach(r => r.addEventListener('change', apply));
+document.querySelectorAll('input[name=rest], input[name=there]').forEach(r => r.addEventListener('change', apply));
 // what is drawn is remembered on this device from one view to the next, whatever the piece; where the
 // browser keeps nothing (a private window), each view starts as drawn by default
 const KEPT = 'furniture-design.display';
 try {
   const k = JSON.parse(localStorage.getItem(KEPT) || '{}');
   if (typeof k.connectors === 'boolean') document.getElementById('showc').checked = k.connectors;
-  for (const [name, v] of [['dims', k.dims], ['rest', k.rest]]) {
+  for (const [name, v] of [['dims', k.dims], ['rest', k.rest], ['there', k.there]]) {
     const r = v && document.querySelector(`input[name=${name}][value="${CSS.escape(v)}"]`);
     if (r) r.checked = true;
   }
@@ -425,7 +438,8 @@ try {
 function keep() {
   try {
     localStorage.setItem(KEPT, JSON.stringify({connectors: document.getElementById('showc').checked,
-      dims: document.querySelector('input[name=dims]:checked').value, rest: document.querySelector('input[name=rest]:checked').value}));
+      dims: document.querySelector('input[name=dims]:checked').value, rest: document.querySelector('input[name=rest]:checked').value,
+      there: document.querySelector('input[name=there]:checked').value}));
   } catch (e) { /* not kept */ }
 }
 document.querySelectorAll('#display input').forEach(i => i.addEventListener('change', keep));
@@ -883,12 +897,12 @@ WORDS = {
     "fr": {"steps": "Étape de montage", "explode": "Écarter les pièces", "fasteners": "Montrer les fixations", "alone": "Voir seule", "assembly": "Montage",
            "reset": "Réinitialiser", "parts": "Pièces", "finished": "Meuble monté. Glisser pour suivre "
            "le montage étape par étape.", "dimensions": "Cotes", "rest": "Reste du meuble",
-           "hidden": "Masqué", "see": "Transparent", "solid": "Plein", "display": "Affichage",
+           "there": "Existant", "hidden": "Masqué", "see": "Transparent", "solid": "Plein", "display": "Affichage",
            "nodims": "Masquées", "chain": "Positions", "sizes": "Tailles"},
     "en": {"steps": "Assembly step", "explode": "Pull the parts apart", "fasteners": "Show the fixings", "alone": "Show alone", "assembly": "Assembly",
            "reset": "Reset", "parts": "Parts", "finished": "Finished piece. Slide to follow the "
            "assembly step by step.", "dimensions": "Dimensions", "rest": "Rest of the piece",
-           "hidden": "Hidden", "see": "Transparent", "solid": "Solid", "display": "Display",
+           "there": "Already there", "hidden": "Hidden", "see": "Transparent", "solid": "Solid", "display": "Display",
            "nodims": "Hidden", "chain": "Positions", "sizes": "Sizes"},
 }
 
@@ -925,7 +939,7 @@ def _render(data: dict, lang: str) -> str:
             .replace("__L_STEPS__", W["steps"]).replace("__L_EXPLODE__", W["explode"])
             .replace("__L_RESET__", W["reset"])
             .replace("__L_PARTS__", W["parts"]))
-    for key in ("fasteners", "alone", "assembly", "dimensions", "rest", "hidden", "see", "solid", "display", "nodims", "chain", "sizes"):
+    for key in ("fasteners", "alone", "assembly", "dimensions", "rest", "there", "hidden", "see", "solid", "display", "nodims", "chain", "sizes"):
         page = page.replace(f"__L_{key.upper()}__", html.escape(W[key]))
     return page
 

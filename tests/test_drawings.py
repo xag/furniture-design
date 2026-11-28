@@ -616,3 +616,16 @@ def test_each_fastening_a_joint_uses_has_its_own_line_and_every_text_stays_on_th
     lines = [w for w in words if (w.get("says") or {}).get("fastener")]
     assert {w["says"]["fastener"] for w in lines} == {"connectors/example-connector", "connectors/example-long-screw"}
     assert any(w["text"] == screw.name for w in lines)
+
+
+def test_the_3d_view_lets_the_reader_hide_see_through_or_fill_what_is_already_there(tmp_path):
+    """What the piece is fixed to (walls, a ceiling) is drawn see-through by default, and a choice beside Reste du
+    meuble hides it or fills it, in both languages, kept on the device with the other settings."""
+    import re
+    for lang, word in (("fr", "Existant"), ("en", "Already there")):
+        page = drawings.documents(_tree(), BENCH, tmp_path / lang, lang=lang)["viewer"].read_text(encoding="utf-8")
+        row = re.search(r'<div id="thererow".*?</div>\s*</div>', page, re.S)
+        assert row and word in row.group(0)
+        assert re.findall(r'name="there" value="(\w+)"( checked)?', row.group(0)) == [
+            ("hidden", ""), ("see", " checked"), ("solid", "")]
+        assert "there: document.querySelector('input[name=there]:checked').value" in page
