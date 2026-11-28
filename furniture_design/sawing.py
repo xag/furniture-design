@@ -304,9 +304,10 @@ def _paper_dir(W, face, q, d):
     return x / k, y / k
 
 
-def _numbers(pen, W, face: Face, only=None):
-    """Each saw line's number just outside the edge it starts at, and a red arrow on the line from there,
-    the way it is sawn."""
+def _number_items(W, face: Face, only=None):
+    """Where each saw line's number goes, just outside the edge it starts at, and its red arrow on the line from
+    there, the way it is sawn."""
+    out = []
     for k, (p0, p1, u, n) in enumerate(face.lines, 1):
         if only is not None and k not in only:
             continue
@@ -314,16 +315,44 @@ def _numbers(pen, W, face: Face, only=None):
         ux, uy = _paper_dir(W, face, p0, u)
         a0 = W(face.P(*p0))
         b = W(face.P(p0[0] + u[0] * d * 0.6, p0[1] + u[1] * d * 0.6))
-        a = (a0[0] - ux * 1.5, a0[1] - uy * 1.5)
+        out.append({"k": k, "a": (a0[0] - ux * 1.5, a0[1] - uy * 1.5), "b": b, "at": (a0[0] - ux * 5, a0[1] - uy * 5)})
+    return out
+
+
+def _draw_numbers(pen, items):
+    for it in items:
+        a, b = it["a"], it["b"]
         pen.line(a[0], a[1], b[0], b[1], 0.7, MARK)
         pen.arrowhead(b[0], b[1], b[0] - a[0], b[1] - a[1], 2.4, MARK)
-        _number(pen, (a0[0] - ux * 5, a0[1] - uy * 5), k)
+        _number(pen, it["at"], it["k"])
 
 
-def _dims(pen, W, face: Face, gap=10.0):
-    """Each cut's distances from the edges it starts at, in mm: dimension lines beside the edge each runs
-    along, set off from the board by a fixed distance on paper."""
+def _numbers(pen, W, face: Face, only=None):
+    """Each saw line's number and arrow (_number_items), drawn."""
+    _draw_numbers(pen, _number_items(W, face, only))
+
+
+TEXT = 3.2     # mm: a distance's size on paper
+ROW = 7.0      # mm: between two dimension lines set off the same edge
+
+
+def _meets(a, b, gap=0.0) -> bool:
+    """Whether two boxes (x0, y0, x1, y1) on paper come within `gap` of each other."""
+    return a[0] < b[2] + gap and b[0] < a[2] + gap and a[1] < b[3] + gap and b[1] < a[3] + gap
+
+
+def _text_box(x, y, s, size, anchor):
+    from reportlab.pdfbase.pdfmetrics import stringWidth
+    long = stringWidth(s, "Helvetica-Bold", size * mm) / mm
+    x0 = x + {"start": 0.0, "middle": -long / 2, "end": -long}[anchor]
+    return (x0, y - 0.2 * size, x0 + long, y + 0.72 * size)
+
+
+def _spans(face: Face):
+    """Each distance to dimension: (axis along, the other axis, the edge it is set off, start, end), each once,
+    from the edges each cut starts at, the cuts' own order."""
     sz = face.size2
+    out = []
     for (lo, hi) in face.cuts2:
         for i in (0, 1):
             o = 1 - i
@@ -336,6 +365,25 @@ def _dims(pen, W, face: Face, gap=10.0):
             else:
                 spans = [(0.0, lo[i]), (lo[i], hi[i])]
             near = lo[o] <= 0.5 or (hi[o] < sz[o] - 0.5 and lo[o] < sz[o] - hi[o])
+            for a, b in spans:
+                if not any(q[:3] == (i, o, near) and abs(q[3] - a) < 0.05 and abs(q[4] - b) < 0.05 for q in out):
+                    out.append((i, o, near, a, b))
+    return out
+
+
+def _dim_items(W, face: Face, taken: list, gap=10.0):
+    """The dimension lines of _spans on paper, each distance on its own line, the shortest nearest its edge,
+    set off from the board by a fixed distance on paper, and where each one's text goes: beside its line, or,
+    for a line that runs up the paper, past the outermost line of its edge; slid along the line until it meets
+    no box of `taken` (which it joins)."""
+    sz = face.size2
+    spans = _spans(face)
+    rows: dict = {}
+    for q in sorted(spans, key=lambda q: q[4] - q[3]):
+        rows.setdefault(q[1:3], []).append(q)
+    items = []
+    for (o, near), group in rows.items():
+        for row, (i, _, _, start, end) in enumerate(group):
             edge = 0.0 if near else sz[o]
 
             def pt(x, y, i=i, o=o):
@@ -344,30 +392,63 @@ def _dims(pen, W, face: Face, gap=10.0):
                 return q
             out = [0.0, 0.0]
             out[o] = -1.0 if near else 1.0
-            for start, end in spans:
-                ea, eb = W(face.P(*pt(start, edge))), W(face.P(*pt(end, edge)))
-                dx, dy = eb[0] - ea[0], eb[1] - ea[1]
-                k_ = math.hypot(dx, dy) or 1
-                ox, oy = -dy / k_, dx / k_                     # square to the dimension, on paper
-                fx, fy = _paper_dir(W, face, pt(start, edge), out)
-                if ox * fx + oy * fy < 0:                      # away from the board
-                    ox, oy = -ox, -oy
-                pa, pb = (ea[0] + ox * gap, ea[1] + oy * gap), (eb[0] + ox * gap, eb[1] + oy * gap)
-                L_ = math.hypot(pb[0] - pa[0], pb[1] - pa[1]) or 1
-                vx, vy = (pb[0] - pa[0]) / L_, (pb[1] - pa[1]) / L_
-                if L_ >= 9:
-                    pen.line(pa[0], pa[1], pb[0], pb[1], 0.2, DIM)
-                    pen.arrowhead(pa[0], pa[1], -vx, -vy, 1.8, DIM)
-                    pen.arrowhead(pb[0], pb[1], vx, vy, 1.8, DIM)
-                else:                   # too short for arrows inside: outside, pointing in
-                    pen.line(pa[0] - vx * 7, pa[1] - vy * 7, pb[0] + vx * 7, pb[1] + vy * 7, 0.2, DIM)
-                    pen.arrowhead(pa[0], pa[1], vx, vy, 1.8, DIM)
-                    pen.arrowhead(pb[0], pb[1], -vx, -vy, 1.8, DIM)
-                for e in (ea, eb):
-                    pen.line(e[0] + ox * 1.0, e[1] + oy * 1.0, e[0] + ox * (gap + 1.8), e[1] + oy * (gap + 1.8), 0.12, DIM)
-                m = ((pa[0] + pb[0]) / 2 + ox * 5.0, (pa[1] + pb[1]) / 2 + oy * 5.0)
-                anchor = "middle" if abs(ox) < 0.5 else ("start" if ox > 0 else "end")
-                pen.text(m[0], m[1] - 1.2, f"{_fmt(end - start)} mm", 3.2, DIM, anchor, bold=True)
+            ea, eb = W(face.P(*pt(start, edge))), W(face.P(*pt(end, edge)))
+            dx, dy = eb[0] - ea[0], eb[1] - ea[1]
+            k_ = math.hypot(dx, dy) or 1
+            ox, oy = -dy / k_, dx / k_                     # square to the dimension, on paper
+            fx, fy = _paper_dir(W, face, pt(start, edge), out)
+            if ox * fx + oy * fy < 0:                      # away from the board
+                ox, oy = -ox, -oy
+            off = gap + row * ROW
+            pa, pb = (ea[0] + ox * off, ea[1] + oy * off), (eb[0] + ox * off, eb[1] + oy * off)
+            vx, vy = dx / k_, dy / k_
+            label = f"{_fmt(end - start)} mm"
+            upright = abs(ox) >= 0.5                        # the line runs up the paper: the text beside it
+            if upright:
+                anchor = "start" if ox > 0 else "end"
+                d = gap + len(group) * ROW - ROW + 3.0
+            else:
+                anchor = "middle"
+                d = off + 4.0
+            mid = ((ea[0] + eb[0]) / 2, (ea[1] + eb[1]) / 2)
+            box = None
+            for t in [0.0] + [s_ * k * 3.0 for k in range(1, 16) for s_ in (1, -1)]:
+                x, y = mid[0] + ox * d + vx * t, mid[1] + oy * d + vy * t - 1.2
+                cand = _text_box(x, y, label, TEXT, anchor)
+                if not any(_meets(cand, b, 0.6) for b in taken):
+                    box = cand
+                    break
+            if box is None:
+                x, y = mid[0] + ox * d, mid[1] + oy * d - 1.2
+                box = _text_box(x, y, label, TEXT, anchor)
+            taken.append(box)
+            items.append({"ea": ea, "eb": eb, "pa": pa, "pb": pb, "o": (ox, oy), "off": off,
+                          "text": (x, y, label, anchor), "box": box})
+    return items
+
+
+def _draw_dims(pen, items):
+    for it in items:
+        pa, pb, (ox, oy), off = it["pa"], it["pb"], it["o"], it["off"]
+        L_ = math.hypot(pb[0] - pa[0], pb[1] - pa[1]) or 1
+        vx, vy = (pb[0] - pa[0]) / L_, (pb[1] - pa[1]) / L_
+        if L_ >= 9:
+            pen.line(pa[0], pa[1], pb[0], pb[1], 0.2, DIM)
+            pen.arrowhead(pa[0], pa[1], -vx, -vy, 1.8, DIM)
+            pen.arrowhead(pb[0], pb[1], vx, vy, 1.8, DIM)
+        else:                   # too short for arrows inside: outside, pointing in
+            pen.line(pa[0] - vx * 7, pa[1] - vy * 7, pb[0] + vx * 7, pb[1] + vy * 7, 0.2, DIM)
+            pen.arrowhead(pa[0], pa[1], vx, vy, 1.8, DIM)
+            pen.arrowhead(pb[0], pb[1], -vx, -vy, 1.8, DIM)
+        for e in (it["ea"], it["eb"]):
+            pen.line(e[0] + ox * 1.0, e[1] + oy * 1.0, e[0] + ox * (off + 1.8), e[1] + oy * (off + 1.8), 0.12, DIM)
+        x, y, label, anchor = it["text"]
+        pen.text(x, y, label, TEXT, DIM, anchor, bold=True)
+
+
+def _dims(pen, W, face: Face, gap=10.0):
+    """Each cut's distances from the edges it starts at, in mm (_dim_items), drawn."""
+    _draw_dims(pen, _dim_items(W, face, [], gap))
 
 
 def _region3(face: Face, share=0.5, least=40.0, room=50.0):
@@ -504,8 +585,8 @@ def _square_inside(pen, cx, cy, r):
         pen.line(x0, top + q, x0 + sgn * q, top + q, 0.35, DIM)
 
 
-def _letter_far(pen, W, face: Face, mark):
-    """The part's letter on the board, away from the cut."""
+def _letter_at(W, face: Face):
+    """Where the part's letter goes on the board, on paper: away from the cut."""
     lo = [min(c[0][i] for c in face.cuts2) for i in range(2)]
     hi = [max(c[1][i] for c in face.cuts2) for i in range(2)]
     cm = ((lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2)
@@ -514,7 +595,12 @@ def _letter_far(pen, W, face: Face, mark):
     d = math.hypot(spot[0] - cm[0], spot[1] - cm[1]) or 1
     lx = cm[0] + (spot[0] - cm[0]) / d * reach
     ly = cm[1] + (spot[1] - cm[1]) / d * reach
-    letter(pen, W(face.P(min(max(lx, 20), face.size2[0] - 20), min(max(ly, 20), face.size2[1] - 20))), mark)
+    return W(face.P(min(max(lx, 20), face.size2[0] - 20), min(max(ly, 20), face.size2[1] - 20)))
+
+
+def _letter_far(pen, W, face: Face, mark):
+    """The part's letter on the board, away from the cut."""
+    letter(pen, _letter_at(W, face), mark)
 
 
 def _side_inside(pen, cx, cy, r, ang, waste_up, right):
@@ -550,17 +636,75 @@ def _about(pen, x, y, value, size):
 
 # --- the frames ----------------------------------------------------------------------------------
 
+def _marks_layout(W, face: Face) -> dict:
+    """The numbers, the letter and the distances of the marks frame on paper, each text clear of the others,
+    and the box they take together with the board's region drawn."""
+    nums = _number_items(W, face)
+    taken = [(it["at"][0] - 2.6, it["at"][1] - 2.6, it["at"][0] + 2.6, it["at"][1] + 2.6) for it in nums]
+    at = _letter_at(W, face)
+    taken.append((at[0] - 3.4, at[1] - 3.4, at[0] + 3.4, at[1] + 3.4))
+    dims = _dim_items(W, face, taken)
+    pts = [q for b in taken for q in ((b[0], b[1]), (b[2], b[3]))]
+    for it in nums:
+        pts += [it["a"], it["b"]]
+    for it in dims:
+        ox, oy = it["o"]
+        pts += [it["pa"], it["pb"]] + [(e[0] + ox * (it["off"] + 1.8), e[1] + oy * (it["off"] + 1.8))
+                                       for e in (it["ea"], it["eb"])]
+        if math.hypot(it["pb"][0] - it["pa"][0], it["pb"][1] - it["pa"][1]) < 9:
+            v = ((it["pb"][0] - it["pa"][0]), (it["pb"][1] - it["pa"][1]))
+            L_ = math.hypot(*v) or 1
+            pts += [(it["pa"][0] - v[0] / L_ * 7, it["pa"][1] - v[1] / L_ * 7),
+                    (it["pb"][0] + v[0] / L_ * 7, it["pb"][1] + v[1] / L_ * 7)]
+    xs, ys = [q[0] for q in pts], [q[1] for q in pts]
+    return {"nums": nums, "letter": at, "dims": dims, "bbox": (min(xs), min(ys), max(xs), max(ys))}
+
+
+def _fit_marks(face: Face, focus, area):
+    """The scale and place of the board in `area` (x, y, w, h on paper) so that its region `focus` (3D points)
+    and every mark set round it fit: the marks stand at fixed distances on paper, so the room they take is
+    found by laying them out and the board scaled into what is left. Returns the world -> paper map, the scale,
+    the drawing's bounds fitted, the board region's corner on paper, and the layout (_marks_layout)."""
+    pts = [proj(q) for q in focus]
+    x0, y0, x1, y1 = min(q[0] for q in pts), min(q[1] for q in pts), max(q[0] for q in pts), max(q[1] for q in pts)
+    dx, dy = (x1 - x0) or 1.0, (y1 - y0) or 1.0
+    ax, ay, aw, ah = area
+    extra = [0.0, 0.0, 0.0, 0.0]          # room the marks take beyond the region: left, bottom, right, top
+    for _ in range(8):
+        k = max(1e-4, min((aw - extra[0] - extra[2]) / dx, (ah - extra[1] - extra[3]) / dy))
+        ox = ax + extra[0] + (aw - extra[0] - extra[2] - dx * k) / 2
+        oy = ay + extra[1] + (ah - extra[1] - extra[3] - dy * k) / 2
+
+        def W(q, ox=ox, oy=oy, k=k):
+            u, v = proj(q)
+            return ox + (u - x0) * k, oy + (v - y0) * k
+        marks = _marks_layout(W, face)
+        bb = marks["bbox"]
+        took = [max(0.0, ox - bb[0]), max(0.0, oy - bb[1]), max(0.0, bb[2] - ox - dx * k), max(0.0, bb[3] - oy - dy * k)]
+        if all(abs(a - b) < 0.2 for a, b in zip(took, extra)):
+            break
+        extra = [max(a, b) for a, b in zip(took, extra)]
+    return W, k, (x0, y0, x1, y1), (ox, oy), marks
+
+
 def f_marks(pen, b, p: Part, qty: int, box=None, sides=True):
-    """The board as it stands in the step's picture, its cut marked, its waste hatched; with `sides`, two
-    close-ups: the blade in the waste beside the line, and on the side kept, crossed out."""
+    """The board as it stands in the step's picture, its cut marked, its waste hatched, scaled so that every mark
+    and distance set round it is inside the frame; with `sides`, two close-ups: the blade in the waste beside
+    the line, and on the side kept, crossed out."""
     face = standing(p)
-    W = _scene(pen, b, _board(face), _region3(face, share=0.6, least=60, room=60), box)
+    sb = box or scene_box(b)
+    W, k, fit, (ox, oy), marks = _fit_marks(face, _region3(face, share=0.6, least=60, room=0),
+                                            (sb[0] + 3, sb[1] + 3, sb[2] - 4, sb[3] - 9))
+    dr = la.draw(_board(face), VIEW, px=1800)
+    clip(pen, *b)
+    la.render(pen, dr, (ox, oy, (fit[2] - fit[0]) * k, (fit[3] - fit[1]) * k), line=LINE, pad=0, scale=k, fit=fit)
+    pen.c.restoreState()
     clip(pen, *b)
     _waste_hatched(pen, W, face)
     _pencil(pen, W, face)
-    _dims(pen, W, face)
-    _numbers(pen, W, face)
-    _letter_far(pen, W, face, p.mark)
+    _draw_dims(pen, marks["dims"])
+    _draw_numbers(pen, marks["nums"])
+    letter(pen, marks["letter"], p.mark)
     pen.c.restoreState()
     if sides:
         p0, p1, u, n = face.lines[0]

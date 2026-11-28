@@ -51,7 +51,9 @@ def _tree() -> Quern:
 
 
 class Drawn:
-    """What the instructions set on each page: texts with their boxes, circles, and the regions noted."""
+    """What the instructions set on each page: texts with their boxes and circles, each with how many regions
+    were noted before it (so a block's are those drawn between its note and the next block's or step's), the
+    regions noted, and the parts each step's picture brings in."""
 
     def __init__(self, monkeypatch, tmp_path, tree=None):
         self.texts, self.circles, self.regions, self.pictures = [], [], [], []
@@ -61,12 +63,12 @@ class Drawn:
             if not angle and str(s).strip():
                 long = stringWidth(str(s), "Helvetica-Bold" if bold else "Helvetica", size * 2.8346) / 2.8346
                 x0 = x + {"start": 0, "middle": -long / 2, "end": -long}[anchor]
-                self.texts.append({"page": pen.c.getPageNumber() - 1, "s": str(s), "size": size,
+                self.texts.append({"page": pen.c.getPageNumber() - 1, "s": str(s), "n": len(self.regions),
                                    "box": (x0, y - 0.2 * size, x0 + long, y + 0.72 * size)})
             return real_text(pen, x, y, s, size, color, anchor, bold, angle, **k)
 
         def circle(pen, x, y, r, *a, **k):
-            self.circles.append({"page": pen.c.getPageNumber() - 1, "at": (x, y), "r": r})
+            self.circles.append({"page": pen.c.getPageNumber() - 1, "at": (x, y), "r": r, "n": len(self.regions)})
             return real_circle(pen, x, y, r, *a, **k)
 
         def picture(pen, sc, placed_ids, new_ids, *a, **k):
@@ -79,22 +81,19 @@ class Drawn:
         assembly_instructions(self.sc, tmp_path / "montage.pdf", "fr", self.regions)
 
     def block(self, part):
-        """The cut block of a part, and its frames: (page, [x0, y0, x1, y1] of each frame, from the page's
-        bottom left)."""
+        """The cut block of a part: its page, its frames ([x0, y0, x1, y1] from the page's bottom left), and the
+        texts and circles drawn in it before its last frame is noted (a frame is noted once drawn)."""
         i = next(k for k, r in enumerate(self.regions) if r["kind"] == "block" and r.get("part") == part)
+        j = next((k for k in range(i + 1, len(self.regions)) if self.regions[k]["kind"] in ("block", "step")),
+                 len(self.regions))
         frames = []
-        for r in self.regions[i + 1:]:
-            if r["kind"] in ("block", "step"):
-                break
-            if r["kind"] == "frame":
-                x0, t0, x1, t1 = r["box"]
+        for k in range(i + 1, j):
+            if self.regions[k]["kind"] == "frame":
+                x0, t0, x1, t1 = self.regions[k]["box"]
                 frames.append((x0, 297 - t1, x1, 297 - t0))
-        return self.regions[i]["page"], frames
-
-    def inside(self, page, box):
-        x0, y0, x1, y1 = box
-        return [t for t in self.texts if t["page"] == page and x0 - 40 < t["box"][0] < x1 + 40
-                and y0 - 40 < t["box"][1] < y1 + 40]
+                j = k + 1
+        return (self.regions[i]["page"], frames, [t for t in self.texts if i < t["n"] < j],
+                [c for c in self.circles if i < c["n"] < j])
 
 
 def _overlap(a, b, gap=0.0):
@@ -113,6 +112,19 @@ def test_a_step_that_only_cuts_draws_no_picture_of_the_piece(monkeypatch, tmp_pa
         assert d.block(part)[0] == step["page"]
 
 
-def sheets_roman():
-    from furniture_design.sawing import ROMAN
-    return set(ROMAN)
+def test_a_cuts_measures_are_all_printed_inside_its_frame_and_none_over_another(monkeypatch, tmp_path):
+    """Every distance of a cut is printed, inside the frame it belongs to, and none is set over another text
+    of the frame or over a line's number."""
+    d = Drawn(monkeypatch, tmp_path)
+    for part, said in (("left", {"25 mm", "19.5 mm", "134.5 mm"}), ("top", {"25 mm", "31.5 mm"})):
+        _, frames, texts, circles = d.block(part)
+        x0, y0, x1, y1 = frames[0]
+        assert said <= {t["s"] for t in texts}, part
+        for t in texts:
+            assert x0 <= t["box"][0] and t["box"][2] <= x1 and y0 <= t["box"][1] and t["box"][3] <= y1, (part, t)
+        for a in (t for t in texts if t["s"].endswith(" mm")):
+            for b in texts:
+                assert b is a or not _overlap(a["box"], b["box"]), (part, a["s"], b["s"])
+            for c in circles:
+                (cx, cy), r = c["at"], c["r"]
+                assert not _overlap(a["box"], (cx - r, cy - r, cx + r, cy + r)), (part, a["s"])
