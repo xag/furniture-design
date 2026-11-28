@@ -50,10 +50,11 @@ SAY = {
     "piece-parts-fit": {"en": "No two parts fill the same space, and nothing already there stands in front of them",
                         "fr": "Deux pièces n'occupent jamais le même espace, et rien de ce qui est déjà là ne se "
                               "tient devant elles"},
-    "piece-steps-build-it": {"en": "The assembly steps bring in every part and close every joint, each once its "
-                                   "parts are in, and no part crosses another on its way in",
-                             "fr": "Les étapes de montage amènent chaque pièce et ferment chaque assemblage, une "
-                                   "fois ses pièces en place, et aucune pièce n'en traverse une autre en arrivant"},
+    "piece-steps-build-it": {"en": "The assembly steps bring in every part, make every part's cuts and close every "
+                                   "joint, each once its parts are in, and no part crosses another on its way in",
+                             "fr": "Les étapes de montage amènent chaque pièce, en font les découpes et ferment "
+                                   "chaque assemblage, une fois ses pièces en place, et aucune pièce n'en traverse "
+                                   "une autre en arrivant"},
     "piece-can-be-made": {"en": "Every part says what it is cut from and with, and every joint what fastens it and "
                                 "how many",
                           "fr": "Chaque pièce dit dans quoi et avec quoi elle est coupée, et chaque assemblage ce "
@@ -159,6 +160,9 @@ RED = {
     "a-pieces-steps-bring-in-every-part": {
         "en": "A part is brought in by no assembly step.",
         "fr": "Une pièce n'est amenée par aucune étape de montage."},
+    "a-pieces-steps-make-every-cut": {
+        "en": "A part has cuts that no assembly step makes.",
+        "fr": "Une pièce a des découpes qu'aucune étape de montage ne fait."},
     "a-pieces-steps-close-every-joint": {
         "en": "A joint is closed by no step, or before the parts it joins are in.",
         "fr": "Un assemblage n'est fermé par aucune étape, ou avant que ses pièces soient en place."},

@@ -19,8 +19,7 @@ all draw. Everything is read from the quern tree; nothing here is typed twice.
   direction}: `add` the part ids it brings in, `joints` the joint ids it closes,
   `prepare` true for the work done on parts before they are put together, `split` the
   glued-up parts shown as their separate sheets (the gluing step), `cuts` the parts whose
-  cuts the step makes (shown hatched; a part with cuts that no step lists is cut in the first step
-  that brings it), `direction`
+  cuts the step makes (shown hatched), `direction`
   for each added part the side it comes in from (up: lowered from above; front: slid in
   from the front; ...). Added parts with no direction are set down where they go.
 - `material_names`: how the documents name each material, by its id.
@@ -567,12 +566,6 @@ def scene(tree: Quern, piece: str) -> Scene:
         steps.append(Step(i, s.get("text", ""), add, list(s.get("joints", [])),
                           bool(s.get("prepare", False)), said, coming,
                           list(s.get("split", [])), list(s.get("cuts", [])), str(s.get("builds") or ""), wholes, keys))
-    listed = {pid for s in steps for pid in s.cuts}
-    for p in parts:    # a part with cuts no step lists is cut in the step that brings it
-        if p.cuts and p.id not in listed:
-            bringing = next((s for s in steps if p.id in s.add), None)
-            if bringing is not None:
-                bringing.cuts.append(p.id)
     info = {k: payload[k] for k in ("version", "authors", "date", "project", "use", "description")
             if k in payload}
     info["instructions"] = payload.get("instructions", "full")

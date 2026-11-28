@@ -816,7 +816,7 @@ def example_piece(*, channel_at: float = 0.0, joints: bool = True, back_guides: 
                   steps: list | None = None, flap: dict | None = None, made: bool = True,
                   fastened: bool = True, unsaid: tuple[str, ...] = (), bought: tuple[str, ...] = (),
                   doors_from: str = "down", bar: str = "", bar_joined: bool = True, lintel: bool = True,
-                  aside: bool = False, beside: float = 0.0, wall: float | None = None) -> Node:
+                  aside: bool = False, beside: float = 0.0, wall: float | None = None, notch: str = "") -> Node:
     """Two doors, 600 wide, in an opening `2 * 600 - overlap` wide; the channel `channel_at` mm from the
     flange's front edge (0: at the edge, as designed; 7: glued in the angle). The channel says neither
     what it is cut from nor with what when not `made`, and leaves out the links `unsaid` otherwise. The door
@@ -829,10 +829,13 @@ def example_piece(*, channel_at: float = 0.0, joints: bool = True, back_guides: 
     from the rail (the panel, then its bar) and brought in whole. With `beside`, a spare panel stands that far
     to the right of the opening, a thing apart from the doors. With `wall`, a wall that is already there stands
     at that y, 100 thick, across the opening and up to the lintel: 20 is behind the rail (y runs from the front to
-    the back), -100 in front of it."""
+    the back), -100 in front of it. With `notch`, the angle has a notch at its left end, in the front corner
+    of its flange: "listed", the first step lists the angle in its cuts; "unlisted", no step does."""
     sold = "the panel's maker, cut to order"
     angle = _part("angle", ["width", 20, 20], [0, 0, 1180],
                   [[0, 19], [19, 19], [19, 0], [20, 0], [20, 20], [0, 20]])
+    if notch:
+        angle.payload["cuts"] = [{"at": [0, 0, 19], "size": [10, 5, 1]}]
     channel = _part("channel", ["width", 12, 12], [0, channel_at, 1187],
                     [[0, 0], [1, 0], [1, 11], [11, 11], [11, 0], [12, 0], [12, 12], [0, 12]],
                     unsaid=unsaid if made else ("uses", "sawn_with"))
@@ -842,6 +845,8 @@ def example_piece(*, channel_at: float = 0.0, joints: bool = True, back_guides: 
                                                                  bought=sold if "front-panel" in bought else "")])
     if steps is None:
         steps = _steps_from(doors_from)
+    if notch == "listed":
+        steps = [steps[0] | {"cuts": ["angle"]}, *steps[1:]]
     if bar:
         front.children.append(_part("front-bar", [600, 10, 10], [0, channel_at + 1, 4],
                                     [[0, 0], [10, 0], [10, 10], [9, 10], [9, 1], [1, 1], [1, 10], [0, 10]]

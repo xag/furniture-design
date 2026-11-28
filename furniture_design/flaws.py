@@ -90,6 +90,7 @@ RULES = {
     "a-parts-stock-is-as-thick-as-one-of-its-sides": ("can-be-made", F),
     "a-part-is-cut-by-a-saw-that-cuts-its-material": ("can-be-made", F),
     "a-pieces-steps-bring-in-every-part": ("can-be-assembled", I),
+    "a-pieces-steps-make-every-cut": ("can-be-assembled", I),
     "a-pieces-steps-close-every-joint": ("can-be-assembled", I),
     "a-pieces-parts-reach-their-place": ("can-be-assembled", F),
     "a-step-closes-each-joint-the-way-its-connector-engages": ("can-be-assembled", F),

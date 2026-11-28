@@ -261,9 +261,10 @@ def knowledge() -> list[Node]:
         _criterion("piece-parts-fit", "No two parts fill the same space, and nothing already there stands in front "
                    "of them", "consistency", "a-pieces-parts-fill-their-own-space",
                    "a-pieces-front-is-clear-of-what-is-there", of="piece"),
-        _criterion("piece-steps-build-it", "The assembly steps bring in every part and close every joint, each "
-                   "once its parts are in, and no part crosses another on its way in", "completeness",
-                   "a-pieces-steps-bring-in-every-part", "a-pieces-steps-close-every-joint",
+        _criterion("piece-steps-build-it", "The assembly steps bring in every part, make every part's cuts and "
+                   "close every joint, each once its parts are in, and no part crosses another on its way in",
+                   "completeness", "a-pieces-steps-bring-in-every-part", "a-pieces-steps-make-every-cut",
+                   "a-pieces-steps-close-every-joint",
                    "a-pieces-parts-reach-their-place", of="piece"),
         _criterion("piece-can-be-made", "Every part says what it is cut from and with, and every joint what "
                    "fastens it and how many", "completeness", "a-pieces-parts-say-what-they-are-cut-from",
@@ -513,6 +514,14 @@ RULES = [
     Rule(name="a-pieces-steps-bring-in-every-part", kind="piece", expr="solve('furniture/steps_unplaced', self) == 0",
          description="Bring every part in by an assembly step (payload steps, a step's add: the part's id, or "
                      "the id of an assembly that comes in whole)."),
+    Rule(name="a-pieces-steps-make-every-cut", kind="piece",
+         expr="every(p, where(p, nodes('part', self), len(payload(p, 'cuts', '')) > 0 "
+              "and payload(p, 'existing', '') == ''), "
+              "some(s, payload(self, 'steps'), some(c, field(s, 'cuts'), parent(p) + '/' + c == p)))",
+         description="List every part that has cuts (payload cuts) in the cuts of the assembly step that makes "
+                     "them (a step's cuts: the part's id): that step's picture draws the cuts, and the cutting "
+                     "sheet sends the reader to it. A cut made before the part goes in is a preparation step "
+                     "(prepare: true) that lists the part in add and in cuts."),
     Rule(name="a-pieces-steps-close-every-joint", kind="piece", expr="solve('furniture/joints_misclosed', self) == 0",
          description="Close every joint in an assembly step (a step's joints), no sooner than the step that "
                      "brings in the last part it joins."),
@@ -591,7 +600,8 @@ register()
 
 
 def _examples() -> list[Node]:
-    return _world() + piece.piece_world() + drawn.example_knowledge() + [drawn.example_pages()]
+    return (_world() + piece.piece_world(piece=piece.example_piece(notch="listed")) + drawn.example_knowledge()
+            + [drawn.example_pages()])
 
 
 def _piece_case(pages: dict | None = None, **kw) -> list[Node]:
@@ -634,6 +644,8 @@ def _counter_examples() -> list[CounterExample]:
                        because="a saw whose depth nobody stated"),
         CounterExample(rule="a-pieces-steps-bring-in-every-part", nodes=_piece_case(piece=piece.example_piece(steps=piece.STEPS[:1])),
                        because="instructions that stop once the rail is up, the doors never hung"),
+        CounterExample(rule="a-pieces-steps-make-every-cut", nodes=_piece_case(piece=piece.example_piece(notch="unlisted")),
+                       because="an angle with a notch at its end that no step says to cut"),
         CounterExample(rule="a-pieces-steps-close-every-joint",
                        nodes=_piece_case(piece=piece.example_piece(steps=[{"add": ["angle", "channel", "back-panel", "front-panel"]}])),
                        because="one step that shows every part arriving and nothing fixing the rail"),
@@ -704,7 +716,7 @@ def _counter_examples() -> list[CounterExample]:
     ]
 
 
-VERSION = "0.16.1"
+VERSION = "0.17.0"
 
 
 SOLVERS = [SolverDef(name=name, native=True, reads=[""], description=(fn.__doc__ or "").strip().split("\n\n")[0])
@@ -731,7 +743,8 @@ def make_package() -> Package:
             "fixed to being a part already there (payload existing), no two parts filling the same space, what slides held on both "
             "sides, what turns carried where it turns, each with room along its travel; levels: its design says what the "
             "person asked for, it holds together and what moves in it works, its assembly instructions are shown (the "
-            "steps bring in every part and close every joint once its parts are in, every part reaches its place from "
+            "steps bring in every part, make every part's cuts and close every joint once its parts are in, every "
+            "part reaches its place from "
             "the side its step says without crossing what is there, and the pages as drawn carry no "
             "sentence, attach one kind of part a step with a line to where it goes and what fastens it, and show "
             "the parts brought in and enough of those already there: Agrawala et al. 2003 and IKEA, as clauses of "

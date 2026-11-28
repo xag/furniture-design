@@ -126,6 +126,8 @@ VOCABULARY = [
         "which names the kind of connector seat. A part with cuts links made_with the tools "
         "that cut them, each saying how it is used and resting on clauses; the documents "
         "draw each cut measured from the edges it touches and number its saw lines in order. "
+        "A part's cuts are made in the assembly step that lists the part's id in its cuts, and "
+        "only there: that step's picture draws them, and the cutting sheet sends the reader to it. "
         "A part that is a profile (an angle, a channel, a tube) states payload section: the "
         "outline of what it is across its length, a list of points [a, b] in mm from its minimum "
         "corner, a and b along the two shorter sides of its box in the order of the axes (a part "
@@ -832,7 +834,7 @@ def written_at(name: str) -> str:
     return ""
 
 
-VERSION = "0.39.0"
+VERSION = "0.40.0"
 
 
 def make_package() -> Package:

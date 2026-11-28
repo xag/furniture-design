@@ -200,13 +200,15 @@ def _notched_side(steps):
     return scene(tree, "pieces/bench-side")
 
 
-def test_a_part_with_cuts_is_cut_in_the_step_that_brings_it_unless_a_step_says_which():
-    """A notched side brought in by a step that lists no cuts is cut there, and the sheet sends the reader to
-    the instructions; a step that says it cuts the side keeps it; with no step, nothing cuts it later."""
-    sc = _notched_side([{"add": ["side"], "text": "Stand the side against the wall."}])
-    assert sc.steps[0].cuts == ["side"]
-    assert [c.cut_later for c in cuts(sc)] == [True]
+def test_a_part_with_cuts_is_cut_only_in_the_step_that_lists_it():
+    """A notched side is cut in the step that lists it in its cuts, and the sheet sends the reader to the
+    instructions; brought in by a step that lists no cuts, no step cuts it and the sheet says nothing of a cut
+    to make later (the standards' rule a-pieces-steps-make-every-cut asks for the step); with no step, the same."""
     sc = _notched_side([{"prepare": True, "cuts": ["side"], "add": ["side"]}, {"add": ["side"]}])
     assert [s.cuts for s in sc.steps] == [["side"], []]
+    assert [c.cut_later for c in cuts(sc)] == [True]
+    sc = _notched_side([{"add": ["side"], "text": "Stand the side against the wall."}])
+    assert sc.steps[0].cuts == []
+    assert [c.cut_later for c in cuts(sc)] == [False]
     sc = _notched_side(None)
     assert sc.steps == [] and [c.cut_later for c in cuts(sc)] == [False]

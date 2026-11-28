@@ -139,6 +139,38 @@ def test_instructions_are_not_at_the_level_until_the_steps_build_the_piece():
     assert "angle-to-lintel: no assembly step closes it" in whys(c)
 
 
+def test_a_parts_cuts_are_made_in_the_step_that_lists_them():
+    """An angle notched at its end: listed in the first step's cuts, the piece reaches every level; listed in
+    no step's, its instructions are not shown, and the rule says so in English and French, and asks nothing of
+    the person, since which step makes a cut is the designer's to write."""
+    assert reached(piece_cert(piece=sp.example_piece(notch="listed"))) == [
+        "piece-settled", "piece-works", "piece-buildable", "piece-instructions"]
+    c = piece_cert(piece=sp.example_piece(notch="unlisted"))
+    assert reached(c) == ["piece-settled", "piece-works", "piece-buildable"]
+    [steps] = [k for k in c["criteria"] if k["criterion"] == "standards/piece-steps-build-it"]
+    [red] = steps["reds"]
+    assert red["rule"].endswith("a-pieces-steps-make-every-cut")
+    assert red["messages"]["fr"]["red"] == "Une pièce a des découpes qu'aucune étape de montage ne fait."
+    assert all("ask" not in m for m in red["messages"].values())
+
+
+def test_a_piece_with_cuts_and_no_steps_is_told_to_list_them():
+    """A piece that says no steps at all, or steps given as bare sentences, does not hold the rule, and the rule
+    still judges it rather than failing to run."""
+    from quern import run_rules
+
+    for steps in (None, ["Cut the notch.", {"add": ["angle"]}]):
+        piece = sp.example_piece(notch="unlisted")
+        if steps is None:
+            piece.payload.pop("steps")
+        else:
+            piece.payload["steps"] = steps
+        t = Quern(vocabulary=standards.VOCABULARY, rules=standards.RULES, solvers=standards.SOLVERS)
+        t.root.children = _world() + sp.piece_world(piece=piece)
+        [verdict] = [r.verdict for r in run_rules(t) if r.rule == "a-pieces-steps-make-every-cut"]
+        assert verdict == "broken"
+
+
 def test_a_design_that_does_not_work_has_no_instructions_to_show():
     assert "piece-instructions" not in reached(piece_cert(piece=sp.example_piece(channel_at=7.0)))
 
