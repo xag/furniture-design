@@ -541,9 +541,15 @@ RULES = [
                      "the person what they cut with, or which shop cuts for them. A part bought cut to its size says "
                      "who sells it so instead (payload bought_to_size)."),
     Rule(name="a-pieces-joints-say-what-fastens-them", kind="piece",
-         expr="solve('furniture/joints_unfastened', self) == 0",
-         description="Link every joint uses to what fastens it (a connector, screws, a glue: a node of the "
-                     "knowledge, or of the person's own package) and state how many it takes (param count)."),
+         expr="solve('furniture/found', where(j, nodes('joint', self), len(linked(j, 'uses')) + dangling(j, 'uses') == 0 "
+              "or ((dangling(j, 'uses') > 0 or some(u, linked(j, 'uses'), payload(u, 'counted', 'pieces') == 'pieces')) "
+              "and not some(c, where(c, nodes('joint', self), c == j and states(c, 'count')), "
+              "param(c, 'count') >= 1)))) == 0",
+         description="Link every joint uses to what fastens it (a connector, screws, a plug, a glue: a node of "
+                     "the knowledge, or of the person's own package) and, when one of them is counted in pieces "
+                     "(its payload counted: pieces, or none stated), state how many it takes (param count). A "
+                     "glue or a mastic that bonds the faces in contact is not counted (counted: none): a joint "
+                     "it alone fastens states no count."),
     Rule(name="a-pieces-pages-carry-no-sentence", kind="piece", expr="solve('furniture/pages_worded', self) == 0",
          description="Draw what each text on the instructions' pages says, and take the text off: a count, a "
                      "size, a part's letter, the piece's name, the headings, and the names of the tools and the "
@@ -716,7 +722,7 @@ def _counter_examples() -> list[CounterExample]:
     ]
 
 
-VERSION = "0.18.0"
+VERSION = "0.19.0"
 
 
 SOLVERS = [SolverDef(name=name, native=True, reads=[""], description=(fn.__doc__ or "").strip().split("\n\n")[0])

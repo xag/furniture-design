@@ -60,7 +60,9 @@ VOCABULARY = [
         "flat (OSB, along and across the panel's length); flat (a board with no grain in its "
         "plane: particleboard, MDF, hardboard); or unstated when the source does not say) and "
         "modulus (true: corrected for shear deflection, so a shear term is added; "
-        "apparent: measured on the panel with its shear deflection in it)."),
+        "apparent: measured on the panel with its shear deflection in it). A material a joint "
+        "uses to fasten its parts (screws, a wall plug, a glue, a mastic) says how it holds and "
+        "how it is counted, as a connector does (payload holds and counted)."),
         params={"density": "kg/m3", "modulus_of_elasticity": "EL, MPa (for a panel, its "
                 "bending modulus as tested on the panel)",
                 "modulus_of_rupture": "MPa, the mean bending strength the source states",
@@ -213,7 +215,16 @@ VOCABULARY = [
         "hole states access_hole_diameter and access_hole_offset (mm, from the face its parts "
         "meet on to the hole's centre), drilled in the part whose groove is in its edge, and links "
         "drilled_with to the tool that drills it; min_end_distance and max_spacing (mm) bound where "
-        "its grooves go along the joint."),
+        "its grooves go along the joint. "
+        "How what a joint uses holds its parts, a connector's or a material's payload holds: driven "
+        "(it goes in square to the face the parts meet on, from the side of the first part the joint "
+        "joins and through it, at the joint's positions: a screw, a nail, a wall plug and its screw; a "
+        "part that stands in that line is in its way) or bonds (it bonds the faces in contact and goes "
+        "through nothing: a glue, a mastic; the documents draw the face it bonds). How it is counted, "
+        "payload counted: pieces (the joint's count of it, param count, spread along the joint unless "
+        "the joint gives its positions, and listed as that many) or none (it is not counted in pieces: "
+        "the joint states no count for it, it is placed nowhere, and the documents list it by its name "
+        "alone). A node that states neither is driven and counted in pieces."),
         params={"min_width": "mm", "min_thickness_<cut>": "mm", "pull_out_<material>": "N",
                 "shear_<material>": "N",
                 "moment_opening_<material>": "N mm, one connector's share of what a corner "
@@ -238,10 +249,13 @@ VOCABULARY = [
         "documents alike); gap (mm, a number or an expression over params), when its parts stand "
         "that far apart along one axis with shims or packing between them (a board screwed to a wall "
         "across shims): it joins them on the plane midway, and its connectors cross the gap; "
-        "param count (connectors in it). A joined part states its width; its thickness is its param "
-        "thickness, else the stock it is cut from, else its box's smallest side."),
-        params={"count": "connectors in the joint"},
-        links={"joins": "the parts it joins", "uses": "its connector",
+        "param count (how many it takes of what it uses, below). A joined part states its width; its thickness is its param "
+        "thickness, else the stock it is cut from, else its box's smallest side. What it uses says how "
+        "it holds and how it is counted (payload holds and counted, on the connector or the material): "
+        "count is the number of each of them counted in pieces (a joint glued and plugged counts its "
+        "plugs; a joint only glued states none)."),
+        params={"count": "how many of each thing it uses that is counted in pieces (connectors, screws, plugs)"},
+        links={"joins": "the parts it joins", "uses": "its connector, or what else fastens it",
                "made_with": "the tools it is cut with"}),
     KindDef(kind="climate", description=(
         "The air a piece lives in: params temperature (°C) and rh_min and rh_max, the "
@@ -834,7 +848,7 @@ def written_at(name: str) -> str:
     return ""
 
 
-VERSION = "0.41.0"
+VERSION = "0.42.0"
 
 
 def make_package() -> Package:

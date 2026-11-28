@@ -462,13 +462,17 @@ def _driven_through(tree: Quern, piece: str, n: int, step: dict, there: list, ev
     the face its joint's first two parts meet on (natives.joint_layout, where the pictures draw it), from
     the side of the first part, through that part, over the distance the picture draws parts apart by;
     a part an earlier step brought in, or one already there, that this line crosses and the joint does
-    not join stands in its way."""
+    not join stands in its way. A joint none of whose fasteners is driven in (payload holds: a glue that
+    bonds the faces in contact) drives nothing through anything."""
     base = piece.rstrip("/")
     boxes = {b.path: b for b in everything}
     out = []
     for jid in step.get("joints") or []:
         node = get_node(tree, f"{base}/{jid}")
         if node is None:
+            continue
+        uses = node.links.get("uses") or []
+        if uses and not any(natives.driven(tree, u) for u in uses):
             continue
         try:
             lay = natives.joint_layout(tree, f"{base}/{jid}", node, boxes)
@@ -542,17 +546,6 @@ def parts_unsawn(tree: Quern, piece: str) -> float:
     return float(len(_unsawn(tree, piece)))
 
 
-def _unfastened(tree: Quern, piece: str) -> list[str]:
-    out = []
-    for path, joint in _nodes(_piece(tree, piece), piece, "joint"):
-        count = joint.params.get("count")
-        if not joint.links.get("uses"):
-            out.append(f"{path}: it does not say what fastens it (uses: a connector, screws, a glue)")
-        elif count is None or count.value < 1:
-            out.append(f"{path}: it does not say how many of its connector it takes (param count)")
-    return out
-
-
 def _in_words(tree: Quern, piece: str) -> list[str]:
     out = []
     for path, joint in _nodes(_piece(tree, piece), piece, "joint"):
@@ -572,12 +565,6 @@ def joints_in_words(tree: Quern, piece: str) -> float:
     parts or assemblies of the piece. What a piece is fixed to is a part that is already there (payload
     existing)."""
     return float(len(_in_words(tree, piece)))
-
-
-def joints_unfastened(tree: Quern, piece: str) -> float:
-    """How many joints of the piece do not say what fastens them: no connector named (the link uses),
-    or no count of it (param count, at least 1)."""
-    return float(len(_unfastened(tree, piece)))
 
 
 # --- the piece's ledger ------------------------------------------------------------------------
@@ -761,7 +748,6 @@ NATIVES = {
     "furniture/found": found,
     "furniture/parts_unsourced": parts_unsourced,
     "furniture/parts_unsawn": parts_unsawn,
-    "furniture/joints_unfastened": joints_unfastened,
     "furniture/joints_in_words": joints_in_words,
     "furniture/unheld_turns": unheld_turns,
     "furniture/turn_crossings": turn_crossings,
@@ -784,7 +770,6 @@ EXPLAINERS = {
     "furniture/found": _found,
     "furniture/parts_unsourced": _unsourced,
     "furniture/parts_unsawn": _unsawn,
-    "furniture/joints_unfastened": _unfastened,
     "furniture/joints_in_words": _in_words,
     "furniture/unheld_turns": _uncarried,
     "furniture/turn_crossings": _swept,
@@ -971,11 +956,6 @@ SPEC = {
               piece=example_piece(unsaid=("sawn_with",))),
         _demo("furniture/parts_unsawn", 0, "the door panels bought cut to their size from their maker, which no "
               "saw of the person's cuts out", piece=example_piece(bought=("front-panel", "back-panel"))),
-    ],
-    "furniture/joints_unfastened": [
-        _demo("furniture/joints_unfastened", 0, "each joint names its screws and how many"),
-        _demo("furniture/joints_unfastened", 2, "an angle fixed to a lintel, a channel to the angle, and nothing "
-              "said of what holds either", piece=example_piece(fastened=False)),
     ],
     "furniture/joints_in_words": [
         _demo("furniture/joints_in_words", 0, "the angle is joined to the lintel, a part that is already there"),

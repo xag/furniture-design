@@ -34,7 +34,7 @@ from dataclasses import dataclass, field
 from quern import Quern
 from quern.tree import _segs, get_node
 
-from .natives import DIRECTIONS, _param, board, bodies, joint_layout, number, section, stock_thickness
+from .natives import DIRECTIONS, _param, board, bodies, bonds, counted, joint_layout, number, section, stock_thickness
 
 TOUCH = 0.5
 
@@ -217,6 +217,8 @@ class Joint:
     test_recess: float | None = None   # how far under the surface a test groove's connector sits
     tool_keys: list[str] = field(default_factory=list)   # the paths of its tools, as `tools` names them
     fasteners: list[tuple[str, str, tuple | None]] = field(default_factory=list)  # each thing it uses: path, name, size
+    uncounted: list[str] = field(default_factory=list)   # the paths of those not counted in pieces (counted: none)
+    bonded: bool = False       # one of them bonds the faces in contact (holds: bonds): the face is drawn
 
 
 SIDES = {(0, False): "left", (0, True): "right", (1, False): "front", (1, True): "back",
@@ -533,6 +535,10 @@ def scene(tree: Quern, piece: str) -> Scene:
         joint.tool_keys = list(links.get("made_with", []))
         joint.fasteners = [(c, get_node(tree, c).name or c.rsplit("/", 1)[-1], connector_size(tree, {"uses": [c]}))
                            for c in links.get("uses", [])]
+        joint.uncounted = [c for c in links.get("uses", []) if not counted(tree, c)]
+        joint.bonded = any(bonds(tree, c) for c in links.get("uses", []))
+        if links.get("uses") and len(joint.uncounted) == len(links["uses"]):
+            joint.count = 0      # nothing it uses is counted in pieces: a count it states counts nothing
         _seat_methods(tree, joint, links)
         joints.append(joint)
     root = get_node(tree, piece)

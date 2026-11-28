@@ -264,7 +264,7 @@ def test_a_piece_is_buildable_once_it_says_what_cuts_and_fastens_it():
     channel nobody said what to cut from, keep it from the level, and from its instructions."""
     c = piece_cert(piece=sp.example_piece(fastened=False, made=False))
     assert reached(c) == ["piece-settled", "piece-works"]
-    assert "angle-to-lintel: it does not say what fastens it" in whys(c)
+    assert "pieces/doors/angle-to-lintel" in whys(c).split(" | ")   # the joint, a case of the rule's red
     assert "channel: it does not say what cuts it out (sawn_with)" in whys(c)
 
 

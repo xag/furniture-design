@@ -91,6 +91,18 @@ def _card_words(sc: Scene, part_id: str, L: dict, lang: str) -> dict:
             "sources": [f"{src}{colon}{sep.join(locs)}" for src, locs in sources.items()]}
 
 
+def _hardware(sc: Scene, L: dict) -> list[dict]:
+    """What fastens the joints, one line per thing by its name: how many of it, the joints' count, for what is
+    counted in pieces; its name alone for what is not (counted: none, a glue)."""
+    out: dict[str, dict] = {}
+    for j in sc.joints:
+        for used, name, _size in j.fasteners or [("", "", None)]:
+            line = out.setdefault(name, {"name": name or L["unstated"]} | ({} if used in j.uncounted else {"count": 0}))
+            if "count" in line:
+                line["count"] += j.count
+    return [out[n] for n in sorted(out)]
+
+
 def screens_of(sc: Scene, regions: list[dict], cut, lang: str, places: dict | None = None) -> list[dict]:
     """The screens, from the regions the instructions noted in the order drawn; `cut` turns a region into
     an image."""
@@ -111,10 +123,7 @@ def screens_of(sc: Scene, regions: list[dict], cut, lang: str, places: dict | No
                     tools += [t for t in j.tools if t not in tools]
                 out.append({"kind": "needed", "title": L["inbox"], "boards_title": L["boards"], "boards": [],
                             "hardware_title": L["hardware"],
-                            "hardware": [{"name": n or L["unstated"],
-                                          "count": sum(j.count for j in sc.joints
-                                                       if n in [f[1] for f in j.fasteners or [("", "", None)]])}
-                                         for n in sorted({f[1] for j in sc.joints for f in j.fasteners or [("", "", None)]})],
+                            "hardware": _hardware(sc, L),
                             "tools_title": L["tools"], "tools": tools})
                 groups = tool_groups(sc, tools, places)
                 if groups[0][0] is not None:     # the tools by place, the others last: a reader that knows no place shows `tools`

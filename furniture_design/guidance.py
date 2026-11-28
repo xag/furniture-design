@@ -160,11 +160,12 @@ def guidance() -> Node:
         say("drawing-assembly-instructions", "Drawing a piece's assembly instructions", """
             Assembly instructions are for the person who builds, in any language: pictures, not sentences. On A4
             pages, first the piece whole with its name and overall size; then what is needed: each kind of part
-            once, with its letter, how many and its size, the hardware with how many of each and its name, and
-            the tools. Then the steps in order, each numbered: one kind of part brought in at a time, drawn
-            pulled away along the way it comes in with a line and an arrow to where it goes, each kind with its
-            letter; the parts already in place drawn plain and the new ones shaded, enough of them shown to place
-            the new ones; at each joint the step closes, what fastens it, where it goes and how many. A step that
+            once, with its letter, how many and its size, the hardware with how many of each and its name (a
+            glue or a mastic, which is not counted in pieces, by its name alone), and the tools. Then the steps
+            in order, each numbered: one kind of part brought in at a time, drawn pulled away along the way it
+            comes in with a line and an arrow to where it goes, each kind with its letter; the parts already in
+            place drawn plain and the new ones shaded, enough of them shown to place the new ones; at each joint
+            the step closes, what fastens it, where it goes and how many (a glue: the face it bonds). A step that
             cuts, drills or marks shows the part and the marks, a tool where it helps. Draw from the model's sizes
             to scale, and print nothing the model does not say.""", "sources/agrawala-2003",
             "sources/ikea-why-only-pictures"),

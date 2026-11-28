@@ -425,6 +425,32 @@ def draw_slots(pen: Pen, placed: Placed, positions, along_axis: int, normal_axis
         pen.poly(corners, fill=color, stroke=None)
 
 
+def draw_bond(pen: Pen, placed: Placed, joint, offset=(0, 0, 0), color=MARK):
+    """The face a joint's glue bonds (the face its parts meet on), hatched, where the glue goes."""
+    lo, hi, n = joint.face_lo, joint.face_hi, joint.normal_axis
+    u, v = [i for i in range(3) if i != n]
+    pts = []
+    for a, b in ((lo[u], lo[v]), (hi[u], lo[v]), (hi[u], hi[v]), (lo[u], hi[v])):
+        q = [0.0, 0.0, 0.0]
+        q[n], q[u], q[v] = lo[n], a, b
+        pts.append(placed(tuple(c + o for c, o in zip(q, offset))))
+    pen.poly(pts, stroke=color, w=0.3)
+    x0, y0, x1, y1 = lw.bounds(pts)
+    c = pen.c
+    c.saveState()
+    clip = c.beginPath()
+    clip.moveTo(pts[0][0] * mm, pts[0][1] * mm)
+    for x, y in pts[1:]:
+        clip.lineTo(x * mm, y * mm)
+    clip.close()
+    c.clipPath(clip, stroke=0, fill=0)
+    k = -(y1 - y0)
+    while k < x1 - x0:
+        pen.line(x0 + k, y0, x0 + k + (y1 - y0), y1, 0.15, color)
+        k += 1.2
+    c.restoreState()
+
+
 # --- the design document ---------------------------------------------------------------
 
 def _frame(pen: Pen, W: float, H: float, sc: Scene, sheet: int, sheets: int, title: str,
@@ -736,7 +762,8 @@ def _sheet_parts(c: Canvas, sc: Scene, L: dict, sheets: int) -> int:
     bottom = _parts_table(pen, 18, H - 26, rows, [12, 66, 10, 18, 18, 12, 60, 12],
                           [L["mark"], L["name"], L["qty"], L["length"], L["width"],
                            L["thickness"], L["material"], L["grain"]])
-    jrows = [[" + ".join(sc.part(i).mark for i in j.parts), (j.connector, {"connector": [j.path]}), str(j.count),
+    jrows = [[" + ".join(sc.part(i).mark for i in j.parts), (j.connector, {"connector": [j.path]}),
+              "" if j.fasteners and len(j.uncounted) == len(j.fasteners) else str(j.count),   # a glue: no count
               j.setting, ", ".join(j.tools)] for j in sc.joints]
     jbottom = bottom
     if jrows:
@@ -991,6 +1018,8 @@ def _assembly_picture(pen: Pen, sc: Scene, placed_ids: list[str], new_ids: list[
         fixed = next((i for i in j.parts if i not in new_ids), None)
         off = (0, 0, 0) if fixed in placed_ids or fixed is None else offsets.get(fixed, (0, 0, 0))
         draw_slots(pen, placed, j.positions, j.along_axis, j.normal_axis, off, size=j.size)
+        if j.bonded:
+            draw_bond(pen, placed, j, off)
     guided = []
     lined = set()
     for p in new:
@@ -1027,7 +1056,7 @@ def _assembly_picture(pen: Pen, sc: Scene, placed_ids: list[str], new_ids: list[
     return placed, {"shows": [p.id for p in old], "brings": [p.id for p in new],
                     "kinds": sorted({wholes.get(p.id) or p.mark for p in new}), "guided": guided,
                     "lettered": lettered, "wholes": sorted({wholes[p.id] for p in new if p.id in wholes}),
-                    "closes": [j.id for j in joints], "fastened": [j.id for j in joints if j.positions],
+                    "closes": [j.id for j in joints], "fastened": [j.id for j in joints if j.positions or j.bonded],
                     "visible": {p.id: max(left.get(q.id, 0.0) for q in new if wholes.get(q.id, q.id) == wholes.get(p.id, p.id))
                                 for p in new}, "context": context}
 
@@ -1205,10 +1234,11 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list
                  2.8, THIN, "middle", says={"size": [p.path]})
     yy = top - ((len(distinct) + 2) // 3 - first) * ch - 16
     fastenings: dict[str, list] = {}     # each thing that fastens: how many, its size when it states one, its joints,
-    for j in sc.joints:                  # its path; a joint that uses two (plugs and screws) counts each
-        for used, name, size in j.fasteners or [("", "", None)]:
-            kind = fastenings.setdefault(name, [0, size, [], used])
-            kind[0] += j.count
+    for j in sc.joints:                  # its path; a joint that uses two (plugs and screws) counts each, and
+        for used, name, size in j.fasteners or [("", "", None)]:   # what is not counted in pieces has no count
+            kind = fastenings.setdefault(name, [None if used in j.uncounted else 0, size, [], used])
+            if kind[0] is not None:
+                kind[0] += j.count
             kind[2].append(j.path)
     if fastenings and yy - 14 * len(fastenings) - 4 < FOOT:
         c.showPage()

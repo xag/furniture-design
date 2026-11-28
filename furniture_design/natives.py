@@ -185,11 +185,36 @@ def joint_gap(tree: Quern, jpath: str, node: Node) -> float:
     return 0.0 if v is None else number(tree, jpath, v, "gap")
 
 
+def _fastener(tree: Quern, path: str, field: str, stated_none: str) -> str:
+    """How what a joint uses at `path` holds or is counted, as its node states it (payload holds, counted: the
+    connector kind's text says what each value means and what a node that states none is)."""
+    node = get_node(tree, path)
+    return str(((node.payload or {}) if node is not None else {}).get(field) or stated_none)
+
+
+def driven(tree: Quern, path: str) -> bool:
+    """Whether what a joint uses at `path` is driven in through the first part the joint joins (payload holds:
+    driven, the kind's reading of a node that states none), rather than bonding the faces in contact (bonds)."""
+    return _fastener(tree, path, "holds", "driven") == "driven"
+
+
+def bonds(tree: Quern, path: str) -> bool:
+    """Whether what a joint uses at `path` bonds the faces in contact (payload holds: bonds)."""
+    return _fastener(tree, path, "holds", "driven") == "bonds"
+
+
+def counted(tree: Quern, path: str) -> bool:
+    """Whether what a joint uses at `path` is counted in pieces, the joint's count of it (payload counted:
+    pieces, the kind's reading of a node that states none), rather than not at all (none)."""
+    return _fastener(tree, path, "counted", "pieces") == "pieces"
+
+
 def joint_layout(tree: Quern, jpath: str, node: Node, boxes: dict) -> Layout | None:
     """The one place a joint's connectors are placed, for the checks and the documents alike:
     along the longer side of the face its parts meet on, at the middle across it, at the
     offsets the joint states (`positions`, mm from the start of that side) or else spread
-    evenly, count of them. A joint of more than two parts (a rail screwed through its two profiles
+    evenly, count of them, when something it uses is counted in pieces (`counted`): a joint only glued
+    places nothing, whatever count it states. A joint of more than two parts (a rail screwed through its two profiles
     into a lintel) places them on the face its first two meet on. None when the joint does not join
     two of `boxes`."""
     ends = [boxes.get("/".join(_segs(t))) for t in (node.links or {}).get("joins", [])][:2]
@@ -204,7 +229,8 @@ def joint_layout(tree: Quern, jpath: str, node: Node, boxes: dict) -> Layout | N
     in_plane = [i for i in range(3) if i != normal]
     along = max(in_plane, key=lambda i: hi[i] - lo[i])
     across = next(i for i in in_plane if i != along)
-    count = int(_param(tree, jpath, "count") or 0)
+    uses = (node.links or {}).get("uses") or []
+    count = int(_param(tree, jpath, "count") or 0) if not uses or any(counted(tree, u) for u in uses) else 0
     length = hi[along] - lo[along]
     stated = (node.payload or {}).get("positions")
     offsets = stated or [length * (k + 1) / (count + 1) for k in range(count)]
