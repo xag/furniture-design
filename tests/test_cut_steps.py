@@ -137,3 +137,18 @@ def test_each_pass_says_how_deep_it_goes(monkeypatch, tmp_path):
     for part, depths in (("left", ["7.5 mm", "19 mm"]), ("top", ["7.5 mm", "19 mm"])):
         said = [t["s"] for t in d.block(part)[2]]
         assert all(x in said for x in depths), (part, said)
+
+
+def test_the_lines_are_numbered_from_one_each_number_seen(monkeypatch, tmp_path):
+    """The saw lines are numbered I, II, III... with no number missing: a line two cuts share is one line, as is
+    a notch's side that runs on a longer cut's, and no number is set over another."""
+    d = Drawn(monkeypatch, tmp_path)
+    from furniture_design.sawing import ROMAN
+    for part, lines in (("left", 3), ("top", 2)):
+        _, _, texts, circles = d.block(part)
+        said = [t for t in texts if t["s"] in ROMAN]
+        assert sorted(t["s"] for t in said) == sorted(ROMAN[:lines]), part
+        circles = [c for c in circles if c["r"] == 2.6]
+        for i, a in enumerate(circles):
+            for b in circles[i + 1:]:
+                assert math.dist(a["at"], b["at"]) >= a["r"] + b["r"], part

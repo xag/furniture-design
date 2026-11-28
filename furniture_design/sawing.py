@@ -61,7 +61,31 @@ def _lines2(p, plan, cut_lo2, cut_hi2, h, v):
     return out
 
 
+def _within(a, b) -> bool:
+    """Whether segment a ((x, y), (x, y)) lies on segment b, within 0.05."""
+    (bx0, by0), (bx1, by1) = b
+    L_ = math.hypot(bx1 - bx0, by1 - by0) or 1
+    ux, uy = (bx1 - bx0) / L_, (by1 - by0) / L_
+    for x, y in a:
+        along = (x - bx0) * ux + (y - by0) * uy
+        if abs((x - bx0) * uy - (y - by0) * ux) > 0.05 or along < -0.05 or along > L_ + 0.05:
+            return False
+    return True
+
+
 def _with_sides(raw):
+    """The saw lines in order, each once: a line on another one (two cuts side by side share their common side;
+    a notch's side runs on a longer cut's) is that line; with each one's unit along and unit into its waste."""
+    kept = []
+    for q0, q1, lo, hi in raw:
+        if any(_within((q0, q1), (k[0], k[1])) for k in kept):
+            continue
+        at = next((i for i, k in enumerate(kept) if _within((k[0], k[1]), (q0, q1))), None)
+        if at is None:
+            kept.append((q0, q1, lo, hi))
+        else:
+            kept[at] = (q0, q1, lo, hi)
+    raw = kept
     lines = []
     for q0, q1, lo, hi in raw:
         ux, uy = q1[0] - q0[0], q1[1] - q0[1]
@@ -315,7 +339,12 @@ def _number_items(W, face: Face, only=None):
         ux, uy = _paper_dir(W, face, p0, u)
         a0 = W(face.P(*p0))
         b = W(face.P(p0[0] + u[0] * d * 0.6, p0[1] + u[1] * d * 0.6))
-        out.append({"k": k, "a": (a0[0] - ux * 1.5, a0[1] - uy * 1.5), "b": b, "at": (a0[0] - ux * 5, a0[1] - uy * 5)})
+        back = 5.0
+        while any(math.dist((a0[0] - ux * back, a0[1] - uy * back), o["at"]) < 2 * 2.6 + 0.6 for o in out):
+            back += 2 * 2.6 + 1.0                          # out past a number already there, its arrow longer
+        at = (a0[0] - ux * back, a0[1] - uy * back)
+        out.append({"k": k, "a": (at[0] + ux * 2.6, at[1] + uy * 2.6) if back > 5 else (a0[0] - ux * 1.5, a0[1] - uy * 1.5),
+                    "b": b, "at": at})
     return out
 
 
