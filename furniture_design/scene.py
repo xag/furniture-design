@@ -34,7 +34,7 @@ from dataclasses import dataclass, field
 from quern import Quern
 from quern.tree import _segs, get_node
 
-from .natives import DIRECTIONS, _param, bodies, joint_layout, number, section
+from .natives import DIRECTIONS, _param, board, bodies, joint_layout, number, section, stock_thickness
 
 TOUCH = 0.5
 
@@ -73,6 +73,11 @@ class Part:
     section: list[tuple[float, float]] = field(default_factory=list)  # a profile's outline across its length, from lo
     bought: str = ""   # who sells it cut to its size (payload bought_to_size), when no saw cuts it out here
     existing: str = ""  # what it is, when it is already there (payload existing): drawn in the steps, never listed
+    stock: float | None = None  # the thickness of the board it is cut from (payload stock_thickness), when stated
+
+    def board(self) -> tuple[float, float, float]:
+        """Its face's two sides, longest first, and the thickness of one of its sheets (natives.board)."""
+        return board(self.size, self.sheets, self.stock, self.path)
 
     @property
     def size(self) -> tuple[float, float, float]:
@@ -502,7 +507,8 @@ def scene(tree: Quern, piece: str) -> Scene:
                           tuple(b.lo), tuple(b.hi), material, label,
                           payload.get("span_along", ""),
                           int(payload.get("sheets", 1)), cuts, tools, saws, within,
-                          section(tree, b.path, node), str(payload.get("bought_to_size") or ""), b.existing))
+                          section(tree, b.path, node), str(payload.get("bought_to_size") or ""), b.existing,
+                          stock_thickness(tree, b.path, node)))
     by_path = {p.path: p for p in parts}
     there, parts = [p for p in parts if p.existing], [p for p in parts if not p.existing]
     joints = []

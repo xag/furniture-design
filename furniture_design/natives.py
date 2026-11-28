@@ -31,6 +31,7 @@ from quern.tree import Node, Quern, _segs, get_node, register_native, resolve_pa
 
 from .units import STANDARD_GRAVITY
 
+STOCK_MM = 0.05  # a side this near a part's stock thickness is that thickness: the documents print tenths
 TOUCH_MM = 0.5  # a part whose bottom is this close to the lowest bottom stands on the floor
 # The side an assembly step brings a part in from (a step's `direction`): "up", lowered from
 # above, moves it down; "front", slid in from the front, moves it towards the back.
@@ -257,6 +258,45 @@ def section(tree, path: str, node) -> list[tuple[float, float]]:
             raise ValueError(f"part '{path}' section point ({a:g}, {b:g}) lies outside its box, "
                              f"{across[0]:g} by {across[1]:g} mm across its length")
     return out
+
+
+def stock_thickness(tree, path: str, node) -> float | None:
+    """mm: the thickness of the board a part's sheets are cut from (payload stock_thickness, a number or an
+    expression over params), when it says; None when its box's smallest side is that thickness."""
+    v = (node.payload or {}).get("stock_thickness")
+    return None if v is None else number(tree, path, v, "stock thickness")
+
+
+def board(size, sheets: int = 1, stock: float | None = None, path: str = "") -> tuple[float, float, float]:
+    """A part as the board it is cut from: the two sides of its face, longest first, then the thickness of
+    one of its sheets. Its thickness is its box's smallest side over its sheets, unless it states the stock
+    it is cut from (stock_thickness): then it is that, and its face is its two other sides, so a shim
+    18 x 22 x 35 cut from 22 mm stock is 35 by 18 by 22. Refused when no side is its sheets times its stock."""
+    dims = sorted(size, reverse=True)
+    if stock is None:
+        return dims[0], dims[1], dims[2] / sheets
+    i = min(range(3), key=lambda k: abs(dims[k] - stock * sheets))
+    if abs(dims[i] - stock * sheets) > STOCK_MM:
+        raise ValueError(f"part '{path}' is cut from stock {stock:g} mm thick"
+                         + (f", {sheets} sheets glued" if sheets > 1 else "")
+                         + f", and none of its sides ({' x '.join(f'{d:g}' for d in dims)}) is {stock * sheets:g}")
+    face = [d for k, d in enumerate(dims) if k != i]
+    return face[0], face[1], stock
+
+
+def off_stock(tree: Quern, part: str) -> float:
+    """mm: how far the nearest of a part's box sides is from the thickness of the stock it says it is cut
+    from (payload stock_thickness) times its sheets; 0 when one is within STOCK_MM of it, or when it states
+    no stock."""
+    node = get_node(tree, part)
+    if node is None:
+        raise ValueError(f"no part at '{part}'")
+    stock = stock_thickness(tree, part, node)
+    if stock is None:
+        return 0.0
+    t = stock * int((node.payload or {}).get("sheets", 1))
+    gap = min(abs(d - t) for d in _size(tree, part, node))
+    return 0.0 if gap <= STOCK_MM else gap
 
 
 def _share(tree, path: str, node, size) -> float:
@@ -784,6 +824,7 @@ NATIVES = {
     "furniture/tipping_cases": tipping_cases,
     "furniture/unheld": unheld,
     "furniture/narrow_margin": narrow_margin,
+    "furniture/off_stock": off_stock,
     "furniture/misfit_closings": misfit_closings,
 }
 

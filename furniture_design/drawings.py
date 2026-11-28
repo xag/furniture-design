@@ -21,7 +21,7 @@ from pathlib import Path
 from quern import Quern, run_rules
 from quern.tree import get_node
 
-from .natives import Body, _param, bodies
+from .natives import Body, _param, board, bodies, stock_thickness
 
 LABELS = {
     "fr": {"front": "Vue de face", "side": "Coupe au milieu, vue de gauche", "top": "Vue de dessus",
@@ -79,9 +79,9 @@ def cut_list(tree: Quern, piece: str) -> list[Row]:
     groups: OrderedDict[tuple, Row] = OrderedDict()
     for b in bodies(tree, piece):
         node = get_node(tree, b.path)
-        dims = sorted((h - lo for lo, h in zip(b.lo, b.hi)), reverse=True)
         sheets = int((node.payload or {}).get("sheets", 1))
-        dims[2] = dims[2] / sheets
+        dims = list(board([h - lo for lo, h in zip(b.lo, b.hi)], sheets, stock_thickness(tree, b.path, node),
+                          b.path))
         uses = (node.links or {}).get("uses", [])
         material = uses[0].rsplit("/", 1)[-1] if uses else ""
         grain = (node.payload or {}).get("span_along", "")

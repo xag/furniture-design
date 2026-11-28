@@ -151,3 +151,40 @@ def test_a_panels_title_and_its_reference_never_overlap(tmp_path):
         refs = [r for t, r in spans if ref in t]
         assert refs and not any(r.intersects(title) for r in refs)
         assert all(r.x1 <= 210 / 25.4 * 72 for r in refs)
+
+
+def _shim(stock):
+    """The bench with a shim 18 x 20 x 35 under its top, cut from the bench's 20 mm board when `stock` is
+    20: its thickness is then 20, not its smallest side."""
+    from quern.tree import Node
+    tree = _tree()
+    top = tree.get(f"{BENCH}/top")
+    bench = tree.get(BENCH)
+    bench.children.append(Node(id="shim", kind="part", links={"uses": list(top.links["uses"])},
+                               payload={"shape": {"op": "box", "size": [18, 20, 35]},
+                                        "transform": {"translate": [400, 0, 415]},
+                                        **({"stock_thickness": stock} if stock is not None else {})}))
+    return tree
+
+
+def test_a_part_cut_from_thicker_stock_is_laid_on_that_stock():
+    """A shim 18 x 20 x 35 cut from the 20 mm board the rest is cut from goes on that board, its face 35 by
+    18; read by its smallest side it would be 18 thick and want an 18 mm panel of its own."""
+    sc = scene(_shim(20), BENCH)
+    shim = next(c for c in cuts(sc) if c.name == "shim")
+    assert (shim.length, shim.width, shim.thickness) == (35, 18, 20)
+    stock = {sc.parts[0].material: [{"length": 2500, "width": 1220, "ref": "123"}]}
+    assert [round(group[0].thickness, 1) for group, _, _ in layout(sc, stock)] == [20]
+    plain = next(c for c in cuts(scene(_shim(None), BENCH)) if c.name == "shim")
+    assert (plain.length, plain.width, plain.thickness) == (35, 20, 18)
+
+
+def test_a_part_whose_stock_is_none_of_its_sides_is_refused():
+    import pytest
+    from quern import run_rules
+    tree = _shim(22)
+    with pytest.raises(ValueError, match="22"):
+        cuts(scene(tree, BENCH))
+    red = [r for r in run_rules(tree) if not r.ok and r.node == f"{BENCH}/shim"]
+    assert [r.rule for r in red] == ["a-parts-stock-is-as-thick-as-one-of-its-sides"]
+    assert not [r for r in run_rules(_shim(20)) if not r.ok and r.node == f"{BENCH}/shim"]

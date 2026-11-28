@@ -95,14 +95,13 @@ def cuts(sc: Scene) -> list[Cut]:
     for p in sc.parts:
         if p.bought:
             continue
-        dims = sorted(p.size, reverse=True)
-        a, b = dims[0], dims[1]
+        a, b, t = p.board()
         if "across" in (p.grain or ""):
             a, b = b, a
         for _ in range(p.sheets):
             known = [(k, n) for n, k in p.saws if k is not None]
             kerf, saw = max(known) if known and len(known) == len(p.saws) else (None, "")
-            out.append(Cut(p.mark, p.name, a, b, dims[2] / p.sheets, p.material, p.material_name, bool(p.cuts),
+            out.append(Cut(p.mark, p.name, a, b, t, p.material, p.material_name, bool(p.cuts),
                            p.sheets, kerf, saw, p.path))
     return out
 

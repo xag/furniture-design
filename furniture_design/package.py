@@ -135,7 +135,11 @@ VOCABULARY = [
         "part, never one part per face. "
         "A part links sawn_with the saws that cut it out of its board: each must cut as deep "
         "as one of its sheets is thick and state the width it takes out, which the cutting "
-        "sheet leaves between parts. A part bought cut to its size (a panel its maker cuts to "
+        "sheet leaves between parts. A part whose smallest side is not the thickness of the board it is "
+        "cut from (a shim 18 x 22 x 35 cut from 22 mm stock) states payload stock_thickness, that board's "
+        "thickness in mm (a number or an expression over params), and one of its sides is that thick (its "
+        "sheets times it when glued up): the cutting sheet and the parts lists give its face as its two "
+        "other sides and lay it on that stock. A part bought cut to its size (a panel its maker cuts to "
         "order) states payload bought_to_size, who sells it so, and links no saw: the cutting "
         "sheet leaves it out."),
         params={"mass": "kg, when it is not its volume times its material's density",
@@ -332,6 +336,11 @@ RULES = [
          expr="solve('furniture/narrow_margin', self) >= 0",
          description="A part is no narrower than the narrowest part every saw it is cut out with "
                      "cuts (a shop's cutting service's min_part_width; furniture/narrow_margin)."),
+    Rule(name="a-parts-stock-is-as-thick-as-one-of-its-sides", kind="part",
+         expr="solve('furniture/off_stock', self) == 0",
+         description="A part that states the stock it is cut from (payload stock_thickness) has a side "
+                     "that thick, its sheets times it when glued up (furniture/off_stock): the cutting "
+                     "sheet lays it on that stock, its face its two other sides."),
     Rule(name="a-part-is-cut-by-a-saw-that-cuts-its-material", kind="part",
          expr="every(t, linked(self, 'sawn_with'), every(m, linked(t, 'refuses'), "
               "every(u, linked(self, 'uses'), m != u)))",
@@ -631,7 +640,8 @@ def _seat(back_count: float = 4, steps: list[dict] | None = None) -> Node:
                           joint("back-right", "right", 2)])
 
 
-def _notched(cut_with: str, sawn_with: str = "tools/example-saw", thickness: float = 18) -> Node:
+def _notched(cut_with: str, sawn_with: str = "tools/example-saw", thickness: float = 18,
+             stock: float | None = None) -> Node:
     """A bench's side standing against a wall, cut out of its board with `sawn_with` and notched
     at its bottom back corner for the skirting board with `cut_with`."""
     side = Node(id="side", kind="part", links={"uses": ["materials/birch-yellow"],
@@ -641,7 +651,8 @@ def _notched(cut_with: str, sawn_with: str = "tools/example-saw", thickness: flo
                         "skirting_depth": _target(25, "mm", "the skirting's depth, and room")},
                 payload={"shape": {"op": "box", "size": [18, 300, 450]},
                          "cuts": [{"at": [0, "300 - skirting_depth", 0],
-                                   "size": [18, "skirting_depth", "skirting_height"]}]})
+                                   "size": [18, "skirting_depth", "skirting_height"]}],
+                         **({"stock_thickness": stock} if stock is not None else {})})
     return Node(id="bench-side", kind="piece", children=[side])
 
 
@@ -649,7 +660,7 @@ def _world(*, chest: Node | None = None, sag_limit: float = 4.0, clearance: floa
            rh_max: float = 0.65, books_kg: float = 30, span_along: str = "grain",
            back_count: float = 4, cut_with: str = "tools/crosscut-saw",
            sawn_with: str = "tools/example-saw", side_thickness: float = 18,
-           seat_steps: list[dict] | None = None, **joinery) -> list[Node]:
+           side_stock: float | None = None, seat_steps: list[dict] | None = None, **joinery) -> list[Node]:
     kb = knowledge()
     sag, bookshelf = _shelf(sag_limit, books_kg, span_along)
     kb[2].children.append(sag)
@@ -658,7 +669,7 @@ def _world(*, chest: Node | None = None, sag_limit: float = 4.0, clearance: floa
     kb[0].children.append(catalogue)
     return merge(kb, hardware) + [climates, Node(id="pieces", kind="", children=[
         chest or _chest(), bookshelf, cabinet, box, _seat(back_count, seat_steps),
-        _notched(cut_with, sawn_with, side_thickness)])]
+        _notched(cut_with, sawn_with, side_thickness, side_stock)])]
 
 
 _UNQUOTED = Node(id="sources", kind="", children=[
@@ -698,6 +709,9 @@ def _counter_examples() -> list[CounterExample]:
         CounterExample(rule="a-part-is-no-narrower-than-its-saw-cuts",
                        nodes=_world(sawn_with="tools/example-shop"),
                        because="a side 300 mm wide, cut by a shop that cuts nothing narrower than 350"),
+        CounterExample(rule="a-parts-stock-is-as-thick-as-one-of-its-sides", nodes=_world(side_stock=22),
+                       because="a side 18 x 300 x 450 said to be cut from 22 mm stock: no side of it is 22, "
+                               "so no board of the cutting sheet is the one it comes from"),
         CounterExample(rule="a-part-is-cut-by-a-saw-that-cuts-its-material",
                        nodes=_world(sawn_with="tools/example-shop"),
                        because="a birch side handed to a shop that does not cut birch"),
@@ -815,7 +829,7 @@ def make_package() -> Package:
             "stability cases (furniture/tipping_cases); a part bends within its longtime sag "
             "limit (Wood Handbook Eq. 9-2 to 9-4 and its creep guidance, furniture/deflection, with no shear term for a panel whose modulus was measured on the panel); a part is strong enough (Eq. 9-13 against the near-minimum modulus of rupture over the Handbook's factor for 10-year duration of load and safety); a part bends the way its material's values were measured; a seat carries the light-service sidethrust of GSA's FNAE-80-214A through a panel in the push's plane (furniture/sideways_margin); a part that swells and "
             "shrinks with the air has room to (Eq. 13-3, the moisture content of its climate from "
-            "Eq. 4-5, kind climate), and is judged only where that equation holds; a joint is cut with a tool its connector takes, at its setting, in parts thick and wide enough for it (kinds tool, connector, joint; a maker's products are data in a package of their own); a part with cuts is cut with tools that rest on clauses saying how they are used; a part is cut out of its board with saws that state, from their makers' clauses, the width they take out (which the cutting sheet leaves between parts) and that cut through each of its sheets, and no narrower than or of a material its saws refuse (a shop's cutting service's rules, furniture/narrow_margin); an assembly step brings each part in square to the face of every joint it closes whose connector engages square, never sliding it along that face (furniture/misfit_closings). The rules carry no "
+            "Eq. 4-5, kind climate), and is judged only where that equation holds; a joint is cut with a tool its connector takes, at its setting, in parts thick and wide enough for it (kinds tool, connector, joint; a maker's products are data in a package of their own); a part with cuts is cut with tools that rest on clauses saying how they are used; a part is cut out of its board with saws that state, from their makers' clauses, the width they take out (which the cutting sheet leaves between parts) and that cut through each of its sheets, and no narrower than or of a material its saws refuse (a shop's cutting service's rules, furniture/narrow_margin); a part that states the stock it is cut from has a side that thick (furniture/off_stock); an assembly step brings each part in square to the face of every joint it closes whose connector engages square, never sliding it along that face (furniture/misfit_closings). The rules carry no "
             "number a source states: limits and properties are read from the knowledge base. "
             "Every published shelf and beam deflection limit found is a clause a design chooses its own "
             "sag limit from; none is a requirement every part is held to."),

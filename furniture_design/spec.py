@@ -162,6 +162,14 @@ def strip(width: float, saws: dict[str, float | None]) -> list[Node]:
     return [Node(id="tools", kind="", children=tools), Node(id="bench", kind="piece", children=[rail])]
 
 
+def shim(stock: float | None, sheets: int = 1) -> list[Node]:
+    """A shim 18 x 22 x 35 cut from stock `stock` mm thick (None: it states none), of `sheets` sheets."""
+    payload = {"shape": {"op": "box", "size": [18, 22, 35]}, "sheets": sheets}
+    if stock is not None:
+        payload["stock_thickness"] = stock
+    return [Node(id="bench", kind="piece", children=[Node(id="shim", kind="part", payload=payload)])]
+
+
 def shelf_between(steps: list[dict], engages: str | None = "square") -> list[Node]:
     """Two sides 18 thick, 300 deep, 400 tall, 780 apart outside, and a shelf 744 long between
     them at 200, each end joined to a side by a connector that engages as `engages` (None: it
@@ -226,6 +234,16 @@ SPEC = {
           because="no saw states a narrowest cut: the margin is the cut width itself"),
         d("narrow_margin", strip(120, {"a": 100, "b": 110}), ["bench/rail"], expect=10,
           because="cut with two saws, it is held to the stricter, 110"),
+    ],
+    "furniture/off_stock": [
+        d("off_stock", shim(22), ["bench/shim"], expect=0,
+          because="cut from 22 mm stock, and its 22 side is that thickness"),
+        d("off_stock", shim(None), ["bench/shim"], expect=0,
+          because="it states no stock: its smallest side, 18, is its thickness"),
+        d("off_stock", shim(25), ["bench/shim"], expect=3,
+          because="25 mm stock, and its nearest side is 22: 3 mm off"),
+        d("off_stock", shim(11, sheets=2), ["bench/shim"], expect=0,
+          because="two sheets of 11 mm stock glued make its 22 side"),
     ],
     "furniture/sideways_margin": [
         d("sideways_margin", braced(), ["seat", "requirements/across"], expect=275,

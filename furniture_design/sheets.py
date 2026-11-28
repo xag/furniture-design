@@ -1200,8 +1200,8 @@ def assembly_instructions(sc: Scene, path: Path, lang: str = "fr", regions: list
         pen.circle(x + 6, y + ch - 8, 4.2, fill=white, w=0.4)
         pen.text(x + 6, y + ch - 9.6, p.mark, 4.6, INK, "middle", bold=True)
         pen.text(x + cw / 2, y + 3, f"{qty[p.mark]} ×", 5, INK, "middle", bold=True)
-        dims = sorted(p.size, reverse=True)
-        pen.text(x + cw / 2, y - 2, f"{_fmt(dims[0])} × {_fmt(dims[1])} × {_fmt(dims[2] / p.sheets)}",
+        dims = p.board()
+        pen.text(x + cw / 2, y - 2, f"{_fmt(dims[0])} × {_fmt(dims[1])} × {_fmt(dims[2])}",
                  2.8, THIN, "middle", says={"size": [p.path]})
     yy = top - ((len(distinct) + 2) // 3 - first) * ch - 16
     fastenings: dict[str, list] = {}     # each thing that fastens: how many, its size when it states one, its joints,

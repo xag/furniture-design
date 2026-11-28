@@ -87,6 +87,7 @@ RULES = {
     "a-part-is-sawn-with-a-saw-that-states-its-cut": ("can-be-made", I),
     "a-part-is-no-thicker-than-its-saw-cuts": ("can-be-made", F),
     "a-part-is-no-narrower-than-its-saw-cuts": ("can-be-made", F),
+    "a-parts-stock-is-as-thick-as-one-of-its-sides": ("can-be-made", F),
     "a-part-is-cut-by-a-saw-that-cuts-its-material": ("can-be-made", F),
     "a-pieces-steps-bring-in-every-part": ("can-be-assembled", I),
     "a-pieces-steps-close-every-joint": ("can-be-assembled", I),
@@ -138,6 +139,9 @@ RED = {
                                                "fr": "Une pièce est plus épaisse que ce que sa scie traverse."},
     "a-part-is-no-narrower-than-its-saw-cuts": {"en": "A part is narrower than its saw can cut.",
                                                 "fr": "Une pièce est plus étroite que ce que sa scie peut couper."},
+    "a-parts-stock-is-as-thick-as-one-of-its-sides": {
+        "en": "A part is said to be cut from a board none of its sides is as thick as.",
+        "fr": "Une pièce est dite débitée dans un panneau dont aucune de ses cotes n'a l'épaisseur."},
     "a-part-is-cut-by-a-saw-that-cuts-its-material": {
         "en": "A part is cut by a saw or a shop that does not cut its material.",
         "fr": "Une pièce est coupée par une scie ou un magasin qui ne coupe pas son matériau."},
@@ -173,6 +177,9 @@ UNSETTLED = {
                                                "fr": "On ne sait pas si sa scie traverse une pièce."},
     "a-part-is-no-narrower-than-its-saw-cuts": {"en": "Whether its saw can cut a part this narrow is not known.",
                                                 "fr": "On ne sait pas si sa scie peut couper une pièce aussi étroite."},
+    "a-parts-stock-is-as-thick-as-one-of-its-sides": {
+        "en": "Whether a part has a side as thick as the board it is cut from is not known.",
+        "fr": "On ne sait pas si une pièce a une cote de l'épaisseur du panneau où elle est débitée."},
     "a-part-is-cut-by-a-saw-that-cuts-its-material": {
         "en": "Whether its saw cuts a part's material is not known.",
         "fr": "On ne sait pas si sa scie coupe le matériau d'une pièce."},
