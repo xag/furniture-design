@@ -299,6 +299,21 @@ def off_stock(tree: Quern, part: str) -> float:
     return 0.0 if gap <= STOCK_MM else gap
 
 
+def thickness(tree: Quern, part: str) -> float:
+    """mm: how thick a part is, all its sheets together: its param thickness when it states one; else the
+    stock it is cut from (payload stock_thickness) times its sheets; else its box's smallest side."""
+    node = get_node(tree, part)
+    if node is None:
+        raise ValueError(f"no part at '{part}'")
+    stated = _param(tree, part, "thickness")
+    if stated is not None:
+        return stated
+    stock = stock_thickness(tree, part, node)
+    if stock is not None:
+        return stock * int((node.payload or {}).get("sheets", 1))
+    return min(_size(tree, part, node))
+
+
 def _share(tree, path: str, node, size) -> float:
     """The share of its box a part fills: its section's area over the box's, 1 for a whole box."""
     pts = section(tree, path, node)
@@ -825,6 +840,7 @@ NATIVES = {
     "furniture/unheld": unheld,
     "furniture/narrow_margin": narrow_margin,
     "furniture/off_stock": off_stock,
+    "furniture/thickness": thickness,
     "furniture/misfit_closings": misfit_closings,
 }
 

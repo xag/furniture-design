@@ -162,6 +162,14 @@ def strip(width: float, saws: dict[str, float | None]) -> list[Node]:
     return [Node(id="tools", kind="", children=tools), Node(id="bench", kind="piece", children=[rail])]
 
 
+def thick_strip(t: float) -> list[Node]:
+    """The rail of strip() with no saw, stating a thickness param of `t` mm."""
+    nodes = strip(75, {})
+    nodes[1].children[0].params["thickness"] = Quantity(value=t, unit="mm", provenance="design-target",
+                                                        grounded=False)
+    return nodes
+
+
 def shim(stock: float | None, sheets: int = 1) -> list[Node]:
     """A shim 18 x 22 x 35 cut from stock `stock` mm thick (None: it states none), of `sheets` sheets."""
     payload = {"shape": {"op": "box", "size": [18, 22, 35]}, "sheets": sheets}
@@ -234,6 +242,16 @@ SPEC = {
           because="no saw states a narrowest cut: the margin is the cut width itself"),
         d("narrow_margin", strip(120, {"a": 100, "b": 110}), ["bench/rail"], expect=10,
           because="cut with two saws, it is held to the stricter, 110"),
+    ],
+    "furniture/thickness": [
+        d("thickness", strip(75, {}), ["bench/rail"], expect=18,
+          because="a rail 744 x 18 x 75 that states no thickness: its box's smallest side"),
+        d("thickness", shim(22), ["bench/shim"], expect=22,
+          because="a shim 18 x 22 x 35 cut from 22 mm stock: the stock, not its smallest side"),
+        d("thickness", shim(11, sheets=2), ["bench/shim"], expect=22,
+          because="two sheets of 11 mm stock glued: 22"),
+        d("thickness", thick_strip(19), ["bench/rail"], expect=19,
+          because="a thickness param stated is read as it is, whatever its box"),
     ],
     "furniture/off_stock": [
         d("off_stock", shim(22), ["bench/shim"], expect=0,

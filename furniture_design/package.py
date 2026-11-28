@@ -144,7 +144,8 @@ VOCABULARY = [
         "sheet leaves it out."),
         params={"mass": "kg, when it is not its volume times its material's density",
                 "span": "mm between supports", "depth": "mm, the beam's width b",
-                "thickness": "mm, the beam's depth h, and a joined panel's thickness",
+                "thickness": "mm, the beam's depth h, and a joined panel's thickness (a joined or sawn "
+                             "part that states none is as thick as its stock, else its box's smallest side)",
                 "width": "mm, a joined panel's width", "storage_volume": "mm3",
                 "clearance": "mm the part may grow across the grain before it is stopped"},
         links={"uses": "its material", "bends_as": "the Table 9-1 clause for its loading "
@@ -291,11 +292,12 @@ RULES = [
          description="A connector links `per` to the clauses its limits come from."),
     Rule(name="a-joined-part-is-thick-enough-for-the-cut", kind="joint",
          expr="every(c, where(c, linked(self, 'uses'), kind(c) == 'connector'), every(p, linked(self, 'joins'), "
-              "param(p, 'thickness') >= param(c, 'min_thickness_' + payload(self, 'cut'))))",
+              "solve('furniture/thickness', p) >= param(c, 'min_thickness_' + payload(self, 'cut'))))",
          description="Every part a joint fastened by a connector joins is at least as thick as "
                      "its connector allows for the kind of cut the joint is (the connector's "
-                     "min_thickness_<cut>). A joint fastened otherwise (screws, a glue) is not "
-                     "judged by it."),
+                     "min_thickness_<cut>). A part's thickness is its param thickness, else the stock "
+                     "it is cut from, else its box's smallest side (furniture/thickness). A joint "
+                     "fastened otherwise (screws, a glue) is not judged by it."),
     Rule(name="a-joined-part-is-wide-enough", kind="joint",
          expr="every(c, where(c, linked(self, 'uses'), kind(c) == 'connector'), "
               "every(p, linked(self, 'joins'), param(p, 'width') >= param(c, 'min_width')))",
@@ -327,8 +329,10 @@ RULES = [
                      "and the measure stated on a saw of the design's own."),
     Rule(name="a-part-is-no-thicker-than-its-saw-cuts", kind="part",
          expr="every(t, linked(self, 'sawn_with'), "
-              "param(self, 'thickness') / payload(self, 'sheets', 1) <= param(t, 'max_cut_depth'))",
-         description="Each sheet of a part (its thickness over the sheets glued into it) is no "
+              "solve('furniture/thickness', self) / payload(self, 'sheets', 1) <= param(t, 'max_cut_depth'))",
+         description="Each sheet of a part (its thickness over the sheets glued into it; its "
+                     "thickness its param, else its stock, else its box's smallest side: "
+                     "furniture/thickness) is no "
                      "thicker than every saw it is cut out with cuts through at 90°, as that "
                      "saw's maker states it; a saw whose maker states no depth leaves the check "
                      "absent, not passed."),
