@@ -2,7 +2,8 @@
 language: the parts as the saw cuts them (rectangles, length along the grain), then, for each
 material and thickness, the panels to buy and where each part sits on them, drawn to scale with
 the grain of the panel and of every part. A part's own cuts (a notch) are made afterwards, as the
-assembly instructions say, so the sheet lists its rectangle.
+assembly instructions say, so the sheet lists its rectangle, and sends the reader to the
+instructions only when a step there cuts it.
 
 What can be bought is the caller's: `stock` maps a material (its path, as a part's `uses` names
 it, or its id) to the sheets sold of it, each {"length", "width", "ref"} in mm, length along the
@@ -92,6 +93,7 @@ def cuts(sc: Scene) -> list[Cut]:
     """Every rectangle to cut, one per board: a part glued up from several sheets is that many. A part
     bought cut to its size (Part.bought) is no rectangle to cut."""
     out = []
+    cut_in_a_step = {pid for s in sc.steps for pid in s.cuts}
     for p in sc.parts:
         if p.bought:
             continue
@@ -101,7 +103,8 @@ def cuts(sc: Scene) -> list[Cut]:
         for _ in range(p.sheets):
             known = [(k, n) for n, k in p.saws if k is not None]
             kerf, saw = max(known) if known and len(known) == len(p.saws) else (None, "")
-            out.append(Cut(p.mark, p.name, a, b, t, p.material, p.material_name, bool(p.cuts),
+            out.append(Cut(p.mark, p.name, a, b, t, p.material, p.material_name,
+                           bool(p.cuts) and p.id in cut_in_a_step,
                            p.sheets, kerf, saw, p.path))
     return out
 

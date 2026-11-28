@@ -188,3 +188,23 @@ def test_a_part_whose_stock_is_none_of_its_sides_is_refused():
     red = [r for r in run_rules(tree) if not r.ok and r.node == f"{BENCH}/shim"]
     assert [r.rule for r in red] == ["a-parts-stock-is-as-thick-as-one-of-its-sides"]
     assert not [r for r in run_rules(_shim(20)) if not r.ok and r.node == f"{BENCH}/shim"]
+
+
+def _notched_side(steps):
+    tree = Quern(vocabulary=PACKAGE.vocabulary, rules=PACKAGE.rules, solvers=PACKAGE.solvers)
+    tree.root.children = [n.model_copy(deep=True) for n in EXAMPLES]
+    if steps is not None:
+        tree.get("pieces/bench-side").payload = {"steps": steps}
+    return scene(tree, "pieces/bench-side")
+
+
+def test_a_part_with_cuts_is_cut_in_the_step_that_brings_it_unless_a_step_says_which():
+    """A notched side brought in by a step that lists no cuts is cut there, and the sheet sends the reader to
+    the instructions; a step that says it cuts the side keeps it; with no step, nothing cuts it later."""
+    sc = _notched_side([{"add": ["side"], "text": "Stand the side against the wall."}])
+    assert sc.steps[0].cuts == ["side"]
+    assert [c.cut_later for c in cuts(sc)] == [True]
+    sc = _notched_side([{"prepare": True, "cuts": ["side"], "add": ["side"]}, {"add": ["side"]}])
+    assert [s.cuts for s in sc.steps] == [["side"], []]
+    sc = _notched_side(None)
+    assert sc.steps == [] and [c.cut_later for c in cuts(sc)] == [False]
